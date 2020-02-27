@@ -1,0 +1,16 @@
+{% from 'ess:templates/macros/icons.jinja2' import icon -%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>{% block title %}Experiment Support System{% endblock title %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ 'ess:static/theme.css'|static_url }}" media="screen">
+</head>
+<body>
+  {% block body %}
+  {% endblock body %}
+  <script src="{{ 'ess:static/plugins.js'|static_url }}"></script>
+</body>
+</html>

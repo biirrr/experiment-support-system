@@ -1,0 +1,10 @@
+@import 'settings';
+@import 'foundation';
+
+@include foundation-everything;
+
+@import 'generic';
+@import 'icons';
+@import 'forms';
+
+@import 'verification';

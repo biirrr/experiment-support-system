@@ -1,0 +1,38 @@
+form {
+    .buttons {
+        margin-top: $global-margin;
+        display: flex;
+
+        ul {
+            flex: 1 1 auto;
+            display: flex;
+            align-items: center;
+            margin: 0;
+
+            &:first-child {
+                justify-content: flex-start;
+
+                li {
+                    margin-right: $global-margin;
+                }
+            }
+
+            &:last-child {
+                justify-content: flex-end;
+
+                li {
+                    margin-left: $global-margin;
+                }
+            }
+
+            li {
+                flex: 0 0 auto;
+                list-style-type: none;
+
+                button {
+                    margin-bottom: 0;
+                }
+            }
+        }
+    }
+}

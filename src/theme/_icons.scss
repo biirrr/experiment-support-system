@@ -1,0 +1,32 @@
+/*
+ * Icon styling
+ */
+.icon {
+
+    &.mdi {
+        width: 24px;
+        height: 24px;
+    }
+
+    path, g {
+        fill: $black;
+        transition: fill 0.1s ease;
+    }
+}
+
+a {
+    .icon {
+        path, g {
+            fill: $anchor-color;
+        }
+
+    }
+
+    &:hover {
+        .icon {
+            path, g {
+                fill: $anchor-color-hover;
+            }
+        }
+    }
+}

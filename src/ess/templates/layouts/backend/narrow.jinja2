@@ -1,0 +1,14 @@
+{% extends 'base.jinja2' %}
+
+{% block body %}
+  <div class="show-for-large">
+  </div>
+  {% include '_no-small.jinja2' %}
+  <div class="grid-container">
+    <div class="grid-x grid-padding-x">
+      <div class="small-6 small-offset-3">
+        {% block main %}{% endblock main %}
+      </div>
+    </div>
+  </div>
+{% endblock body %}

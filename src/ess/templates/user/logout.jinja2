@@ -1,0 +1,18 @@
+{% extends 'ess:templates/layouts/backend/narrow.jinja2' %}
+
+{% block title %}Experiment Support System | Sign out{% endblock title %}
+
+{% block main %}
+{% from 'ess:templates/macros/forms.jinja2' import field with context %}
+<h1>Sign out</h1>
+<form action="{{ 'user.logout'|route_url() }}" method="post">
+  <div class="buttons">
+    <ul>
+      <li><a href="{{ 'root'|route_url() }}">&larr; Don't sign out</a></li>
+    </ul>
+    <ul>
+      <li><button class="button primary">Sign out</button></li>
+    </ul>
+  </div>
+</form>
+{% endblock main %}

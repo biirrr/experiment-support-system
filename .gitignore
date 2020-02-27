@@ -1,0 +1,5 @@
+node_modules
+development.ini
+production.ini
+ess.sqlite
+*.egg-info

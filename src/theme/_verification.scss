@@ -1,0 +1,31 @@
+.verification {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+
+    label {
+        margin: 0;
+        flex: 0 0 auto;
+        width: auto;
+
+        input {
+            position: absolute;
+            left: -100px;
+            top: -100px;
+
+            &:checked + svg {
+                border: 1px solid $primary-color;
+            }
+        }
+
+        svg {
+            cursor: pointer;
+            display: block;
+            border: 1px solid $medium-gray;
+            transition: border-color 0.1s linear;
+            padding: $global-margin/2;
+            margin: $global-margin/2;
+            box-sizing: content-box;
+        }
+    }
+}

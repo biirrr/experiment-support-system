@@ -1,0 +1,20 @@
+{% extends 'ess:templates/layouts/backend/narrow.jinja2' %}
+
+{% block title %}Experiment Support System | Set your Password{% endblock title %}
+
+{% block main %}
+{% from 'ess:templates/macros/forms.jinja2' import field with context %}
+<h1>Set your Password</h1>
+<form action="{{ 'user.confirm'|route_url(email=request.matchdict['email'], token=request.matchdict['token']) }}" method="post" class="margin-top">
+  {{ field('password', 'password', 'Password') }}
+  {{ field('confirm_password', 'password', 'Confirm your Password') }}
+  <div class="buttons">
+    <ul>
+      <li><a href="{{ 'root'|route_url() }}">&larr; Don't set your Password</a></li>
+    </ul>
+    <ul>
+      <li><button class="button primary">Set your Password</button></li>
+    </ul>
+  </div>
+</form>
+{% endblock main %}
