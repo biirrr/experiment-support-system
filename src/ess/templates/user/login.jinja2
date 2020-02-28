@@ -12,9 +12,9 @@
   {{ field('password', 'password', 'Password') }}
   <div class="buttons">
     <ul>
-      <li><a href="{{ request|decode_route() }}">&larr; Don't sign in</a></li>
-      <li><a href="{{ 'user.forgotten_password'|route_url() }}">Request a new Password</a></li>
-      <li><a href="{{ 'user.register'|route_url() }}">Register</a></li>
+      <li><a href="{{ request|decode_route() }}" class="button clear">&larr; Don't sign in</a></li>
+      <li><a href="{{ 'user.forgotten_password'|route_url() }}" class="button clear">Request a new Password</a></li>
+      <li><a href="{{ 'user.register'|route_url() }}" class="button clear">Register</a></li>
     </ul>
     <ul>
       <li><button class="button primary">Sign in</button></li>

@@ -11,7 +11,7 @@
   {{ field('description', 'textarea', 'Description') }}
   <div class="buttons">
     <ul>
-      <li><a href="{{ 'user.experiments'|route_url(uid=request.current_user.id) }}">&larr; Don't create</a></li>
+      <li><a href="{{ 'user.experiments'|route_url(uid=request.current_user.id) }}" class="button clear">&larr; Don't create</a></li>
     </ul>
     <ul>
       <li><button class="button primary">Create</button></li>
