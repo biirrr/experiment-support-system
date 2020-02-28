@@ -21,8 +21,10 @@
       <ul class="menu">
         <li><a href="{{ 'user.view'|route_url(uid=request.current_user.id) }}">Overview</a></li>
         <li class="is-active"><a href="{{ 'user.experiments'|route_url(uid=request.current_user.id) }}">Experiments</a></li>
-        <li class="expander"></li>
-        <li><a href="{{ 'experiment.create'|route_url }}" aria-label="Create a new experiment" title="Create a new experiment">{{ icon('plus') }}</a></li>
+        {% if request|permitted('experiment.create') %}
+          <li class="expander"></li>
+          <li><a href="{{ 'experiment.create'|route_url }}" aria-label="Create a new experiment" title="Create a new experiment">{{ icon('plus') }}</a></li>
+        {% endif %}
       </ul>
     </nav>
     <ul class="no-bullet experiment-list">
