@@ -1,0 +1,42 @@
+{% from 'ess:templates/macros/icons.jinja2' import icon -%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>{% block title %}Experiment Support System{% endblock title %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ 'ess:static/backend.css'|static_url }}" media="screen">
+</head>
+<body>
+  {% if request.current_user %}
+    <div class="show-for-large">
+      <header class="top-bar margin-bottom">
+        <nav class="top-bar-left">
+          <ul class="menu">
+            <li class="menu-text">Experiment Support System</li>
+            {% if request|logged_in %}
+              <li><a href="{{ 'user.experiments'|route_url(uid=request.current_user.id) }}">Experiments</a></li>
+            {% endif %}
+          </ul>
+        </nav>
+        <nav class="top-bar-right">
+          <ul class="dropdown menu">
+            {% if request|logged_in %}
+              <li><a href="{{ 'user.view'|route_url(uid=request.current_user.id) }}">{{ request.current_user.attributes.name }}</a></li>
+              <li><a href="{{ 'user.logout'|route_url }}" data-action="post-link" data-csrf-token="{{ request|get_csrf_token }}">Sign out</a></li>
+            {% else %}
+              <li><a href="{{ 'user.login'|route_url(_query={'redirect': request|encode_route}) }}">Sign in</a></li>
+              <li><a href="{{ 'user.register'|route_url }}">Sign up</a></li>
+            {% endif %}
+          </ul>
+        </nav>
+      </header>
+    </div>
+  {% endif %}
+  <div class="grid-container">
+    {% block main %}
+    {% endblock main %}
+  </div>
+</body>
+</html>
