@@ -1,5 +1,6 @@
 from binascii import unhexlify
 from decorator import decorator
+from pyramid.csrf import get_csrf_token
 from pyramid.httpexceptions import HTTPFound
 from pyramid_nacl_session import EncryptedCookieSessionFactory
 from sqlalchemy import and_
@@ -47,4 +48,7 @@ def includeme(config):
         reify=True
     )
 
+    config.set_default_csrf_options(require_csrf=True)
+
     config.get_jinja2_environment().filters['logged_in'] = logged_in
+    config.get_jinja2_environment().filters['get_csrf_token'] = get_csrf_token

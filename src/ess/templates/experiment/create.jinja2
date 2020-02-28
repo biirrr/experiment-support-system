@@ -1,0 +1,21 @@
+{% extends 'ess:templates/layouts/backend/narrow.jinja2' %}
+
+{% block title %}Create a New Experiment{% endblock title %}
+
+{% block main %}
+{% from 'ess:templates/macros/forms.jinja2' import field, csrf_token with context %}
+<h1>Create a new Experiment</h1>
+<form action="{{ 'experiment.create'|route_url }}" method="post">
+  {{ csrf_token() }}
+  {{ field('title', 'text', 'Title') }}
+  {{ field('description', 'textarea', 'Description') }}
+  <div class="buttons">
+    <ul>
+      <li><a href="{{ 'user.experiments'|route_url(uid=request.current_user.id) }}">&larr; Don't create</a></li>
+    </ul>
+    <ul>
+      <li><button class="button primary">Create</button></li>
+    </ul>
+  </div>
+</form>
+{% endblock main %}

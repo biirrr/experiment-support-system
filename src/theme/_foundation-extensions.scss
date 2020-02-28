@@ -1,0 +1,18 @@
+.button {
+    &.light-gray {
+        background: $light-gray;
+        color: $black;
+
+        &:hover {
+            background: scale-color($light-gray, $lightness: -14%);;
+        }
+    }
+}
+
+.menu {
+    li {
+        &.expander {
+            flex: 1 1 auto;
+        }
+    }
+}

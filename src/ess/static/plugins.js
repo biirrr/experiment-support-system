@@ -111,6 +111,13 @@
                         let form = document.createElement('form');
                         form.setAttribute('action', anchor.getAttribute('href'));
                         form.setAttribute('method', 'post');
+                        if (anchor.getAttribute('data-csrf-token')) {
+                            let token = document.createElement('input');
+                            token.setAttribute('type', 'hidden');
+                            token.setAttribute('name', 'csrf_token');
+                            token.setAttribute('value', anchor.getAttribute('data-csrf-token'));
+                            form.append(token);
+                        }
                         anchor.append(form);
                         form.submit();
                     }
@@ -118,6 +125,13 @@
                     let form = document.createElement('form');
                     form.setAttribute('action', anchor.getAttribute('href'));
                     form.setAttribute('method', 'post');
+                    if (anchor.getAttribute('data-csrf-token')) {
+                        let token = document.createElement('input');
+                        token.setAttribute('type', 'hidden');
+                        token.setAttribute('name', 'csrf_token');
+                        token.setAttribute('value', anchor.getAttribute('data-csrf-token'));
+                        form.append(token);
+                    }
                     anchor.append(form);
                     form.submit();
                 }

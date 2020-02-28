@@ -1,5 +1,9 @@
 {% macro input(name, type, attributes={}) %}
-<input type="{{ type }}" name="{{ name }}" {% for key, value in attributes.items() %}{{ key }}="{{ value }}"{% endfor %} {% if errors is defined and name in errors %} class="is-invalid-input"{% endif %} {% if values is defined and name in values %}value="{{ values[name] }}"{% endif %}/>
+{% if type == 'textarea' %}
+  <textarea name="{{ name }}" {% for key, value in attributes.items() %}{{ key }}="{{ value }}"{% endfor %} {% if errors is defined and name in errors %} class="is-invalid-input"{% endif %}>{% if values is defined and name in values %}{{ values[name] }}{% endif %}</textarea>
+{% else %}
+  <input type="{{ type }}" name="{{ name }}" {% for key, value in attributes.items() %}{{ key }}="{{ value }}"{% endfor %} {% if errors is defined and name in errors %} class="is-invalid-input"{% endif %} {% if values is defined and name in values %}value="{{ values[name] }}"{% endif %}/>
+{% endif %}
 {% endmacro %}
 
 {% macro field(name, type, label, attributes={}) %}
@@ -19,4 +23,8 @@
   </select>
   {% if errors is defined and name in errors %}<span class="message">{{ errors[name]|map('capitalize')|join(' ') }}</span>{% endif %}
 </label>
+{% endmacro %}
+
+{% macro csrf_token() %}
+{{ input('csrf_token', 'hidden', attributes={'value': request|get_csrf_token }) }}
 {% endmacro %}

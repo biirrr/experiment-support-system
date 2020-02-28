@@ -37,7 +37,7 @@ gulp.task('theme:static', function(cb) {
 gulp.task('theme:styles', function(cb) {
     pump([
         gulp.src([
-            'src/theme/app.scss'
+            'src/theme/backend.scss'
         ]),
         sass({
             includePaths: ['node_modules/foundation-sites/scss']
@@ -45,7 +45,6 @@ gulp.task('theme:styles', function(cb) {
         autoprefixer({
             cascade: false
         }),
-        concat('theme.css'),
         gulp.dest('src/ess/static/')
     ], cb);
 });

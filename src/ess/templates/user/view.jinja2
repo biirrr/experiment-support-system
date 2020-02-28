@@ -1,0 +1,28 @@
+{% extends 'ess:templates/layouts/backend/wide.jinja2' %}
+
+{% block title %}{{ request.current_user.attributes.name }}{% endblock title %}
+
+{% block main %}
+<div class="grid-x grid-padding-x">
+  <div class="cell large-3">
+    <h1>{{ request.current_user.attributes.name }}</h1>
+    <div>
+      <a href="" class="button small light-gray full-width">Edit your profile</a>
+    </div>
+    <ul class="no-bullet">
+      <li class="icon-text small">
+        <span>{{ icon('email-outline', cls='dark-gray') }}</span>
+        <span><a href="mailto:{{ request.current_user.email }}">{{ request.current_user.email }}</a></span>
+      </li>
+    </ul>
+  </div>
+  <div class="cell large-9">
+    <nav>
+      <ul class="menu">
+        <li class="is-active"><a href="{{ 'user.view'|route_url(uid=request.current_user.id) }}">Overview</a></li>
+        <li><a href="{{ 'user.experiments'|route_url(uid=request.current_user.id) }}">Experiments</a></li>
+      </ul>
+    </nav>
+  </div>
+</div>
+{% endblock main %}

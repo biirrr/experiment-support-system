@@ -1,0 +1,44 @@
+{% extends 'ess:templates/layouts/backend/wide.jinja2' %}
+
+{% block title %}Your Experiments{% endblock title %}
+
+{% block main %}
+<div class="grid-x grid-padding-x">
+  <div class="cell large-3">
+    <h1>{{ request.current_user.attributes.name }}</h1>
+    <div>
+      <a href="" class="button small light-gray full-width">Edit your profile</a>
+    </div>
+    <ul class="no-bullet">
+      <li class="icon-text small">
+        <span>{{ icon('email-outline', cls='dark-gray') }}</span>
+        <span><a href="mailto:{{ request.current_user.email }}">{{ request.current_user.email }}</a></span>
+      </li>
+    </ul>
+  </div>
+  <div class="cell large-9">
+    <nav>
+      <ul class="menu">
+        <li><a href="{{ 'user.view'|route_url(uid=request.current_user.id) }}">Overview</a></li>
+        <li class="is-active"><a href="{{ 'user.experiments'|route_url(uid=request.current_user.id) }}">Experiments</a></li>
+        <li class="expander"></li>
+        <li><a href="{{ 'experiment.create'|route_url }}" aria-label="Create a new experiment" title="Create a new experiment">{{ icon('plus') }}</a></li>
+      </ul>
+    </nav>
+    <ul class="no-bullet experiment-list">
+      {% for experiment in experiments %}
+        <li>
+          <h2><a href="{{ 'experiment.edit'|route_url(eid=experiment.id) }}">{{ experiment.title }}</a></h2>
+          <p>{{ experiment.description }}</p>
+          <ul class="menu simple">
+            <li class="icon-text small">
+              <span>{{ icon('checkbox-blank-circle', cls='medium-gray') }}</span>
+              <span>{{ experiment.status|title }}</span>
+            </li>
+          </ul>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock main %}

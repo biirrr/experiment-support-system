@@ -8,7 +8,7 @@ from random import sample, choice
 from secrets import token_hex
 from sqlalchemy import and_
 
-from ..models import User
+from ..models import User, Experiment, ExperimentPermission
 from ..permissions import require_permission, check_permission, PERMISSIONS, GROUPS
 from ..routes import decode_route
 from ..util import get_config_setting, send_email, Validator
@@ -36,7 +36,9 @@ register_schema = {'email': {'type': 'string',
                             'empty': False},
                    'icon': {'type': 'string',
                             'required': True,
-                            'allowed': []}}
+                            'allowed': []},
+                   'csrf_token': {'type': 'string',
+                                  'empty': False}}
 VALIDATION_ICONS = [('pencil', 'pencil'), ('anvil', 'anvil'), ('tree', 'tree'), ('water', 'water'), ('cloud', 'cloud'),
                     ('flower', 'flower'), ('elephant', 'elephant'), ('airplane', 'plane'),
                     ('airballoon', 'hot air balloon'), ('bus', 'bus'), ('fingerprint', 'fingerprint'),
@@ -106,7 +108,8 @@ Experiment Support System
 
 
 confirmation_schema = {'password': {'type': 'string', 'empty': False},
-                       'confirm_password': {'type': 'string', 'empty': False, 'matches': 'password'}}
+                       'confirm_password': {'type': 'string', 'empty': False, 'matches': 'password'},
+                       'csrf_token': {'type': 'string', 'empty': False}}
 
 
 @view_config(route_name='user.confirm', renderer='ess:templates/user/confirm.jinja2')
@@ -141,7 +144,8 @@ def confirm(request):
 
 login_schema = {'email': {'type': 'string', 'empty': False, 'validator': valid_email},
                 'password': {'type': 'string', 'empty': False},
-                'redirect': {'type': 'string'}}
+                'redirect': {'type': 'string'},
+                'csrf_token': {'type': 'string', 'empty': False}}
 
 
 @view_config(route_name='user.login', renderer='ess:templates/user/login.jinja2')
@@ -170,7 +174,8 @@ def login(request):
     return {}
 
 
-forgotten_password_schema = {'email': {'type': 'string', 'empty': False, 'validator': valid_email}}
+forgotten_password_schema = {'email': {'type': 'string', 'empty': False, 'validator': valid_email},
+                             'csrf_token': {'type': 'string', 'empty': False}}
 
 
 @view_config(route_name='user.forgotten_password', renderer='ess:templates/user/forgotten_password.jinja2')
@@ -216,3 +221,18 @@ def logout(request):
         request.session.clear()
         return HTTPFound(location=request.route_url('root'))
     return {}
+
+
+@view_config(route_name='user.view', renderer='ess:templates/user/view.jinja2')
+@require_permission('users.admin or @view user :uid')
+def view(request):
+    return {}
+
+
+@view_config(route_name='user.experiments', renderer='ess:templates/user/experiments.jinja2')
+@require_permission('users.admin or @view user :uid')
+def experiments(request):
+    experiments = request.dbsession.query(Experiment).\
+        join(ExperimentPermission).\
+        filter(ExperimentPermission.user_id == request.current_user.id)
+    return {'experiments': experiments}

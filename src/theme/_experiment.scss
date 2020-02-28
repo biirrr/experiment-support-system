@@ -1,0 +1,7 @@
+.experiment-list {
+    > li {
+        border-bottom: 1px solid $light-gray;
+        padding-bottom: $global-padding;
+        margin-bottom: $global-margin;
+    }
+}

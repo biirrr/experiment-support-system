@@ -4,13 +4,30 @@
 .icon {
 
     &.mdi {
-        width: 24px;
-        height: 24px;
+        width: 18px;
+        height: 18px;
+
+            &.small {
+                width: 14px;
+                height: 14px;
+            }
     }
 
     path, g {
         fill: $black;
         transition: fill 0.1s ease;
+    }
+
+    &.medium-gray {
+        path, g {
+            fill: $medium-gray;
+        }
+    }
+
+    &.dark-gray {
+        path, g {
+            fill: $dark-gray;
+        }
     }
 }
 
@@ -26,6 +43,38 @@ a {
         .icon {
             path, g {
                 fill: $anchor-color-hover;
+            }
+        }
+    }
+}
+
+.icon-text {
+    display: flex;
+    flex-direction: row;
+
+    > span {
+        &:first-child {
+            flex: 0 0 auto;
+            padding-right: rem-calc(5);
+            padding-top: rem-calc(3);
+        }
+
+        &:last-child {
+            flex: 1 1 auto;
+        }
+    }
+
+    &.small {
+        font-size: $small-font-size;
+
+        > span {
+            &:first-child {
+                padding-top: rem-calc(2);
+            }
+            
+            .icon {
+                width: 14px;
+                height: 15px;
             }
         }
     }

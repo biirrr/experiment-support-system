@@ -3,9 +3,10 @@
 {% block title %}Experiment Support System | Set your Password{% endblock title %}
 
 {% block main %}
-{% from 'ess:templates/macros/forms.jinja2' import field with context %}
+{% from 'ess:templates/macros/forms.jinja2' import field, csrf_token with context %}
 <h1>Set your Password</h1>
 <form action="{{ 'user.confirm'|route_url(email=request.matchdict['email'], token=request.matchdict['token']) }}" method="post" class="margin-top">
+  {{ csrf_token() }}
   {{ field('password', 'password', 'Password') }}
   {{ field('confirm_password', 'password', 'Confirm your Password') }}
   <div class="buttons">

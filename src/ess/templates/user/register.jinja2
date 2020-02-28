@@ -3,9 +3,10 @@
 {% block title %}Experiment Support System | Sign up{% endblock title %}
 
 {% block main %}
-{% from 'ess:templates/macros/forms.jinja2' import field with context %}
+{% from 'ess:templates/macros/forms.jinja2' import field, csrf_token with context %}
 <h1>Sign up</h1>
 <form action="{{ 'user.register'|route_url }}" method="post">
+  {{ csrf_token() }}
   {{ field('email', 'email', 'E-Mail Address') }}
   {{ field('name', 'text', 'Name') }}
   <div class="margin-top">

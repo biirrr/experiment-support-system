@@ -59,6 +59,11 @@ def includeme(config):
     config.add_route('user.login', '/users/login')
     config.add_route('user.logout', '/users/logout')
     config.add_route('user.forgotten_password', '/users/forgotten_password')
+    config.add_route('user.view', '/users/:uid')
+    config.add_route('user.experiments', '/users/:uid/experiments')
+
+    config.add_route('experiment.create', '/experiments/create')
+    config.add_route('experiment.edit', '/experiments/:eid/edit')
 
     # Jinja2 configuration
     config.get_jinja2_environment().filters['static_url'] = static_url_filter

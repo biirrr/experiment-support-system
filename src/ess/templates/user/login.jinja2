@@ -3,9 +3,10 @@
 {% block title %}Experiment Support System | Log in{% endblock title %}
 
 {% block main %}
-{% from 'ess:templates/macros/forms.jinja2' import field with context %}
+{% from 'ess:templates/macros/forms.jinja2' import field, csrf_token with context %}
 <h1>Sign in</h1>
 <form action="{{ 'user.login'|route_url() }}" method="post">
+  {{ csrf_token() }}
   <input type="hidden" name="redirect" value="{{ request.params.redirect }}"/>
   {{ field('email', 'email', 'E-Mail Address') }}
   {{ field('password', 'password', 'Password') }}

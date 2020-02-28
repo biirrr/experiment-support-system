@@ -3,9 +3,10 @@
 {% block title %}Experiment Support System | Sign out{% endblock title %}
 
 {% block main %}
-{% from 'ess:templates/macros/forms.jinja2' import field with context %}
+{% from 'ess:templates/macros/forms.jinja2' import csrf_token with context %}
 <h1>Sign out</h1>
 <form action="{{ 'user.logout'|route_url() }}" method="post">
+  {{ csrf_token() }}
   <div class="buttons">
     <ul>
       <li><a href="{{ 'root'|route_url() }}">&larr; Don't sign out</a></li>

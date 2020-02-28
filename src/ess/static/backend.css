@@ -603,7 +603,7 @@ a {
 
 hr {
   clear: both;
-  max-width: 75rem;
+  max-width: 80rem;
   height: 0;
   margin: 1.25rem auto;
   border-top: 0;
@@ -809,7 +809,7 @@ ul.no-bullet, ol.no-bullet {
 .grid-container {
   padding-right: 0.625rem;
   padding-left: 0.625rem;
-  max-width: 75rem;
+  max-width: 80rem;
   margin-left: auto;
   margin-right: auto; }
   @media print, screen and (min-width: 40em) {
@@ -4382,21 +4382,21 @@ html.is-reveal-open {
   @media print, screen and (min-width: 40em) {
     .reveal {
       width: 600px;
-      max-width: 75rem; } }
+      max-width: 80rem; } }
   .reveal.collapse {
     padding: 0; }
   @media print, screen and (min-width: 40em) {
     .reveal.tiny {
       width: 30%;
-      max-width: 75rem; } }
+      max-width: 80rem; } }
   @media print, screen and (min-width: 40em) {
     .reveal.small {
       width: 50%;
-      max-width: 75rem; } }
+      max-width: 80rem; } }
   @media print, screen and (min-width: 40em) {
     .reveal.large {
       width: 90%;
-      max-width: 75rem; } }
+      max-width: 80rem; } }
   .reveal.full {
     top: 0;
     right: 0;
@@ -4797,22 +4797,63 @@ html.is-reveal-open {
 .margin-top {
   margin-top: 1rem; }
 
+.margin-bottom {
+  margin-bottom: 1rem; }
+
+.align-middle {
+  vertical-align: middle; }
+
+.padding-left {
+  padding-left: 1rem; }
+
+.padding-right {
+  padding-right: 1rem; }
+
+.full-width {
+  width: 100%; }
+
 /*
  * Icon styling
  */
 .icon.mdi {
-  width: 24px;
-  height: 24px; }
+  width: 18px;
+  height: 18px; }
+  .icon.mdi.small {
+    width: 14px;
+    height: 14px; }
 
 .icon path, .icon g {
   fill: #0a0a0a;
   transition: fill 0.1s ease; }
+
+.icon.medium-gray path, .icon.medium-gray g {
+  fill: #cacaca; }
+
+.icon.dark-gray path, .icon.dark-gray g {
+  fill: #8a8a8a; }
 
 a .icon path, a .icon g {
   fill: #1779ba; }
 
 a:hover .icon path, a:hover .icon g {
   fill: #1468a0; }
+
+.icon-text {
+  display: flex;
+  flex-direction: row; }
+  .icon-text > span:first-child {
+    flex: 0 0 auto;
+    padding-right: 0.3125rem;
+    padding-top: 0.1875rem; }
+  .icon-text > span:last-child {
+    flex: 1 1 auto; }
+  .icon-text.small {
+    font-size: 80%; }
+    .icon-text.small > span:first-child {
+      padding-top: 0.125rem; }
+    .icon-text.small > span .icon {
+      width: 14px;
+      height: 15px; }
 
 form .buttons {
   margin-top: 1rem;
@@ -4835,6 +4876,23 @@ form .buttons {
       list-style-type: none; }
       form .buttons ul li button {
         margin-bottom: 0; }
+
+.button.light-gray {
+  background: #e6e6e6;
+  color: #0a0a0a; }
+  .button.light-gray:hover {
+    background: #c6c6c6; }
+
+.menu li.expander {
+  flex: 1 1 auto; }
+
+.font-small {
+  font-size: 80%; }
+
+.experiment-list > li {
+  border-bottom: 1px solid #e6e6e6;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem; }
 
 .verification {
   display: flex;
