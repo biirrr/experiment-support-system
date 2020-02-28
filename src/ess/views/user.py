@@ -6,7 +6,7 @@ from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import view_config
 from random import sample, choice
 from secrets import token_hex
-from sqlalchemy import and_
+from sqlalchemy import and_, desc
 
 from ..models import User, Experiment, ExperimentPermission
 from ..permissions import require_permission, check_permission, PERMISSIONS, GROUPS
@@ -226,13 +226,16 @@ def logout(request):
 @view_config(route_name='user.view', renderer='ess:templates/user/view.jinja2')
 @require_permission('users.admin or @view user :uid')
 def view(request):
+    """Handle showing the user overview page."""
     return {}
 
 
 @view_config(route_name='user.experiments', renderer='ess:templates/user/experiments.jinja2')
 @require_permission('users.admin or @view user :uid')
 def experiments(request):
+    """Handle showing the user experiments page."""
     experiments = request.dbsession.query(Experiment).\
         join(ExperimentPermission).\
-        filter(ExperimentPermission.user_id == request.current_user.id)
+        filter(ExperimentPermission.user_id == request.current_user.id).\
+        order_by(desc(Experiment.updated), desc(Experiment.created))
     return {'experiments': experiments}
