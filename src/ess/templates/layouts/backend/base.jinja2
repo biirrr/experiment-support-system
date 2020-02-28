@@ -9,8 +9,42 @@
   <link rel="stylesheet" href="{{ 'ess:static/theme.css'|static_url }}" media="screen">
 </head>
 <body>
-  {% block body %}
-  {% endblock body %}
+  <div class="show-for-large">
+    <header class="top-bar">
+      <nav class="top-bar-left">
+        <ul class="menu">
+          <li class="menu-text">Experiment Support System</li>
+          {% if request|logged_in %}
+            <li><a href="">Experiments</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+      <nav class="top-bar-right">
+        <ul class="dropdown menu">
+          {% if request|logged_in %}
+            <li><a href="">{{ request.current_user.attributes.name }}</a></li>
+            <li><a href="{{ 'user.logout'|route_url }}" data-action="post-link">Sign out</a></li>
+          {% else %}
+            <li><a href="{{ 'user.login'|route_url(_query={'redirect': request|encode_route}) }}">Sign in</a></li>
+            <li><a href="{{ 'user.register'|route_url }}">Sign up</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </header>
+    {% block body %}
+    {% endblock body %}
+  </div>
+  <div class="hide-for-large grid-container margin-top">
+    <div class="card">
+      <div class="card-divider">
+        <h1>Display unsupported</h1>
+      </div>
+      <div class="card-section">
+        <p>Unfortunately the Experiment Support System currently does not support editing experiments on screens narrower than
+      1024px.</p>
+      </div>
+    </div>
+  </div>
   <script src="{{ 'ess:static/plugins.js'|static_url }}"></script>
 </body>
 </html>
