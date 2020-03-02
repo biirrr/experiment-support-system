@@ -29,7 +29,7 @@ class Experiment(Base):
         :type action: ``str``
         """
         if user is not None:
-            for permission in authorised_users:
+            for permission in self.authorised_users:
                 if permission.user.id == user.id:
                     if permission.role == 'owner':
                         return True
@@ -40,3 +40,14 @@ class Experiment(Base):
                         if action == 'view':
                             return True
         return False
+
+    def as_jsonapi(self):
+        return {
+            'type': 'experiments',
+            'id': str(self.id),
+            'attributes': {
+                'title': self.title,
+                'description': self.description,
+                'status': self.status,
+            }
+        }

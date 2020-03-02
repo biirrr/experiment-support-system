@@ -65,6 +65,12 @@ def includeme(config):
     config.add_route('experiment.create', '/experiments/create')
     config.add_route('experiment.edit', '/experiments/:eid/edit')
 
+    config.add_route('api', '/api')
+    config.add_route('api.experiment.collection.post', '/api/experiments', request_method='POST')
+    config.add_route('api.experiment.item.get', '/api/experiments/:id', request_method='GET')
+    config.add_route('api.experiment.item.patch', '/api/experiments/:id', request_method='PATCH')
+    config.add_route('api.experiment.item.delete', '/api/experiments/:id', request_method='DELETE')
+
     # Jinja2 configuration
     config.get_jinja2_environment().filters['static_url'] = static_url_filter
     config.get_jinja2_environment().filters['route_url'] = route_url_filter

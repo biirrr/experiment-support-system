@@ -3,7 +3,7 @@ from decorator import decorator
 from functools import lru_cache
 from pyramid.httpexceptions import HTTPForbidden, HTTPFound
 
-from .models import User
+from .models import User, Experiment
 from .routes import encode_route
 
 
@@ -31,6 +31,8 @@ DYNAMIC_ID = 5
 def class_lookup(class_name):
     if class_name == 'user':
         return User
+    elif class_name == 'experiment':
+        return Experiment
     raise Exception('Unknown class {0}'.format(class_name))
 
 

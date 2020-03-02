@@ -1,0 +1,22 @@
+{% extends "ess:templates/layouts/backend/wide.jinja2" %}
+
+{% block title %}{{ experiment.title }}{% endblock title %}
+
+{% block main %}
+<div id="app"></div>
+{% endblock main %}
+
+{% block post_body_scripts %}
+<script id="ExperimentEditorConfig" type="application/json">
+{
+  "api": {
+    "baseUrl": "{{ 'api'|route_url }}"
+  },
+  "experiment": {
+    "id": "{{ experiment.id }}"
+  }
+}
+</script>
+<script src="{{ 'ess:static/experiment-editor/js/chunk-vendors.js'|static_url }}"></script>
+<script src="{{ 'ess:static/experiment-editor/js/app.js'|static_url }}"></script>
+{% endblock post_body_scripts %}

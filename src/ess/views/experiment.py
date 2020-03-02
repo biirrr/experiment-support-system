@@ -39,3 +39,14 @@ def create(request):
         else:
             return {'errors': validator.errors, 'values': request.params}
     return {}
+
+
+@view_config(route_name='experiment.edit', renderer='ess:templates/experiment/edit.jinja2')
+@require_permission('admin.experiments or @edit experiment :eid')
+def edit(request):
+    """Handles the creation of a new experiment."""
+    experiment = request.dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        return {'experiment': experiment}
+    else:
+        raise HTTPNotFound()

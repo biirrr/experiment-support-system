@@ -1,0 +1,32 @@
+.busy-overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10000;
+    background: #ffffffaa;
+
+    svg {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 100px;
+        height: 100px;
+
+        circle, path {
+            stroke: $primary-color;
+        }
+    }
+}
+
+#app {
+    position: relative;
+    
+    .busy-overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+}
