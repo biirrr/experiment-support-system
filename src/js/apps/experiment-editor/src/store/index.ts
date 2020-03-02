@@ -35,15 +35,8 @@ export default new Vuex.Store({
             state.experiment = payload;
         },
 
-        addPage(state, payload: Page) {
-            let pages = state.pages;
-            if (pages === null) {
-                pages = [];
-            } else {
-                pages = pages.slice();
-            }
-            pages.push(payload);
-            state.pages = pages;
+        setPages(state, payload: Page[]) {
+            state.pages = payload;
         }
     },
     actions: {
@@ -53,10 +46,12 @@ export default new Vuex.Store({
                 let response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id);
                 const experiment = response.data.data as Experiment
                 commit('setExperiment', experiment);
+                const pages = [] as Page[];
                 for (let idx = 0; idx < experiment.relationships.pages.data.length; idx++) {
                     response = await axios.get(state.config.api.baseUrl + '/pages/' + experiment.relationships.pages.data[idx].id);
-                    commit('addPage', response.data.data);
+                    pages.push(response.data.data);
                 }
+                commit('setPages', pages);
                 commit('setBusy', false);
             } catch (error) {
                 // eslint-disable-next-line no-console
