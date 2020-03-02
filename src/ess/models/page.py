@@ -1,5 +1,4 @@
-from datetime import datetime
-from sqlalchemy import (Column, Index, Integer, Unicode, ForeignKey)
+from sqlalchemy import (Column, Integer, Unicode, ForeignKey)
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
 

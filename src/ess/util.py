@@ -4,10 +4,8 @@ import logging
 import smtplib
 
 from cgi import FieldStorage
-from datetime import datetime
 from email.mime.text import MIMEText
 from email.utils import formatdate
-from jinja2 import Undefined
 
 
 def convert_type(value, target_type, default=None):
