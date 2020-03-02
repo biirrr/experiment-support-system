@@ -47,7 +47,7 @@ export default new Vuex.Store({
             commit('setBusy', true);
             try {
                 let response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id);
-                const experiment = response.data.data as Experiment
+                const experiment = response.data.data as Experiment;
                 commit('setExperiment', experiment);
                 const pages = [] as Page[];
                 for (let idx = 0; idx < experiment.relationships.pages.data.length; idx++) {
@@ -66,13 +66,14 @@ export default new Vuex.Store({
             const experiment = deepcopy(state.experiment);
             experiment.attributes[payload.attribute] = payload.value;
             try {
-                let response = await axios({
+                const response = await axios({
                     method: 'patch',
                     url: state.config.api.baseUrl + '/experiments/' + experiment.id,
                     data: {
                         data: experiment,
                     },
                 });
+                commit('setExperiment', response.data.data as Experiment);
             } catch (error) {
                 // eslint-disable-next-line no-console
                 console.log(error);
