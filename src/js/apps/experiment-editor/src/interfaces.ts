@@ -72,3 +72,8 @@ export interface ExperimentReference {
     type: 'experiments';
     id: string;
 }
+
+export interface UpdateAttribute {
+    attribute: string;
+    value: string;
+}

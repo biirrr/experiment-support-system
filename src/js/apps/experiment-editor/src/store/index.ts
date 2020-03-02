@@ -1,8 +1,11 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios';
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// @ts-ignore
+import deepcopy from 'deepcopy';
 
-import { Config, State, Experiment, Page } from '@/interfaces';
+import { Config, State, Experiment, Page, UpdateAttribute } from '@/interfaces';
 
 Vue.use(Vuex)
 
@@ -53,6 +56,23 @@ export default new Vuex.Store({
                 }
                 commit('setPages', pages);
                 commit('setBusy', false);
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.log(error);
+            }
+        },
+
+        async updateExperimentAttribute({ commit, state }, payload: UpdateAttribute) {
+            const experiment = deepcopy(state.experiment);
+            experiment.attributes[payload.attribute] = payload.value;
+            try {
+                let response = await axios({
+                    method: 'patch',
+                    url: state.config.api.baseUrl + '/experiments/' + experiment.id,
+                    data: {
+                        data: experiment,
+                    },
+                });
             } catch (error) {
                 // eslint-disable-next-line no-console
                 console.log(error);

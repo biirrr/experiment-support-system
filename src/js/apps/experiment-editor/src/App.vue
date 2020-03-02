@@ -18,7 +18,30 @@
                 </g>
             </svg>
         </div>
-        <h1 v-if="experiment">{{ experiment.attributes.title }}</h1>
+        <div v-if="experiment" class="grid-x grid-padding-x">
+            <div class="cell auto">
+                <h1>{{ experiment.attributes.title }}</h1>
+            </div>
+            <div class="cell shrink">
+                <nav>
+                    <ul class="menu">
+                        <li>
+                            <select @change="changeStatus($event)">
+                                <template v-if="experiment.attributes.status === 'development'">
+                                    <option value="development" selected="selected">Development</option>
+                                    <option value="live">Live</option>
+                                </template>
+                                <template v-else>
+                                    <option value="live" :selected="experiment.attributes.status === 'live' ? 'selected' : null">Live</option>
+                                    <option value="paused" :selected="experiment.attributes.status === 'paused' ? 'selected' : null">Pause</option>
+                                    <option value="completed" :selected="experiment.attributes.status === 'completed' ? 'selected' : null">Complete</option>
+                                </template>
+                            </select>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
         <aria-menubar v-slot="{ keyboardNav }">
             <nav>
                 <ul class="menu" role="menubar">
@@ -83,6 +106,15 @@ export default class App extends Vue {
                 this.$store.commit('init', config);
                 this.$store.dispatch('loadExperiment');
             }
+        }
+    }
+
+    public changeStatus(ev: Event) {
+        if (ev && ev.target) {
+            this.$store.dispatch('updateExperimentAttribute', {
+                attribute: 'status',
+                value: (ev.target as HTMLInputElement).value,
+            });
         }
     }
 }
