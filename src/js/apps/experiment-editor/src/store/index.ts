@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios';
 
-import { Config, State, Experiment } from '@/interfaces';
+import { Config, State, Experiment, Page } from '@/interfaces';
 
 Vue.use(Vuex)
 
@@ -17,6 +17,7 @@ export default new Vuex.Store({
             }
         },
         experiment: null,
+        pages: null,
         ui: {
             busy: true,
         }
@@ -33,13 +34,29 @@ export default new Vuex.Store({
         setExperiment(state, payload: Experiment) {
             state.experiment = payload;
         },
+
+        addPage(state, payload: Page) {
+            let pages = state.pages;
+            if (pages === null) {
+                pages = [];
+            } else {
+                pages = pages.slice();
+            }
+            pages.push(payload);
+            state.pages = pages;
+        }
     },
     actions: {
         async loadExperiment({ commit, state }) {
             commit('setBusy', true);
             try {
-                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id);
-                commit('setExperiment', response.data.data as Experiment);
+                let response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id);
+                const experiment = response.data.data as Experiment
+                commit('setExperiment', experiment);
+                for (let idx = 0; idx < experiment.relationships.pages.data.length; idx++) {
+                    response = await axios.get(state.config.api.baseUrl + '/pages/' + experiment.relationships.pages.data[idx].id);
+                    commit('addPage', response.data.data);
+                }
                 commit('setBusy', false);
             } catch (error) {
                 // eslint-disable-next-line no-console

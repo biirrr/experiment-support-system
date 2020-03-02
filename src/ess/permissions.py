@@ -3,7 +3,7 @@ from decorator import decorator
 from functools import lru_cache
 from pyramid.httpexceptions import HTTPForbidden, HTTPFound
 
-from .models import User, Experiment
+from .models import User, Experiment, Page
 from .routes import encode_route
 
 
@@ -33,6 +33,8 @@ def class_lookup(class_name):
         return User
     elif class_name == 'experiment':
         return Experiment
+    elif class_name == 'page':
+        return Page
     raise Exception('Unknown class {0}'.format(class_name))
 
 

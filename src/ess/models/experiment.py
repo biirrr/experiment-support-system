@@ -19,6 +19,7 @@ class Experiment(Base):
     updated = Column(DateTime, default=None, onupdate=datetime.now)
 
     authorised_users = relationship('ExperimentPermission')
+    pages = relationship('Page')
 
     def allow(self, user, action):
         """Check whether the given user is allowed to undertake the given action.
@@ -49,5 +50,10 @@ class Experiment(Base):
                 'title': self.title,
                 'description': self.description,
                 'status': self.status,
+            },
+            'relationships': {
+                'pages': {
+                    'data': [{'type': 'pages', 'id': str(page.id)} for page in self.pages]
+                }
             }
         }

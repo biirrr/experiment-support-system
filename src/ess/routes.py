@@ -3,6 +3,8 @@ import json
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 from pyramid_jinja2.filters import route_url_filter, static_url_filter
 
+from .views.api import generate_api_routes
+
 
 def encode_route(request):
     """Jinja2 filter that returns the current route as a JSON object, which is then URL-safe base64 encoded."""
@@ -66,10 +68,8 @@ def includeme(config):
     config.add_route('experiment.edit', '/experiments/:eid/edit')
 
     config.add_route('api', '/api')
-    config.add_route('api.experiment.collection.post', '/api/experiments', request_method='POST')
-    config.add_route('api.experiment.item.get', '/api/experiments/:id', request_method='GET')
-    config.add_route('api.experiment.item.patch', '/api/experiments/:id', request_method='PATCH')
-    config.add_route('api.experiment.item.delete', '/api/experiments/:id', request_method='DELETE')
+    generate_api_routes(config, 'experiment', 'experiments')
+    generate_api_routes(config, 'page', 'pages')
 
     # Jinja2 configuration
     config.get_jinja2_environment().filters['static_url'] = static_url_filter
