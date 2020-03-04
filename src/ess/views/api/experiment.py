@@ -43,6 +43,12 @@ patch_experiment_schema = {'type': type_schema('experiments'),
 @view_config(route_name='api.experiment.item.patch', renderer='json')
 @require_permission('admin.experiments or @edit experiment :eid')
 def patch_item(request):
+    def valid_target(key, obj):
+        if key == 'page':
+            return str(obj.experiment_id) == request.matchdict['eid']
+        else:
+            return False
+
     body = validated_body(request, patch_experiment_schema)
-    obj = store_object(request, body)
+    obj = store_object(request, body, valid_target=valid_target)
     return {'data': obj.as_jsonapi()}

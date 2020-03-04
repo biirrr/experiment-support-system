@@ -119,7 +119,7 @@ def find_object(request, data):
         return None
 
 
-def store_object(request, data):
+def store_object(request, data, valid_target=None):
     """Store the given JSONAPI ``data`` object in the database."""
     if 'id' in data:
         obj = find_object(request, data)
@@ -132,10 +132,16 @@ def store_object(request, data):
     if 'relationships' in data['data']:
         for key, relationship_data in data['data']['relationships'].items():
             if isinstance(relationship_data['data'], list):
-                setattr(obj, key.replace('-', '_'), [find_object(request, value)
-                                                             for value in relationship_data['data']])
+                targets = []
+                for value in relationship_data['data']:
+                    target = find_object(request, value)
+                    if valid_target is None or valid_target(key, target):
+                        targets.push(target)
+                setattr(obj, key.replace('-', '_'), targets)
             elif isinstance(relationship_data['data'], dict):
-                setattr(obj, key.replace('-', '_'), find_object(request, relationship_data['data']))
+                target = find_object(request, relationship_data['data'])
+                if valid_target is None or valid_target(key, target):
+                    setattr(obj, key.replace('-', '_'), target)
     request.dbsession.add(obj)
     request.dbsession.flush()
     return obj
