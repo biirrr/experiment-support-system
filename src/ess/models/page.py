@@ -11,11 +11,9 @@ class Page(Base):
 
     id = Column(Integer, primary_key=True)
     experiment_id = Column(Integer, ForeignKey('experiments.id'))
-    name = Column(Unicode(255))
-    title = Column(Unicode(255))
     attributes = Column(NestedMutableJson)
 
-    experiment = relationship('Experiment')
+    experiment = relationship('Experiment', foreign_keys='Page.experiment_id')
 
     def allow(self, user, action):
         """Check whether the given user is allowed to undertake the given action. Delegates to the
@@ -32,10 +30,7 @@ class Page(Base):
         return {
             'type': 'pages',
             'id': str(self.id),
-            'attributes': {
-                'name': self.name,
-                'title': self.title,
-            },
+            'attributes': self.attributes,
             'relationships': {
                 'experiment': {
                     'data': {

@@ -5,6 +5,7 @@ export interface Config {
 
 export interface ApiConfig {
     baseUrl: string;
+    csrfToken: string;
 }
 
 export interface ExperimentConfig {
@@ -14,7 +15,7 @@ export interface ExperimentConfig {
 export interface State {
     config: Config;
     experiment: Experiment | null;
-    pages: Page[] | null;
+    pages: PageDict;
     ui: UIState;
 }
 
@@ -37,6 +38,7 @@ export interface ExperimentAttributes {
 
 export interface ExperimentRelationships {
     pages: ExperimentPagesRelationship;
+    'first-page'?: PageReference;
 }
 
 export interface ExperimentPagesRelationship {
@@ -73,7 +75,23 @@ export interface ExperimentReference {
     id: string;
 }
 
+export interface PageDict {
+    [x: string]: Page;
+}
+
+export interface SetPageMutation {
+    id: string;
+    page: Page;
+}
+
 export interface UpdateAttribute {
     attribute: string;
     value: string;
+}
+
+export interface CreatePage {
+    mode: 'first' | 'after';
+    name: string;
+    title: string;
+    parentPageId: number | null;
 }

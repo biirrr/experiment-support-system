@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import (Column, Integer, Unicode, UnicodeText, DateTime)
+from sqlalchemy import (Column, Integer, Unicode, UnicodeText, DateTime, ForeignKey)
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
 
@@ -11,15 +11,14 @@ class Experiment(Base):
     __tablename__ = 'experiments'
 
     id = Column(Integer, primary_key=True)
-    title = Column(Unicode(255))
-    description = Column(UnicodeText())
-    status = Column(Unicode(255))
+    first_page_id = Column(Integer, ForeignKey('pages.id'))
     attributes = Column(NestedMutableJson)
     created = Column(DateTime, default=datetime.now)
     updated = Column(DateTime, default=None, onupdate=datetime.now)
 
     authorised_users = relationship('ExperimentPermission')
-    pages = relationship('Page')
+    first_page = relationship('Page', foreign_keys='Experiment.first_page_id', post_update=True)
+    pages = relationship('Page', foreign_keys='Page.experiment_id')
 
     def allow(self, user, action):
         """Check whether the given user is allowed to undertake the given action.
@@ -43,17 +42,19 @@ class Experiment(Base):
         return False
 
     def as_jsonapi(self):
-        return {
+        data = {
             'type': 'experiments',
             'id': str(self.id),
-            'attributes': {
-                'title': self.title,
-                'description': self.description,
-                'status': self.status,
-            },
+            'attributes': self.attributes,
             'relationships': {
                 'pages': {
                     'data': [{'type': 'pages', 'id': str(page.id)} for page in self.pages]
                 }
             }
         }
+        if self.first_page:
+            data['relationships']['firstPage'] = {
+                'type': 'pages',
+                'id': self.first_page.id,
+            }
+        return data

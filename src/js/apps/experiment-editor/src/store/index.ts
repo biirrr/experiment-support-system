@@ -5,7 +5,8 @@ import axios from 'axios';
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import { Config, State, Experiment, Page, UpdateAttribute } from '@/interfaces';
+import router from '@/router/index';
+import { Config, State, Experiment, UpdateAttribute, CreatePage, SetPageMutation } from '@/interfaces';
 
 Vue.use(Vuex)
 
@@ -20,11 +21,12 @@ export default new Vuex.Store({
             }
         },
         experiment: null,
-        pages: null,
+        pages: {},
         ui: {
             busy: true,
         }
     } as State,
+
     mutations: {
         init(state, payload: Config) {
             state.config = payload;
@@ -38,24 +40,61 @@ export default new Vuex.Store({
             state.experiment = payload;
         },
 
-        setPages(state, payload: Page[]) {
-            state.pages = payload;
-        }
+        setPage(state, payload: SetPageMutation) {
+            Vue.set(state.pages, payload.id, payload.page);
+            if (state.experiment) {
+                if (!state.experiment.relationships) {
+                    state.experiment.relationships = {pages: {data: []}};
+                }
+                if (!state.experiment.relationships.pages) {
+                    state.experiment.relationships.pages = {data: []};
+                }
+                let found = false;
+                for (let idx = 0; idx < state.experiment.relationships.pages.data.length; idx++) {
+                    const page = state.experiment.relationships.pages.data[idx];
+                    if (page.id === payload.page.id) {
+                        found = true;
+                        state.experiment.relationships.pages.data[idx] = {
+                            type: payload.page.type,
+                            id: payload.page.id,
+                        };
+                        break;
+                    }
+                }
+                if (!found) {
+                    state.experiment.relationships.pages.data.push({
+                        type: payload.page.type,
+                        id: payload.page.id,
+                    });
+                }
+            }
+        },
     },
+
     actions: {
-        async loadExperiment({ commit, state }) {
+        async loadExperiment({ commit, dispatch, state }) {
             commit('setBusy', true);
             try {
-                let response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id);
+                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id);
                 const experiment = response.data.data as Experiment;
                 commit('setExperiment', experiment);
-                const pages = [] as Page[];
                 for (let idx = 0; idx < experiment.relationships.pages.data.length; idx++) {
-                    response = await axios.get(state.config.api.baseUrl + '/pages/' + experiment.relationships.pages.data[idx].id);
-                    pages.push(response.data.data);
+                    dispatch('loadPage', experiment.relationships.pages.data[idx].id);
                 }
-                commit('setPages', pages);
                 commit('setBusy', false);
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.log(error);
+            }
+        },
+
+        async loadPage({ commit, state }, payload: number) {
+            try {
+                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload);
+                commit('setPage', {
+                    id: payload,
+                    page: response.data.data,
+                });
             } catch (error) {
                 // eslint-disable-next-line no-console
                 console.log(error);
@@ -74,6 +113,73 @@ export default new Vuex.Store({
                     },
                 });
                 commit('setExperiment', response.data.data as Experiment);
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.log(error);
+            }
+        },
+
+        async updateExperiment({ commit, state }, payload: Experiment) {
+            try {
+                const response = await axios({
+                    method: 'patch',
+                    url: state.config.api.baseUrl + '/experiments/' + payload.id,
+                    data: {
+                        data: payload,
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': state.config.api.csrfToken,
+                    }
+                });
+                commit('setExperiment', response.data.data as Experiment);
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.log(error);
+            }
+        },
+
+        async createPage({ commit, dispatch, state}, payload: CreatePage) {
+            try {
+                const response = await axios({
+                    method: 'post',
+                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages',
+                    data: {
+                        data: {
+                            type: 'pages',
+                            attributes: {
+                                name: payload.name,
+                                title: payload.title,
+                            }
+                        }
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': state.config.api.csrfToken,
+                    },
+                });
+                commit('setPage', {
+                    id: response.data.data.id,
+                    page: response.data.data,
+                });
+                if (payload.mode === 'first') {
+                    const experiment = deepcopy(state.experiment);
+                    if (!experiment.relationships) {
+                        experiment.relationships = {};
+                    }
+                    if (!experiment.relationships['first-page']) {
+                        experiment.relationships['first-page'] = {data: {}};
+                    }
+                    experiment.relationships['first-page'].data = {
+                        type: 'pages',
+                        id: response.data.data.id,
+                    };
+                    if (!experiment.relationships.pages) {
+                        experiment.relationships.pages = {};
+                    }
+                    dispatch('updateExperiment', experiment);
+                } else {
+                    dispatch('loadPage', payload.parentPageId);
+                }
+                router.push('/pages');
             } catch (error) {
                 // eslint-disable-next-line no-console
                 console.log(error);

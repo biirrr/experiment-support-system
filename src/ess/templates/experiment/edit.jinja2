@@ -10,7 +10,8 @@
 <script id="ExperimentEditorConfig" type="application/json">
 {
   "api": {
-    "baseUrl": "{{ 'api'|route_url }}"
+    "baseUrl": "{{ 'api'|route_url }}",
+    "csrfToken": "{{ request|get_csrf_token }}"
   },
   "experiment": {
     "id": "{{ experiment.id }}"

@@ -45,36 +45,36 @@
         <aria-menubar v-slot="{ keyboardNav }">
             <nav>
                 <ul class="menu" role="menubar">
-                    <li role="presentation">
-                        <router-link to="/" v-slot="{ href, navigate, isActive }">
-                            <a :href="href" :class="isActive ? 'is-active': ''" @keyup="keyboardNav" @click="navigate" tabindex="0" role="menuitem">Overview</a>
-                        </router-link>
-                    </li>
-                    <li role="presentation">
-                        <router-link to="/pages" v-slot="{ href, navigate, isActive }">
-                            <a :href="href" :class="isActive ? 'is-active': ''" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Pages</a>
-                        </router-link>
-                    </li>
-                    <li role="presentation">
-                        <router-link to="/data" v-slot="{ href, navigate, isActive }">
-                            <a :href="href" :class="isActive ? 'is-active': ''" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Data</a>
-                        </router-link>
-                    </li>
-                    <li role="presentation">
-                        <router-link to="/latin-squares" v-slot="{ href, navigate, isActive }">
-                            <a :href="href" :class="isActive ? 'is-active': ''" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Latin Squares</a>
-                        </router-link>
-                    </li>
-                    <li role="presentation">
-                        <router-link to="/results" v-slot="{ href, navigate, isActive }">
-                            <a :href="href" :class="isActive ? 'is-active': ''" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Results</a>
-                        </router-link>
-                    </li>
-                    <li role="presentation">
-                        <router-link to="/settings" v-slot="{ href, navigate, isActive }">
-                            <a :href="href" :class="isActive ? 'is-active': ''" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Settings</a>
-                        </router-link>
-                    </li>
+                    <router-link to="/" v-slot="{ href, navigate, isActive, isExactActive }">
+                        <li :class="isExactActive ? 'is-active': ''" role="presentation">
+                            <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="0" role="menuitem">Overview</a>
+                        </li>
+                    </router-link>
+                    <router-link to="/pages" v-slot="{ href, navigate, isActive }">
+                        <li :class="isActive ? 'is-active': ''" role="presentation">
+                            <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Pages</a>
+                        </li>
+                    </router-link>
+                    <router-link to="/data" v-slot="{ href, navigate, isActive }">
+                        <li :class="isActive ? 'is-active': ''" role="presentation">
+                            <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Data</a>
+                        </li>
+                    </router-link>
+                    <router-link to="/latin-squares" v-slot="{ href, navigate, isActive }">
+                        <li :class="isActive ? 'is-active': ''" role="presentation">
+                            <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Latin Squares</a>
+                        </li>
+                    </router-link>
+                    <router-link to="/results" v-slot="{ href, navigate, isActive }">
+                        <li :class="isActive ? 'is-active': ''" role="presentation">
+                            <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Results</a>
+                        </li>
+                    </router-link>
+                    <router-link to="/settings" v-slot="{ href, navigate, isActive }">
+                        <li :class="isActive ? 'is-active': ''" role="presentation">
+                            <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Settings</a>
+                        </li>
+                    </router-link>
                 </ul>
             </nav>
         </aria-menubar>

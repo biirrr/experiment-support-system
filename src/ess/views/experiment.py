@@ -18,9 +18,9 @@ def create(request):
     if request.method == 'POST':
         validator = Validator(create_experiment_schema)
         if validator.validate(request.params):
-            experiment = Experiment(title=request.params['title'],
-                                    description=request.params['description'],
-                                    status='development')
+            experiment = Experiment(attributes={'title': request.params['title'],
+                                                'description': request.params['description'],
+                                                'status': 'development'})
             permission = ExperimentPermission(user=request.current_user,
                                               experiment=experiment,
                                               role='owner')
