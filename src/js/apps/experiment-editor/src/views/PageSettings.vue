@@ -1,6 +1,5 @@
 <template>
   <div>
-      <h2>Settings</h2>
       <form v-if="this.page" @submit.prevent="updatePage">
           <input-field type="text" label="Name" v-model="name" :error="errors.name"/>
           <input-field type="text" label="Title" v-model="title" :error="errors.title"/>
