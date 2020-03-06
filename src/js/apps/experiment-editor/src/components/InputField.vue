@@ -1,7 +1,9 @@
 <template>
   <div>
       <label :class="error ? 'is-invalid-label': ''"><template v-if="labelBefore">{{ label }}</template>
-          <input :type="type" v-model="localValue" :class="error ? 'is-invalid-input': ''"/> <template v-if="!labelBefore">{{ label }}</template>
+          <textarea v-if="type === 'textarea'" v-model="localValue" :class="error ? 'is-invalid-input': ''"></textarea>
+          <input v-else :type="type" v-model="localValue" :class="error ? 'is-invalid-input': ''"/>
+          <template v-if="!labelBefore">{{ label }}</template>
           <span v-if="error" class="form-error is-visible">{{ error }}</span>
       </label>
   </div>

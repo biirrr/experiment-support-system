@@ -155,3 +155,8 @@ export interface Error {
 export interface ErrorSource {
     pointer: string;
 }
+
+export interface UpdateExperimentAction {
+    experiment: Experiment;
+    errors?: (errors: Error[]) => {};
+}

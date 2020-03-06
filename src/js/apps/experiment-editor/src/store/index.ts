@@ -7,7 +7,7 @@ import deepcopy from 'deepcopy';
 
 import router from '@/router/index';
 import { Config, State, Experiment, Page, UpdateAttribute, CreatePageAction, SetPageMutation, SetTransitionMutation,
-    UpdatePageAction } from '@/interfaces';
+    UpdatePageAction, UpdateExperimentAction } from '@/interfaces';
 
 Vue.use(Vuex)
 
@@ -124,40 +124,26 @@ export default new Vuex.Store({
             }
         },
 
-        async updateExperimentAttribute({ commit, state }, payload: UpdateAttribute) {
-            const experiment = deepcopy(state.experiment);
-            experiment.attributes[payload.attribute] = payload.value;
+        async updateExperiment({ commit, state }, payload: UpdateExperimentAction) {
             try {
+                commit('setBusy', true);
                 const response = await axios({
                     method: 'patch',
-                    url: state.config.api.baseUrl + '/experiments/' + experiment.id,
+                    url: state.config.api.baseUrl + '/experiments/' + payload.experiment.id,
                     data: {
-                        data: experiment,
-                    },
-                });
-                commit('setExperiment', response.data.data as Experiment);
-            } catch (error) {
-                // eslint-disable-next-line no-console
-                console.log(error);
-            }
-        },
-
-        async updateExperiment({ commit, state }, payload: Experiment) {
-            try {
-                const response = await axios({
-                    method: 'patch',
-                    url: state.config.api.baseUrl + '/experiments/' + payload.id,
-                    data: {
-                        data: payload,
+                        data: payload.experiment,
                     },
                     headers: {
                         'X-CSRF-TOKEN': state.config.api.csrfToken,
                     }
                 });
                 commit('setExperiment', response.data.data as Experiment);
+                commit('setBusy', false);
             } catch (error) {
-                // eslint-disable-next-line no-console
-                console.log(error);
+                if (payload.errors) {
+                    payload.errors(error.response.data.errors);
+                }
+                commit('setBusy', false);
             }
         },
 
