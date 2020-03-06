@@ -237,7 +237,25 @@ export default new Vuex.Store({
                 // eslint-disable-next-line no-console
                 console.log(error);
             }
-        }
+        },
+
+        async updatePage({ commit, state }, payload: Page) {
+            try {
+                const response = await axios({
+                    method: 'patch',
+                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.id,
+                    data: {
+                        data: payload
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': state.config.api.csrfToken,
+                    },
+                });
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.log(error);
+            }
+        },
     },
     modules: {
     }

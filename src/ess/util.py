@@ -135,7 +135,7 @@ class Validator(cerberus.Validator):
             self._error(field, 'The value does not match.')
 
     def _validate_belongs_to_experiment(self, enabled, field, value):
-        if enabled:
+        if enabled and 'type' in value and 'id' in value:
             request = self._config['request']
             query = None
             if value['type'] == 'pages':
@@ -144,6 +144,9 @@ class Validator(cerberus.Validator):
             elif value['type'] == 'transition':
                 query = request.dbsession.query(Transition).join(Transition.source).\
                     filter(and_(Transition.id == value['id'], Page.experiment_id == request.matchdict['eid']))
+            elif value['type'] == 'experiment':
+                if value['id'] != request.matchdict['eid']:
+                    self._error(field, 'This object does not belong to request experiment')
             if query is not None and query.first() is None:
                 self._error(field, 'This object does not belong to request experiment')
 

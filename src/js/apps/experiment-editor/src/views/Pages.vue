@@ -11,7 +11,7 @@
         </nav>
         <ul class="no-bullet">
             <li v-for="page in pages" :key="page.id">
-                <h2>{{ page.attributes.title }}</h2>
+                <h2><router-link :to="'/pages/' + page.id">{{ page.attributes.title }}</router-link></h2>
             </li>
         </ul>
     </div>

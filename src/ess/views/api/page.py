@@ -4,7 +4,7 @@ from sqlalchemy import and_
 
 from ess.models import Page
 from ess.permissions import require_permission
-from . import (validated_body, override_tree, type_schema, relationship_schema, store_object)
+from . import (validated_body, override_tree, type_schema, id_schema, relationship_schema, store_object)
 
 
 post_page_schema = {'type': type_schema('pages'),
@@ -42,3 +42,33 @@ def get_item(request):
         return {'data': item.as_jsonapi()}
     else:
         raise HTTPNotFound()
+
+
+patch_page_schema = {'type': type_schema('pages'),
+                     'id': id_schema(),
+                     'attributes': {'type': 'dict',
+                                    'required': True,
+                                    'schema': {'name': {'type': 'string',
+                                                        'required': True,
+                                                        'empty': False},
+                                               'title': {'type': 'string',
+                                                         'required': True,
+                                                         'empty': False}}},
+                     'relationships': {'type': 'dict',
+                                       'schema': {'experiment': relationship_schema('experiments',
+                                                                                    required=True),
+                                                  'next': relationship_schema('transitions',
+                                                                              required=True,
+                                                                              many=True),
+                                                  'prev': relationship_schema('transitions',
+                                                                              required=True,
+                                                                              many=True)}}}
+
+
+@view_config(route_name='api.page.item.patch', renderer='json')
+@require_permission('admin.experiments or @edit experiment :eid')
+def patch_item(request):
+    """Handles updating a single :class:`~ess.models.page.Page`."""
+    body = validated_body(request, patch_page_schema)
+    obj = store_object(request, body)
+    return {'data': obj.as_jsonapi()}

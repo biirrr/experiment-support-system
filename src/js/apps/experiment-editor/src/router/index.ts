@@ -1,13 +1,15 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
+import Vue from 'vue';
+import VueRouter from 'vue-router';
 
-import Overview from '@/views/Overview.vue'
-import Pages from '@/views/Pages.vue'
+import Overview from '@/views/Overview.vue';
+import Pages from '@/views/Pages.vue';
 import PagesCreate from '@/views/PagesCreate.vue'
-import Data from '@/views/Data.vue'
-import LatinSquares from '@/views/LatinSquares.vue'
-import Results from '@/views/Results.vue'
-import Settings from '@/views/Settings.vue'
+import PageEdit from '@/views/PageEdit.vue';
+import PageSettings from '@/views/PageSettings.vue';
+import Data from '@/views/Data.vue';
+import LatinSquares from '@/views/LatinSquares.vue';
+import Results from '@/views/Results.vue';
+import Settings from '@/views/Settings.vue';
 
 Vue.use(VueRouter)
 
@@ -24,10 +26,22 @@ const routes = [
         children: [
             {
                 path: 'create',
-                name: 'pages.create',
+                name: 'page.create',
                 component: PagesCreate,
+            },
+            {
+                path: ':pid',
+                name: 'page.edit',
+                component: PageEdit,
+                children: [
+                    {
+                        path: 'settings',
+                        name: 'page.settings',
+                        component: PageSettings,
+                    }
+                ],
             }
-        ]
+        ],
     },
     {
         path: '/data',

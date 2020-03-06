@@ -8,7 +8,7 @@ from ess.util import Validator
 from ess.models import Experiment, Page, Transition
 
 
-COLLECTION_POST_SCHEMA = {'data': {'type': 'dict', 'schema': None}}
+COLLECTION_POST_SCHEMA = {'data': {'type': 'dict', 'schema': None, 'belongs_to_experiment': True}}
 
 
 def flatten_errors(errors, path=''):

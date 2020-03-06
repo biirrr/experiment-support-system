@@ -18,7 +18,7 @@ class Experiment(Base):
 
     authorised_users = relationship('ExperimentPermission')
     first_page = relationship('Page', foreign_keys='Experiment.first_page_id', post_update=True)
-    pages = relationship('Page', foreign_keys='Page.experiment_id')
+    pages = relationship('Page', foreign_keys='Page.experiment_id', order_by='Page.id')
 
     def allow(self, user, action):
         """Check whether the given user is allowed to undertake the given action.
