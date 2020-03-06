@@ -25,7 +25,8 @@ export default new Vuex.Store({
         pages: {},
         transitions: {},
         ui: {
-            busy: true,
+            busy: false,
+            busyCounter: 0,
         }
     } as State,
 
@@ -35,7 +36,12 @@ export default new Vuex.Store({
         },
 
         setBusy(state, payload: boolean) {
-            state.ui.busy = payload;
+            if (payload) {
+                state.ui.busyCounter = state.ui.busyCounter + 1;
+            } else {
+                state.ui.busyCounter = state.ui.busyCounter - 1;
+            }
+            state.ui.busy = state.ui.busyCounter > 0;
         },
 
         setExperiment(state, payload: Experiment) {
@@ -95,6 +101,7 @@ export default new Vuex.Store({
         },
 
         async loadPage({ commit, dispatch, state }, payload: number) {
+            commit('setBusy', true);
             try {
                 const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload);
                 const page = response.data.data as Page;
@@ -105,22 +112,27 @@ export default new Vuex.Store({
                 for (let idx = 0; idx < page.relationships.next.data.length; idx++) {
                     dispatch('loadTransition', page.relationships.next.data[idx].id);
                 }
+                commit('setBusy', false);
             } catch (error) {
                 // eslint-disable-next-line no-console
                 console.log(error);
+                commit('setBusy', false);
             }
         },
 
         async loadTransition({ commit, state}, payload: number) {
             try {
+                commit('setBusy', true);
                 const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions/' + payload);
                 commit('setTransition', {
                     id: payload,
                     transition: response.data.data,
                 });
+                commit('setBusy', false);
             } catch (error) {
                 // eslint-disable-next-line no-console
                 console.log(error);
+                commit('setBusy', false);
             }
         },
 
@@ -149,6 +161,7 @@ export default new Vuex.Store({
 
         async createPage({ commit, dispatch, state}, payload: CreatePageAction) {
             try {
+                commit('setBusy', true);
                 let response = await axios({
                     method: 'post',
                     url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages',
@@ -220,13 +233,16 @@ export default new Vuex.Store({
                     dispatch('loadPage', payload.parentPageId);
                 }
                 router.push('/pages');
+                commit('setBusy', false);
             } catch (error) {
                 payload.errors(error.response.data.errors);
+                commit('setBusy', false);
             }
         },
 
         async updatePage({ commit, state }, payload: UpdatePageAction) {
             try {
+                commit('setBusy', true);
                 const response = await axios({
                     method: 'patch',
                     url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.page.id,
@@ -241,10 +257,12 @@ export default new Vuex.Store({
                     id: response.data.data.id,
                     page: response.data.data,
                 });
+                commit('setBusy', false);
             } catch (error) {
                 if (payload.errors) {
                     payload.errors(error.response.data.errors);
                 }
+                commit('setBusy', false);
             }
         },
     },
