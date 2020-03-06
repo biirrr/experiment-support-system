@@ -6,7 +6,7 @@ import axios from 'axios';
 import deepcopy from 'deepcopy';
 
 import router from '@/router/index';
-import { Config, State, Experiment, Page, UpdateAttribute, CreatePageAction, SetPageMutation, SetTransitionMutation,
+import { Config, State, Experiment, Page, CreatePageAction, SetPageMutation, SetTransitionMutation,
     UpdatePageAction, UpdateExperimentAction } from '@/interfaces';
 
 Vue.use(Vuex)
@@ -242,7 +242,9 @@ export default new Vuex.Store({
                     page: response.data.data,
                 });
             } catch (error) {
-                payload.errors(error.response.data.errors);
+                if (payload.errors) {
+                    payload.errors(error.response.data.errors);
+                }
             }
         },
     },

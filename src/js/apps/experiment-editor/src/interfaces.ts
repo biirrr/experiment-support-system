@@ -144,7 +144,7 @@ export interface CreatePageAction {
 
 export interface UpdatePageAction {
     page: Page;
-    errors: (errors: Error[]) => {};
+    errors?: (errors: Error[]) => {};
 }
 
 export interface Error {

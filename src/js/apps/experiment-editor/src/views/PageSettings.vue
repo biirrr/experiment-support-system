@@ -16,6 +16,9 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from 'vue-property-decorator';
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// @ts-ignore
+import deepcopy from 'deepcopy';
 
 import { StringKeyValueDict, Error } from '@/interfaces';
 import InputField from '@/components/InputField.vue';
@@ -55,11 +58,12 @@ export default class PageSettings extends Vue {
 
     public updatePage() {
         if (this.page) {
-            this.page.attributes.name = this.name;
-            this.page.attributes.title = this.title;
+            const page = deepcopy(this.page);
+            page.attributes.name = this.name;
+            page.attributes.title = this.title;
             this.errors = {};
             this.$store.dispatch('updatePage', {
-                page: this.page,
+                page: page,
                 errors: (errors: Error[]) => {
                     this.errors = {};
                     errors.forEach((error) => {
