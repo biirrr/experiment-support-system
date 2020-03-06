@@ -3,12 +3,8 @@
         <div class="cell auto">
             <h2>Add a new page</h2>
             <form @submit.prevent="createPage">
-                <label>Name
-                    <input type="text" v-model="pageName" />
-                </label>
-                <label>Title
-                    <input type="text" v-model="pageTitle" />
-                </label>
+                <input-field type="text" label="Name" v-model="pageName" :error="errors.name"/>
+                <input-field type="text" label="Title" v-model="pageTitle" :error="errors.name"/>
                 <label>
                     <input type="radio" name="parent" value="first" v-model="addMode" />
                     Add as the first page
@@ -42,14 +38,20 @@
 <script lang="ts">
 import { Component, Vue, Watch } from 'vue-property-decorator';
 
-import { Page } from '@/interfaces';
+import InputField from '@/components/InputField.vue';
+import { Page, StringKeyValueDict, Error } from '@/interfaces';
 
-@Component
+@Component({
+    components: {
+        InputField
+    }
+})
 export default class PagesCreate extends Vue {
     public addMode = 'first';
     public pageName = '';
     public pageTitle = '';
     public parentPageId = '';
+    public errors: StringKeyValueDict = {};
 
     public get pages(): Page[] {
         return Object.values(this.$store.state.pages);
@@ -107,6 +109,13 @@ export default class PagesCreate extends Vue {
                 mode: 'first',
                 name: this.pageName,
                 title: this.pageTitle,
+                errors: (errors: Error[]) => {
+                    this.errors = {};
+                    errors.forEach((error) => {
+                        const pointer = error.source.pointer.split('/');
+                        this.errors[pointer[pointer.length - 1]] = error.title;
+                    });
+                },
             });
         } else {
             this.$store.dispatch('createPage', {
@@ -114,6 +123,13 @@ export default class PagesCreate extends Vue {
                 name: this.pageName,
                 title: this.pageTitle,
                 parentPageId: this.parentPageId,
+                errors: (errors: Error[]) => {
+                    this.errors = {};
+                    errors.forEach((error) => {
+                        const pointer = error.source.pointer.split('/');
+                        this.errors[pointer[pointer.length - 1]] = error.title;
+                    });
+                },
             });
         }
     }

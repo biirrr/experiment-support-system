@@ -31,10 +31,9 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from 'vue-property-decorator';
+import { Component, Vue } from 'vue-property-decorator';
 
 import AriaMenubar from '@/components/AriaMenubar.vue';
-import { Page } from '@/interfaces';
 
 @Component({
     components: {

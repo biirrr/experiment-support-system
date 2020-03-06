@@ -6,7 +6,8 @@ import axios from 'axios';
 import deepcopy from 'deepcopy';
 
 import router from '@/router/index';
-import { Config, State, Experiment, Page, UpdateAttribute, CreatePage, SetPageMutation, SetTransitionMutation } from '@/interfaces';
+import { Config, State, Experiment, Page, UpdateAttribute, CreatePageAction, SetPageMutation, SetTransitionMutation,
+    UpdatePageAction } from '@/interfaces';
 
 Vue.use(Vuex)
 
@@ -160,7 +161,7 @@ export default new Vuex.Store({
             }
         },
 
-        async createPage({ commit, dispatch, state}, payload: CreatePage) {
+        async createPage({ commit, dispatch, state}, payload: CreatePageAction) {
             try {
                 let response = await axios({
                     method: 'post',
@@ -234,26 +235,28 @@ export default new Vuex.Store({
                 }
                 router.push('/pages');
             } catch (error) {
-                // eslint-disable-next-line no-console
-                console.log(error);
+                payload.errors(error.response.data.errors);
             }
         },
 
-        async updatePage({ commit, state }, payload: Page) {
+        async updatePage({ commit, state }, payload: UpdatePageAction) {
             try {
                 const response = await axios({
                     method: 'patch',
-                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.id,
+                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.page.id,
                     data: {
-                        data: payload
+                        data: payload.page
                     },
                     headers: {
                         'X-CSRF-TOKEN': state.config.api.csrfToken,
                     },
                 });
+                commit('setPage', {
+                    id: response.data.data.id,
+                    page: response.data.data,
+                });
             } catch (error) {
-                // eslint-disable-next-line no-console
-                console.log(error);
+                payload.errors(error.response.data.errors);
             }
         },
     },

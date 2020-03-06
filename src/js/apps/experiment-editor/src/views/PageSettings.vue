@@ -2,12 +2,8 @@
   <div>
       <h2>Settings</h2>
       <form v-if="this.page" @submit.prevent="updatePage">
-          <label>Name
-              <input type="text" v-model="name"/>
-          </label>
-          <label>Title
-              <input type="text" v-model="title"/>
-          </label>
+          <input-field type="text" label="Name" v-model="name" :error="errors.name"/>
+          <input-field type="text" label="Title" v-model="title" :error="errors.title"/>
           <div class="buttons">
               <ul>
                   <li>
@@ -22,10 +18,18 @@
 <script lang="ts">
 import { Component, Vue, Watch } from 'vue-property-decorator';
 
-@Component
+import { StringKeyValueDict, Error } from '@/interfaces';
+import InputField from '@/components/InputField.vue';
+
+@Component({
+    components: {
+        InputField,
+    }
+})
 export default class PageSettings extends Vue {
     public name = '';
     public title = '';
+    public errors: StringKeyValueDict = {};
 
     public get page() {
         return this.$store.state.pages[this.$route.params.pid];
@@ -47,13 +51,24 @@ export default class PageSettings extends Vue {
             this.name = '';
             this.title = '';
         }
+        this.errors = {};
     }
 
     public updatePage() {
         if (this.page) {
             this.page.attributes.name = this.name;
             this.page.attributes.title = this.title;
-            this.$store.dispatch('updatePage', this.page);
+            this.errors = {};
+            this.$store.dispatch('updatePage', {
+                page: this.page,
+                errors: (errors: Error[]) => {
+                    this.errors = {};
+                    errors.forEach((error) => {
+                        const pointer = error.source.pointer.split('/');
+                        this.errors[pointer[pointer.length - 1]] = error.title;
+                    });
+                },
+            });
         }
     }
 }

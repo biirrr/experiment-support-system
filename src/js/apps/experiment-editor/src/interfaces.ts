@@ -1,3 +1,7 @@
+export interface StringKeyValueDict {
+    [x: string]: string;
+}
+
 export interface Config {
     api: ApiConfig;
     experiment: ExperimentConfig;
@@ -130,9 +134,24 @@ export interface UpdateAttribute {
     value: string;
 }
 
-export interface CreatePage {
+export interface CreatePageAction {
     mode: 'first' | 'after';
     name: string;
     title: string;
     parentPageId: number | null;
+    errors: (errors: Error[]) => {};
+}
+
+export interface UpdatePageAction {
+    page: Page;
+    errors: (errors: Error[]) => {};
+}
+
+export interface Error {
+    title: string;
+    source: ErrorSource;
+}
+
+export interface ErrorSource {
+    pointer: string;
 }
