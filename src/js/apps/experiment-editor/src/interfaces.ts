@@ -16,6 +16,7 @@ export interface State {
     config: Config;
     experiment: Experiment | null;
     pages: PageDict;
+    transitions: TransitionDict;
     ui: UIState;
 }
 
@@ -54,7 +55,7 @@ export interface Page {
     type: 'pages',
     id: string;
     attributes: PageAttributes;
-    relationship: PageRelationships;
+    relationships: PageRelationships;
 }
 
 export interface PageAttributes {
@@ -64,10 +65,16 @@ export interface PageAttributes {
 
 export interface PageRelationships {
     experiment: PageExperimentRelationship;
+    next: PageTransitionRelationship;
+    prev: PageTransitionRelationship;
 }
 
 export interface PageExperimentRelationship {
     data: ExperimentReference;
+}
+
+export interface PageTransitionRelationship {
+    data: TransitionReference[];
 }
 
 export interface ExperimentReference {
@@ -79,9 +86,43 @@ export interface PageDict {
     [x: string]: Page;
 }
 
+export interface Transition {
+    type: 'transitions';
+    id: string;
+    attributes: TransitionAttributes;
+    relationships: TransitionRelationships;
+}
+
+export interface TransitionAttributes {
+
+}
+
+export interface TransitionReference {
+    type: 'transitions';
+    id: string;
+}
+
+export interface TransitionRelationships {
+    source: TransitionPageRelationship;
+    target: TransitionPageRelationship;
+}
+
+export interface TransitionPageRelationship {
+    data: PageReference;
+}
+
+export interface TransitionDict {
+    [x: string]: Transition;
+}
+
 export interface SetPageMutation {
     id: string;
     page: Page;
+}
+
+export interface SetTransitionMutation {
+    id: string;
+    transition: Transition;
 }
 
 export interface UpdateAttribute {

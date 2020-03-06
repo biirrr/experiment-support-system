@@ -6,7 +6,7 @@ import axios from 'axios';
 import deepcopy from 'deepcopy';
 
 import router from '@/router/index';
-import { Config, State, Experiment, UpdateAttribute, CreatePage, SetPageMutation } from '@/interfaces';
+import { Config, State, Experiment, Page, UpdateAttribute, CreatePage, SetPageMutation, SetTransitionMutation } from '@/interfaces';
 
 Vue.use(Vuex)
 
@@ -22,6 +22,7 @@ export default new Vuex.Store({
         },
         experiment: null,
         pages: {},
+        transitions: {},
         ui: {
             busy: true,
         }
@@ -69,6 +70,10 @@ export default new Vuex.Store({
                 }
             }
         },
+
+        setTransition(state, payload: SetTransitionMutation) {
+            Vue.set(state.transitions, payload.id, payload.transition);
+        }
     },
 
     actions: {
@@ -88,12 +93,29 @@ export default new Vuex.Store({
             }
         },
 
-        async loadPage({ commit, state }, payload: number) {
+        async loadPage({ commit, dispatch, state }, payload: number) {
             try {
                 const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload);
+                const page = response.data.data as Page;
                 commit('setPage', {
                     id: payload,
-                    page: response.data.data,
+                    page: page,
+                });
+                for (let idx = 0; idx < page.relationships.next.data.length; idx++) {
+                    dispatch('loadTransition', page.relationships.next.data[idx].id);
+                }
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.log(error);
+            }
+        },
+
+        async loadTransition({ commit, state}, payload: number) {
+            try {
+                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions/' + payload);
+                commit('setTransition', {
+                    id: payload,
+                    transition: response.data.data,
                 });
             } catch (error) {
                 // eslint-disable-next-line no-console
@@ -140,7 +162,7 @@ export default new Vuex.Store({
 
         async createPage({ commit, dispatch, state}, payload: CreatePage) {
             try {
-                const response = await axios({
+                let response = await axios({
                     method: 'post',
                     url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages',
                     data: {
@@ -172,11 +194,42 @@ export default new Vuex.Store({
                         type: 'pages',
                         id: response.data.data.id,
                     };
-                    if (!experiment.relationships.pages) {
-                        experiment.relationships.pages = {};
-                    }
                     dispatch('updateExperiment', experiment);
                 } else {
+                    dispatch('updateExperiment', state.experiment);
+                    response = await axios({
+                        method: 'post',
+                        url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions',
+                        data: {
+                            data: {
+                                type: 'transitions',
+                                attributes: {
+
+                                },
+                                relationships: {
+                                    source: {
+                                        data: {
+                                            type: 'pages',
+                                            id: payload.parentPageId,
+                                        },
+                                    },
+                                    target: {
+                                        data: {
+                                            type: 'pages',
+                                            id: response.data.data.id,
+                                        },
+                                    },
+                                }
+                            }
+                        },
+                        headers: {
+                            'X-CSRF-TOKEN': state.config.api.csrfToken,
+                        },
+                    });
+                    commit('setTransition', {
+                        id: response.data.data.id,
+                        transition: response.data.data,
+                    });
                     dispatch('loadPage', payload.parentPageId);
                 }
                 router.push('/pages');

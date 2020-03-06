@@ -14,6 +14,8 @@ class Page(Base):
     attributes = Column(NestedMutableJson)
 
     experiment = relationship('Experiment', foreign_keys='Page.experiment_id')
+    next = relationship('Transition', foreign_keys='Transition.source_id')
+    prev = relationship('Transition', foreign_keys='Transition.target_id')
 
     def allow(self, user, action):
         """Check whether the given user is allowed to undertake the given action. Delegates to the
@@ -37,6 +39,12 @@ class Page(Base):
                         'type': 'experiments',
                         'id': str(self.experiment_id),
                     }
-                }
+                },
+                'next': {
+                    'data': [{'type': 'transitions', 'id': str(transition.id)} for transition in self.next]
+                },
+                'prev': {
+                    'data': [{'type': 'transitions', 'id': str(transition.id)} for transition in self.next]
+                },
             }
         }

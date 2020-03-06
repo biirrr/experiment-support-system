@@ -9,6 +9,7 @@ from .user import User  # noqa
 from .experiment import Experiment  # noqa
 from .experiment_permissions import ExperimentPermission  # noqa
 from .page import Page  # noqa
+from .transition import Transition  # noqa
 
 # run configure_mappers after defining all of the models to ensure
 # all relationships can be setup

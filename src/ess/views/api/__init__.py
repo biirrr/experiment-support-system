@@ -5,7 +5,7 @@ from decorator import decorator
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest
 
 from ess.util import Validator
-from ess.models import Experiment, Page
+from ess.models import Experiment, Page, Transition
 
 
 COLLECTION_POST_SCHEMA = {'data': {'type': 'dict', 'schema': None}}
@@ -37,7 +37,7 @@ def validated_body(request, schema):
     body = parse_body(request)
     validation_schema = deepcopy(COLLECTION_POST_SCHEMA)
     validation_schema['data']['schema'] = schema
-    validator = Validator(validation_schema)
+    validator = Validator(validation_schema, request=request)
     if validator.validate(body):
         return validator.validated(body)
     else:
@@ -90,24 +90,28 @@ def relationship_schema(type_name, required=False, many=False):
         return {'type': 'dict',
                 'required': required,
                 'schema': {'data': {'type': 'list',
+                                    'required': True,
                                     'schema': {'type': 'dict',
+                                               'belongs_to_experiment': True,
                                                'schema': reference_schema(type_name)}}}}
     else:
         return {'type': 'dict',
                 'required': required,
                 'schema': {'data': {'type': 'dict',
                                     'required': True,
+                                    'belongs_to_experiment': True,
                                     'schema': reference_schema(type_name)}}}
 
 
 def class_for_type(data):
     """Return the model class for the given ``data`` object."""
-    cls = None
     if data['type'] == 'experiments':
-        cls = Experiment
+        return Experiment
     elif data['type'] == 'pages':
-        cls = Page
-    return cls
+        return Page
+    elif data['type'] == 'transitions':
+        return Transition
+    return None
 
 
 def find_object(request, data):
@@ -121,8 +125,8 @@ def find_object(request, data):
 
 def store_object(request, data, valid_target=None):
     """Store the given JSONAPI ``data`` object in the database."""
-    if 'id' in data:
-        obj = find_object(request, data)
+    if 'id' in data['data']:
+        obj = find_object(request, data['data'])
         if obj is None:
             raise HTTPNotFound()
     else:
@@ -132,16 +136,10 @@ def store_object(request, data, valid_target=None):
     if 'relationships' in data['data']:
         for key, relationship_data in data['data']['relationships'].items():
             if isinstance(relationship_data['data'], list):
-                targets = []
-                for value in relationship_data['data']:
-                    target = find_object(request, value)
-                    if valid_target is None or valid_target(key, target):
-                        targets.push(target)
-                setattr(obj, key.replace('-', '_'), targets)
+                setattr(obj, key.replace('-', '_'), [find_object(request, value)
+                                                     for value in relationship_data['data']])
             elif isinstance(relationship_data['data'], dict):
-                target = find_object(request, relationship_data['data'])
-                if valid_target is None or valid_target(key, target):
-                    setattr(obj, key.replace('-', '_'), target)
+                setattr(obj, key.replace('-', '_'), find_object(request, relationship_data['data']))
     request.dbsession.add(obj)
     request.dbsession.flush()
     return obj

@@ -73,6 +73,10 @@ def includeme(config):
     config.add_route('api.page.item.get', '/api/experiments/:eid/pages/:pid', request_method='GET')
     config.add_route('api.page.item.patch', '/api/experiments/:eid/pages/:pid', request_method='PATCH')
     config.add_route('api.page.item.delete', '/api/experiments/:eid/pages/:pid', request_method='DELETE')
+    config.add_route('api.transition.collection.post', '/api/experiments/:eid/transitions', request_method='POST')
+    config.add_route('api.transition.item.get', '/api/experiments/:eid/transitions/:tid', request_method='GET')
+    config.add_route('api.transition.item.patch', '/api/experiments/:eid/transitions/:tid', request_method='PATCH')
+    config.add_route('api.transition.item.delete', '/api/experiments/:eid/transitions/:tid', request_method='DELETE')
 
     # Jinja2 configuration
     config.get_jinja2_environment().filters['static_url'] = static_url_filter

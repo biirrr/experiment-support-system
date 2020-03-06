@@ -6,6 +6,9 @@ import smtplib
 from cgi import FieldStorage
 from email.mime.text import MIMEText
 from email.utils import formatdate
+from sqlalchemy import and_
+
+from .models import Page, Transition
 
 
 def convert_type(value, target_type, default=None):
@@ -130,6 +133,19 @@ class Validator(cerberus.Validator):
             self._error(field, 'You must provide a value.')
         if self.document[other] != value:
             self._error(field, 'The value does not match.')
+
+    def _validate_belongs_to_experiment(self, enabled, field, value):
+        if enabled:
+            request = self._config['request']
+            query = None
+            if value['type'] == 'pages':
+                query = request.dbsession.query(Page).filter(and_(Page.id == value['id'],
+                                                                  Page.experiment_id == request.matchdict['eid']))
+            elif value['type'] == 'transition':
+                query = request.dbsession.query(Transition).join(Transition.source).\
+                    filter(and_(Transition.id == value['id'], Page.experiment_id == request.matchdict['eid']))
+            if query is not None and query.first() is None:
+                self._error(field, 'This object does not belong to request experiment')
 
 
 def date_to_json(date):

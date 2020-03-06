@@ -40,7 +40,9 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Watch } from 'vue-property-decorator';
+
+import { Page } from '@/interfaces';
 
 @Component
 export default class PagesCreate extends Vue {
@@ -49,7 +51,7 @@ export default class PagesCreate extends Vue {
     public pageTitle = '';
     public parentPageId = '';
 
-    public get pages() {
+    public get pages(): Page[] {
         return Object.values(this.$store.state.pages);
     }
 
@@ -57,9 +59,36 @@ export default class PagesCreate extends Vue {
         return this.pages && this.pages.length > 0;
     }
 
+    public get showPageSelect() {
+        return this.hasPages && this.addMode === 'after';
+    }
+
     public mounted() {
         if (this.hasPages) {
             this.addMode = 'after';
+            this.parentPageId = this.pages[0].id;
+            for (let idx = 0; idx < this.pages.length; idx++) {
+                if (this.pages[idx].relationships.next.data.length === 0) {
+                    this.parentPageId = this.pages[idx].id;
+                    break;
+                }
+            }
+        }
+    }
+
+    @Watch('pages')
+    public updateAddMode() {
+        if (this.hasPages) {
+            this.addMode = 'after';
+            this.parentPageId = this.pages[0].id;
+            for (let idx = 0; idx < this.pages.length; idx++) {
+                if (this.pages[idx].relationships.next.data.length === 0) {
+                    this.parentPageId = this.pages[idx].id;
+                    break;
+                }
+            }
+        } else {
+            this.addMode = 'first';
         }
     }
 
@@ -78,6 +107,13 @@ export default class PagesCreate extends Vue {
                 mode: 'first',
                 name: this.pageName,
                 title: this.pageTitle,
+            });
+        } else {
+            this.$store.dispatch('createPage', {
+                mode: 'after',
+                name: this.pageName,
+                title: this.pageTitle,
+                parentPageId: this.parentPageId,
             });
         }
     }
