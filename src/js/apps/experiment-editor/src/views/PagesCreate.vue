@@ -2,7 +2,7 @@
     <div class="grid-x grid-padding-x">
         <div class="cell auto">
             <h2>Add a new page</h2>
-            <form @submit="createPage">
+            <form @submit.prevent="createPage">
                 <label>Name
                     <input type="text" v-model="pageName" />
                 </label>
