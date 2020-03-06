@@ -19,11 +19,14 @@
                         </ul>
                     </aria-menubar>
                 </div>
-                <div class="cell large-9">
-                    <div v-if="isCurrentRoute">
-                        Content
-                    </div>
-                    <router-view v-else></router-view>
+                <div v-if="isCurrentRoute" class="cell large-6">
+                    Content
+                </div>
+                <div v-if="isCurrentRoute" class="cell large-3">
+                    Sidebar
+                </div>
+                <div v-if="!isCurrentRoute" class="cell large-9">
+                    <router-view></router-view>
                 </div>
             </div>
         </div>
