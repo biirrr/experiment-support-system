@@ -44,7 +44,7 @@ class Page(Base):
                     'data': [{'type': 'transitions', 'id': str(transition.id)} for transition in self.next]
                 },
                 'prev': {
-                    'data': [{'type': 'transitions', 'id': str(transition.id)} for transition in self.next]
+                    'data': [{'type': 'transitions', 'id': str(transition.id)} for transition in self.prev]
                 },
             }
         }
