@@ -183,6 +183,7 @@ export default new Vuex.Store({
                     page: response.data.data,
                 });
                 if (payload.mode === 'first') {
+                    // For a new first page, set the appropriate attribute
                     const experiment = deepcopy(state.experiment);
                     if (!experiment.relationships) {
                         experiment.relationships = {};
@@ -196,6 +197,7 @@ export default new Vuex.Store({
                     };
                     dispatch('updateExperiment', experiment);
                 } else {
+                    // For a new page after an existing page, add a transition
                     dispatch('updateExperiment', state.experiment);
                     response = await axios({
                         method: 'post',
