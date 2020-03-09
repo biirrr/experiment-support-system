@@ -21,12 +21,19 @@ export interface State {
     experiment: Experiment | null;
     pages: PageDict;
     transitions: TransitionDict;
+    questionTypeGroups: QuestionTypeGroup[];
+    questionTypes: QuestionTypeDict;
+    questions: QuestionsDict;
     ui: UIState;
 }
 
 export interface UIState {
     busy: boolean;
     busyCounter: number;
+}
+
+export interface QuestionTypeDict {
+    [x: string]: QuestionType;
 }
 
 export interface Experiment {
@@ -72,6 +79,7 @@ export interface PageRelationships {
     experiment: PageExperimentRelationship;
     next: PageTransitionRelationship;
     prev: PageTransitionRelationship;
+    questions: PageQuestionRelationship;
 }
 
 export interface PageExperimentRelationship {
@@ -80,6 +88,10 @@ export interface PageExperimentRelationship {
 
 export interface PageTransitionRelationship {
     data: TransitionReference[];
+}
+
+export interface PageQuestionRelationship {
+    data: QuestionReference[];
 }
 
 export interface ExperimentReference {
@@ -160,4 +172,94 @@ export interface ErrorSource {
 export interface UpdateExperimentAction {
     experiment: Experiment;
     errors?: (errors: Error[]) => {};
+}
+
+export interface QuestionTypeGroup {
+    type: 'question_type_groups',
+    id: string;
+    attributes: QuestionTypeGroupAttributes;
+    relationships: QuestionTypeGroupRelationships;
+}
+
+export interface QuestionTypeGroupAttributes {
+    title: string;
+}
+
+export interface QuestionTypeGroupRelationships {
+    'question-types': QuestionTypeGroupQuestionTypeRelationship;
+}
+
+export interface QuestionTypeGroupQuestionTypeRelationship {
+    data: QuestionTypeReference[];
+}
+
+export interface Question {
+    type: 'questions';
+    id: string;
+    attributes: QuestionAttributes;
+    relationships: QuestionRelationships;
+}
+
+export interface QuestionAttributes {
+
+}
+
+export interface QuestionRelationships {
+
+}
+
+export interface QuestionReference {
+    type: 'questions';
+    id: string;
+}
+
+export interface QuestionTypeReference {
+    type: 'question_types';
+    id: string;
+}
+
+export interface QuestionType {
+    type: 'question_types';
+    id: string;
+    attributes: QuestionTypeAttributes;
+    relationships: QuestionTypeRelationships;
+}
+
+export interface QuestionTypeAttributes {
+    _name: string;
+    _title: string;
+}
+
+export interface QuestionTypeRelationships {
+    'question-type-group': QuestionTypeQuestionTypeGroupRelationship;
+    'parent': QuestionTypeQuestionTypeRelationship;
+}
+
+export interface QuestionTypeQuestionTypeGroupRelationship {
+    'data': QuestionTypeGroupReference;
+}
+
+export interface QuestionTypeQuestionTypeRelationship {
+    'data': QuestionTypeReference;
+}
+
+export interface QuestionTypeGroupReference {
+    type: 'question_type_groups';
+    id: string;
+}
+
+export interface AddQuestionAction {
+    questionType: QuestionType;
+    page: Page;
+    idx: number;
+    errors?: (errors: Error[]) => {};
+}
+
+export interface QuestionsDict {
+    [x: string]: Question;
+}
+
+export interface LoadPageAction {
+    pageId: number;
+    questionId: number;
 }

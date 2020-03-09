@@ -5,7 +5,7 @@ from decorator import decorator
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest
 
 from ess.util import Validator
-from ess.models import Experiment, Page, Transition
+from ess.models import Experiment, Page, Transition, Question, QuestionType
 
 
 COLLECTION_POST_SCHEMA = {'data': {'type': 'dict', 'schema': None, 'belongs_to_experiment': True}}
@@ -111,6 +111,10 @@ def class_for_type(data):
         return Page
     elif data['type'] == 'transitions':
         return Transition
+    elif data['type'] == 'questions':
+        return Question
+    elif data['type'] == 'question-types':
+        return QuestionType
     return None
 
 

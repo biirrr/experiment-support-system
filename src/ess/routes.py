@@ -77,6 +77,9 @@ def includeme(config):
     config.add_route('api.transition.item.get', '/api/experiments/:eid/transitions/:tid', request_method='GET')
     config.add_route('api.transition.item.patch', '/api/experiments/:eid/transitions/:tid', request_method='PATCH')
     config.add_route('api.transition.item.delete', '/api/experiments/:eid/transitions/:tid', request_method='DELETE')
+    config.add_route('api.question.collection.post', '/api/experiments/:eid/pages/:pid/questions', request_method='POST')
+    config.add_route('api.question_type_group.collection.get', '/api/question_type_groups', request_method='GET')
+    config.add_route('api.question_type.item.get', '/api/question_types/:qtid', request_method='GET')
 
     # Jinja2 configuration
     config.get_jinja2_environment().filters['static_url'] = static_url_filter

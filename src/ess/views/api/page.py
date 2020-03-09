@@ -57,6 +57,7 @@ patch_page_schema = {'type': type_schema('pages'),
                                                          'required': True,
                                                          'empty': False}}},
                      'relationships': {'type': 'dict',
+                                       'required': True,
                                        'schema': {'experiment': relationship_schema('experiments',
                                                                                     required=True),
                                                   'next': relationship_schema('transitions',
@@ -64,7 +65,10 @@ patch_page_schema = {'type': type_schema('pages'),
                                                                               many=True),
                                                   'prev': relationship_schema('transitions',
                                                                               required=True,
-                                                                              many=True)}}}
+                                                                              many=True),
+                                                  'questions': relationship_schema('questions',
+                                                                                   required=True,
+                                                                                   many=True)}}}
 
 
 @view_config(route_name='api.page.item.patch', renderer='json')

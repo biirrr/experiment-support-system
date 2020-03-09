@@ -103,7 +103,7 @@ export default class App extends Vue {
         if (configElement) {
             const config = JSON.parse(configElement.innerHTML);
             if (config) {
-                this.$store.commit('init', config);
+                this.$store.dispatch('init', config);
                 this.$store.dispatch('loadExperiment');
             }
         }

@@ -7,7 +7,8 @@ import deepcopy from 'deepcopy';
 
 import router from '@/router/index';
 import { Config, State, Experiment, Page, CreatePageAction, SetPageMutation, SetTransitionMutation,
-    UpdatePageAction, UpdateExperimentAction } from '@/interfaces';
+    UpdatePageAction, UpdateExperimentAction, QuestionTypeGroup, QuestionType, AddQuestionAction,
+    Question, LoadPageAction } from '@/interfaces';
 
 Vue.use(Vuex)
 
@@ -16,6 +17,7 @@ export default new Vuex.Store({
         config: {
             api: {
                 baseUrl: '',
+                csrfToken: '',
             },
             experiment: {
                 id: '',
@@ -24,6 +26,9 @@ export default new Vuex.Store({
         experiment: null,
         pages: {},
         transitions: {},
+        questionTypeGroups: [],
+        questionTypes: {},
+        questions: {},
         ui: {
             busy: false,
             busyCounter: 0,
@@ -31,7 +36,7 @@ export default new Vuex.Store({
     } as State,
 
     mutations: {
-        init(state, payload: Config) {
+        setConfig(state, payload: Config) {
             state.config = payload;
         },
 
@@ -44,8 +49,20 @@ export default new Vuex.Store({
             state.ui.busy = state.ui.busyCounter > 0;
         },
 
+        setQuestionTypeGroups(state, payload: QuestionTypeGroup[]) {
+            state.questionTypeGroups = payload;
+        },
+
+        setQuestionType(state, payload: QuestionType) {
+            state.questionTypes[payload.id] = payload;
+        },
+
         setExperiment(state, payload: Experiment) {
             state.experiment = payload;
+        },
+
+        setQuestion(state, payload: Question) {
+            state.questions[payload.id] = payload;
         },
 
         setPage(state, payload: SetPageMutation) {
@@ -84,6 +101,37 @@ export default new Vuex.Store({
     },
 
     actions: {
+        async init({ commit, dispatch }, payload: Config) {
+            commit('setConfig', payload);
+            dispatch('loadQuestionTypes');
+        },
+
+        async loadQuestionTypes({ commit, state }) {
+            try {
+                commit('setBusy', true);
+                let response = await axios.get(state.config.api.baseUrl + '/question_type_groups');
+                const questionTypeGroups = response.data.data;
+                commit('setQuestionTypeGroups', questionTypeGroups);
+                for (let idx = 0; idx < questionTypeGroups.length; idx++) {
+                    const questionTypeGroup = questionTypeGroups[idx];
+                    try {
+                        commit('setBusy', true);
+                        for (let idx2 = 0; idx2 < questionTypeGroup.relationships['question-types'].data.length; idx2++) {
+                            const questionType = questionTypeGroup.relationships['question-types'].data[idx2];
+                            response = await axios.get(state.config.api.baseUrl + '/question_types/' + questionType.id);
+                            commit('setQuestionType', response.data.data);
+                        }
+                        commit('setBusy', false);
+                    } catch(error) {
+                        commit('setBusy', false);
+                    }
+                }
+                commit('setBusy', false);
+            } catch(error) {
+                commit('setBusy', false);
+            }
+        },
+
         async loadExperiment({ commit, dispatch, state }) {
             commit('setBusy', true);
             try {
@@ -100,15 +148,11 @@ export default new Vuex.Store({
             }
         },
 
-        async loadPage({ commit, dispatch, state }, payload: number) {
+        async loadPage({ commit, dispatch, state }, payload: LoadPageAction) {
             commit('setBusy', true);
             try {
-                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload);
-                const page = response.data.data as Page;
-                commit('setPage', {
-                    id: payload,
-                    page: page,
-                });
+                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.id);
+                commit('setQuestion', response.data.data);
                 for (let idx = 0; idx < page.relationships.next.data.length; idx++) {
                     dispatch('loadTransition', page.relationships.next.data[idx].id);
                 }
@@ -134,6 +178,11 @@ export default new Vuex.Store({
                 console.log(error);
                 commit('setBusy', false);
             }
+        },
+
+
+        async loadQuestion({ commit, state }, payload: number) {
+
         },
 
         async updateExperiment({ commit, state }, payload: UpdateExperimentAction) {
@@ -258,6 +307,51 @@ export default new Vuex.Store({
                 commit('setPage', {
                     id: response.data.data.id,
                     page: response.data.data,
+                });
+                commit('setBusy', false);
+            } catch (error) {
+                if (payload.errors) {
+                    payload.errors(error.response.data.errors);
+                }
+                commit('setBusy', false);
+            }
+        },
+
+        async addQuestion({ commit, dispatch, state }, payload: AddQuestionAction) {
+            try {
+                commit('setBusy', true);
+                const response = await axios({
+                    method: 'post',
+                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.page.id + '/questions',
+                    data: {
+                        data: {
+                            type: 'questions',
+                            attributes: {},
+                            relationships: {
+                                'question-type': {
+                                    data: {
+                                        type: 'question-types',
+                                        id: payload.questionType.id,
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': state.config.api.csrfToken,
+                    }
+                });
+                const question = response.data.data;
+                const page = deepcopy(payload.page);
+                commit('setQuestion', question);
+                if (payload.idx === -1) {
+                    page.relationships.questions.data.push({
+                        type: 'questions',
+                        id: question.id,
+                    });
+                }
+                dispatch('updatePage', {
+                    page: page,
                 });
                 commit('setBusy', false);
             } catch (error) {

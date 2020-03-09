@@ -10,6 +10,9 @@ from .experiment import Experiment  # noqa
 from .experiment_permissions import ExperimentPermission  # noqa
 from .page import Page  # noqa
 from .transition import Transition  # noqa
+from .question import Question  # noqa
+from .question_types import QuestionType  # noqa
+from .question_type_group import QuestionTypeGroup  # noqa
 
 # run configure_mappers after defining all of the models to ensure
 # all relationships can be setup

@@ -19,11 +19,13 @@
                         </ul>
                     </aria-menubar>
                 </div>
-                <div v-if="isCurrentRoute" class="cell large-6">
-                    Content
-                </div>
-                <div v-if="isCurrentRoute" class="cell large-3">
-                    Sidebar
+                <div v-if="isCurrentRoute" class="cell large-9">
+                    <add-question v-if="questions.length === 0" :page="page" :idx="-1"></add-question>
+                    <ol v-else class="no-bullet">
+                        <template v-for="question in questions">
+                            <li v-if="question" :key="question.idx">{{ question }}</li>
+                        </template>
+                    </ol>
                 </div>
                 <div v-if="!isCurrentRoute" class="cell large-9">
                     <router-view></router-view>
@@ -37,10 +39,13 @@
 import { Component, Vue } from 'vue-property-decorator';
 
 import AriaMenubar from '@/components/AriaMenubar.vue';
+import AddQuestion from '@/components/AddQuestion.vue';
+import { QuestionReference } from '@/interfaces';
 
 @Component({
     components: {
         AriaMenubar,
+        AddQuestion,
     }
 })
 export default class PageEdit extends Vue {
@@ -50,6 +55,20 @@ export default class PageEdit extends Vue {
 
     public get isCurrentRoute() {
         return this.$route.name === 'page.edit';
+    }
+
+    public get questions() {
+        if (this.page.relationships) {
+            console.log(this.$store.state.questions);
+            return this.page.relationships.questions.data.forEach((question: QuestionReference) => {
+                return this.$store.state.questions[question.id];
+            });
+        }
+        return [];
+    }
+
+    public get questionTypeGroups() {
+        return this.$store.state.questionTypeGroups;
     }
 }
 </script>

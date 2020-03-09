@@ -1,9 +1,9 @@
 from sqlalchemy import (Column, Integer, Unicode, ForeignKey)
+from sqlalchemy.ext.orderinglist import ordering_list
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
 
 from .meta import Base
-
 
 class Page(Base):
 
@@ -16,6 +16,7 @@ class Page(Base):
     experiment = relationship('Experiment', foreign_keys='Page.experiment_id')
     next = relationship('Transition', foreign_keys='Transition.source_id')
     prev = relationship('Transition', foreign_keys='Transition.target_id')
+    questions = relationship('Question', order_by='Question.position', collection_class=ordering_list('position'))
 
     def allow(self, user, action):
         """Check whether the given user is allowed to undertake the given action. Delegates to the
@@ -46,5 +47,8 @@ class Page(Base):
                 'prev': {
                     'data': [{'type': 'transitions', 'id': str(transition.id)} for transition in self.prev]
                 },
+                'questions': {
+                    'data': [{'type': 'questions', 'id': str(question.id)} for question in self.questions]
+                }
             }
         }
