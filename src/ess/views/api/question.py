@@ -2,9 +2,9 @@ from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config
 from sqlalchemy import and_
 
-from ess.models import Transition, Page
+from ess.models import Question, Page
 from ess.permissions import require_permission
-from . import (validated_body, override_tree, type_schema, relationship_schema, store_object)
+from . import (validated_body, type_schema, relationship_schema, store_object)
 
 
 post_question_schema = {'type': type_schema('questions'),
@@ -28,3 +28,17 @@ def post_collection(request):
     }
     obj = store_object(request, body)
     return {'data': obj.as_jsonapi()}
+
+
+@view_config(route_name='api.question.item.get', renderer='json')
+@require_permission('admin.experiments or @edit experiment :eid')
+def get_item(request):
+    """Handles fetching a single :class:`~ess.models.question.Question`."""
+    item = request.dbsession.query(Question).join(Page).\
+        filter(and_(Question.id == request.matchdict['qid'],
+                    Page.id == request.matchdict['pid'],
+                    Page.experiment_id == request.matchdict['eid'])).first()
+    if item is not None:
+        return {'data': item.as_jsonapi()}
+    else:
+        raise HTTPNotFound()

@@ -1,16 +1,21 @@
 <template>
-  <div>
-    <ul class="vertical menu accordion-menu" data-accordion-menu>
-        <template v-for="questionTypeGroup, idx in menuStructure">
-            <li v-if="questionTypeGroup.questionTypes.length > 0" :key="idx" class="is-accordion-submenu-parent" :aria-expanded="activeGroup === questionTypeGroup.id ? 'true': 'false'">
-                <a @click="setActiveGroup(questionTypeGroup.id)">{{ questionTypeGroup.title }}</a>
-                <ul v-if="activeGroup === questionTypeGroup.id" class="vertical menu nested is-accordion-submenu">
-                    <li v-for="questionType, idx2 in questionTypeGroup.questionTypes" :key="idx2"><a v-if="questionType" @click="addQuestion(questionType)">{{ questionType.attributes._title }}</a></li>
-                </ul>
-            </li>
-        </template>
-    </ul>
-  </div>
+    <form>
+        <ul class="vertical menu accordion-menu" data-accordion-menu>
+            <template v-for="questionTypeGroup, idx in menuStructure">
+                <li v-if="questionTypeGroup.questionTypes.length > 0" :key="idx" class="is-accordion-submenu-parent" :aria-expanded="activeGroup === questionTypeGroup.id ? 'true': 'false'">
+                    <a @click="setActiveGroup(questionTypeGroup.id)">{{ questionTypeGroup.title }}</a>
+                    <ul v-if="activeGroup === questionTypeGroup.id" class="vertical menu nested is-accordion-submenu">
+                        <li v-for="questionType, idx2 in questionTypeGroup.questionTypes" :key="idx2"><a v-if="questionType" @click="addQuestion(questionType)">{{ questionType.attributes._title }}</a></li>
+                    </ul>
+                </li>
+            </template>
+        </ul>
+        <div v-if="canCancel" class="buttons">
+            <ul>
+                <li><a @click="$emit('close')" class="button secondary small">Don't add</a></li>
+            </ul>
+        </div>
+    </form>
 </template>
 
 <script lang="ts">
@@ -22,6 +27,7 @@ import { Page, QuestionTypeGroup, QuestionType } from '@/interfaces';
 export default class AddQuestion extends Vue {
     @Prop() page!: Page;
     @Prop() idx!: number;
+    @Prop({ default: false }) canCancel!: boolean;
 
     public activeGroup = -1;
 
@@ -57,6 +63,7 @@ export default class AddQuestion extends Vue {
             page: this.$props.page,
             idx: this.$props.idx,
         });
+        this.$emit('close')
     }
 }
 </script>

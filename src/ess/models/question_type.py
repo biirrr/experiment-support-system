@@ -1,4 +1,4 @@
-from sqlalchemy import (Column, Integer, Unicode, Boolean, ForeignKey)
+from sqlalchemy import (Column, Integer, Boolean, ForeignKey)
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
 
@@ -17,7 +17,7 @@ class QuestionType(Base):
     attributes = Column(NestedMutableJson)
 
     question_type_group = relationship('QuestionTypeGroup')
-    parent = relationship('QuestionType')
+    parent = relationship('QuestionType', remote_side=[id])
 
     def allow(self, user, action):
         """Check whether the given user is allowed to undertake the given action. The ``'view'`` ``action`` is always
@@ -33,15 +33,24 @@ class QuestionType(Base):
         else:
             return False
 
+    def inherited_attributes(self):
+        if self.parent:
+            attributes = dict([(key, value) for key, value in self.parent.inherited_attributes().items()
+                               if not key.startswith('_')])
+            attributes.update(self.attributes)
+            return attributes
+        else:
+            return self.attributes
+
     def as_jsonapi(self):
         data = {
             'type': 'question_types',
             'id': str(self.id),
-            'attributes': self.attributes,
+            'attributes': self.inherited_attributes(),
             'relationships': {
                 'question-type-group': {
                     'data': {
-                        'type': 'question_type_groups',
+                        'type': 'question-type-groups',
                         'id': str(self.question_type_group_id),
                     }
                 },
@@ -50,7 +59,7 @@ class QuestionType(Base):
         if self.parent:
             data['relationships']['parent'] = {
                 'data': {
-                    'type': 'question_types',
+                    'type': 'question-types',
                     'id': str(self.parent_id)
                 }
             }

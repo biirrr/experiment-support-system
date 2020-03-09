@@ -1,0 +1,23 @@
+.page-editor {
+    .question {
+        .insert-link {
+            border-bottom: 1px dashed $primary-color;
+            position: relative;
+            margin-right: rem-calc(30);
+            visibility: hidden;
+
+            a {
+                position: absolute;
+                right: 0;
+                top: rem-calc(2);
+                transform: translate(120%, -50%);
+            }
+        }
+
+        &:hover {
+            .insert-link {
+                visibility: visible;
+            }
+        }
+    }
+}

@@ -1,6 +1,6 @@
 <template>
-    <div class="grid-x grid-padding-x">
-        <div v-if="page" class="cell auto">
+    <div v-if="page" class="grid-x grid-padding-x page-editor">
+        <div class="cell auto">
             <h2>{{ page.attributes.title }}</h2>
             <div class="grid-x grid-padding-x">
                 <div class="cell large-3">
@@ -20,11 +20,27 @@
                     </aria-menubar>
                 </div>
                 <div v-if="isCurrentRoute" class="cell large-9">
-                    <add-question v-if="questions.length === 0" :page="page" :idx="-1"></add-question>
+                    <add-question v-if="questions.length === 0" :page="page" :idx="-1" />
                     <ol v-else class="no-bullet">
-                        <template v-for="question in questions">
-                            <li v-if="question" :key="question.idx">{{ question }}</li>
-                        </template>
+                        <li v-for="question, idx in questions" :key="question.id" class="question">
+                            <add-question v-if="insertIdx === idx && insertPosition === 'before'" :page="page" :idx="idx" :canCancel="true" @close="insertQuestion(-1, '')" />
+                            <div v-else class="insert-link">
+                                <a @click="insertQuestion(idx, 'before')" aria-label="Insert a question before this question" title="Insert a question before this question">
+                                    <svg viewBox="0 0 24 24" class="mdi icon">
+                                        <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+                                    </svg>
+                                </a>
+                            </div>
+                            <render-question :question="question"></render-question>
+                            <add-question v-if="insertIdx === idx && insertPosition === 'after'" :page="page" :idx="idx + 1" :canCancel="true" @close="insertQuestion(-1, '')" />
+                            <div v-else class="insert-link">
+                                <a @click="insertQuestion(idx, 'after')" aria-label="Insert a question after this question" title="Insert a question after this question">
+                                    <svg viewBox="0 0 24 24" class="mdi icon">
+                                        <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </li>
                     </ol>
                 </div>
                 <div v-if="!isCurrentRoute" class="cell large-9">
@@ -40,15 +56,20 @@ import { Component, Vue } from 'vue-property-decorator';
 
 import AriaMenubar from '@/components/AriaMenubar.vue';
 import AddQuestion from '@/components/AddQuestion.vue';
-import { QuestionReference } from '@/interfaces';
+import RenderQuestion from '@/components/RenderQuestion.vue';
+import { QuestionReference, Question } from '@/interfaces';
 
 @Component({
     components: {
         AriaMenubar,
         AddQuestion,
+        RenderQuestion,
     }
 })
 export default class PageEdit extends Vue {
+    public insertIdx = -1;
+    public insertPosition = '';
+
     public get page() {
         return this.$store.state.pages[this.$route.params.pid];
     }
@@ -59,16 +80,20 @@ export default class PageEdit extends Vue {
 
     public get questions() {
         if (this.page.relationships) {
-            console.log(this.$store.state.questions);
-            return this.page.relationships.questions.data.forEach((question: QuestionReference) => {
+            return this.page.relationships.questions.data.map((question: QuestionReference) => {
                 return this.$store.state.questions[question.id];
-            });
+            }).filter((question: Question) => { return question; });
         }
         return [];
     }
 
     public get questionTypeGroups() {
         return this.$store.state.questionTypeGroups;
+    }
+
+    public insertQuestion(idx: number, position: string) {
+        this.insertIdx = idx;
+        this.insertPosition = position;
     }
 }
 </script>

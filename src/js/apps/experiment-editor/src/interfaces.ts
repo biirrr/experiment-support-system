@@ -259,7 +259,7 @@ export interface QuestionsDict {
     [x: string]: Question;
 }
 
-export interface LoadPageAction {
+export interface LoadQuestionAction {
     pageId: number;
     questionId: number;
 }

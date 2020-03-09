@@ -1,4 +1,4 @@
-from sqlalchemy import (Column, Integer, Boolean, Unicode, ForeignKey)
+from sqlalchemy import (Column, Integer, ForeignKey)
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
 
@@ -35,8 +35,8 @@ class Question(Base):
             'id': str(self.id),
             'attributes': self.attributes,
             'relationships': {
-                'question_type': {
-                    'data': {'type': 'question_types',
+                'question-type': {
+                    'data': {'type': 'question-types',
                              'id': str(self.question_type.id)}
                 },
                 'page': {

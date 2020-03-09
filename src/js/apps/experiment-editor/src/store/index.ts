@@ -6,9 +6,8 @@ import axios from 'axios';
 import deepcopy from 'deepcopy';
 
 import router from '@/router/index';
-import { Config, State, Experiment, Page, CreatePageAction, SetPageMutation, SetTransitionMutation,
-    UpdatePageAction, UpdateExperimentAction, QuestionTypeGroup, QuestionType, AddQuestionAction,
-    Question, LoadPageAction } from '@/interfaces';
+import { Config, State, Experiment, Page, CreatePageAction, UpdatePageAction, UpdateExperimentAction, QuestionTypeGroup,
+    QuestionType, AddQuestionAction, Question, LoadQuestionAction, Transition } from '@/interfaces';
 
 Vue.use(Vuex)
 
@@ -61,12 +60,8 @@ export default new Vuex.Store({
             state.experiment = payload;
         },
 
-        setQuestion(state, payload: Question) {
-            state.questions[payload.id] = payload;
-        },
-
-        setPage(state, payload: SetPageMutation) {
-            Vue.set(state.pages, payload.id, payload.page);
+        setPage(state, payload: Page) {
+            Vue.set(state.pages, payload.id, payload);
             if (state.experiment) {
                 if (!state.experiment.relationships) {
                     state.experiment.relationships = {pages: {data: []}};
@@ -77,26 +72,30 @@ export default new Vuex.Store({
                 let found = false;
                 for (let idx = 0; idx < state.experiment.relationships.pages.data.length; idx++) {
                     const page = state.experiment.relationships.pages.data[idx];
-                    if (page.id === payload.page.id) {
+                    if (page.id === payload.id) {
                         found = true;
                         state.experiment.relationships.pages.data[idx] = {
-                            type: payload.page.type,
-                            id: payload.page.id,
+                            type: payload.type,
+                            id: payload.id,
                         };
                         break;
                     }
                 }
                 if (!found) {
                     state.experiment.relationships.pages.data.push({
-                        type: payload.page.type,
-                        id: payload.page.id,
+                        type: payload.type,
+                        id: payload.id,
                     });
                 }
             }
         },
 
-        setTransition(state, payload: SetTransitionMutation) {
-            Vue.set(state.transitions, payload.id, payload.transition);
+        setTransition(state, payload: Transition) {
+            Vue.set(state.transitions, payload.id, payload);
+        },
+
+        setQuestion(state, payload: Question) {
+            Vue.set(state.questions, payload.id, payload);
         }
     },
 
@@ -148,13 +147,20 @@ export default new Vuex.Store({
             }
         },
 
-        async loadPage({ commit, dispatch, state }, payload: LoadPageAction) {
+        async loadPage({ commit, dispatch, state }, payload: number) {
             commit('setBusy', true);
             try {
-                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.id);
-                commit('setQuestion', response.data.data);
+                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload);
+                const page = response.data.data as Page;
+                commit('setPage', page);
                 for (let idx = 0; idx < page.relationships.next.data.length; idx++) {
                     dispatch('loadTransition', page.relationships.next.data[idx].id);
+                }
+                for (let idx = 0; idx < page.relationships.questions.data.length; idx++) {
+                    dispatch('loadQuestion', {
+                        pageId: payload,
+                        questionId: page.relationships.questions.data[idx].id
+                    });
                 }
                 commit('setBusy', false);
             } catch (error) {
@@ -168,10 +174,7 @@ export default new Vuex.Store({
             try {
                 commit('setBusy', true);
                 const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions/' + payload);
-                commit('setTransition', {
-                    id: payload,
-                    transition: response.data.data,
-                });
+                commit('setTransition', response.data.data);
                 commit('setBusy', false);
             } catch (error) {
                 // eslint-disable-next-line no-console
@@ -181,8 +184,17 @@ export default new Vuex.Store({
         },
 
 
-        async loadQuestion({ commit, state }, payload: number) {
-
+        async loadQuestion({ commit, state }, payload: LoadQuestionAction) {
+            try {
+                commit('setBusy', true);
+                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.pageId + '/questions/' + payload.questionId);
+                commit('setQuestion', response.data.data);
+                commit('setBusy', false);
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.log(error);
+                commit('setBusy', false);
+            }
         },
 
         async updateExperiment({ commit, state }, payload: UpdateExperimentAction) {
@@ -304,10 +316,7 @@ export default new Vuex.Store({
                         'X-CSRF-TOKEN': state.config.api.csrfToken,
                     },
                 });
-                commit('setPage', {
-                    id: response.data.data.id,
-                    page: response.data.data,
-                });
+                commit('setPage', response.data.data);
                 commit('setBusy', false);
             } catch (error) {
                 if (payload.errors) {
@@ -346,6 +355,11 @@ export default new Vuex.Store({
                 commit('setQuestion', question);
                 if (payload.idx === -1) {
                     page.relationships.questions.data.push({
+                        type: 'questions',
+                        id: question.id,
+                    });
+                } else {
+                    page.relationships.questions.data.splice(payload.idx, 0, {
                         type: 'questions',
                         id: question.id,
                     });
