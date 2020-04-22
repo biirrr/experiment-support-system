@@ -3,3 +3,5 @@ development.ini
 production.ini
 ess.sqlite
 *.egg-info
+.venv
+.vstudio
