@@ -223,7 +223,7 @@ def logout(request):
 
 
 @view_config(route_name='user.view', renderer='ess:templates/user/view.jinja2')
-@require_permission('users.admin or @view user :uid')
+@require_permission('User:uid allow $current_user view')
 def view(request):
     """Handle showing the user overview page."""
     return {}

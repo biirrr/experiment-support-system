@@ -5,3 +5,4 @@ ess.sqlite
 *.egg-info
 .venv
 .vstudio
+__pycache__
