@@ -40,6 +40,9 @@ ess = "ess.scripts:main"
 [tool.poetry.extras]
 postgresql = ["psycopg2"]
 
+[tool.poetry.plugins."paste.app_factory"]
+main = "ess:main"
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"

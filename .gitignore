@@ -6,3 +6,4 @@ ess.sqlite
 .venv
 .vstudio
 __pycache__
+.vscode
