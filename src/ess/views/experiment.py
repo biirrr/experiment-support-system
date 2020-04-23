@@ -12,7 +12,7 @@ create_experiment_schema = {'title': {'type': 'string', 'empty': False},
 
 
 @view_config(route_name='experiment.create', renderer='ess:templates/experiment/create.jinja2')
-@require_permission('experiment.create')
+@require_permission('$current_user has_permission experiment.create')
 def create(request):
     """Handles the creation of a new experiment."""
     if request.method == 'POST':
@@ -34,7 +34,7 @@ def create(request):
 
 
 @view_config(route_name='experiment.edit', renderer='ess:templates/experiment/edit.jinja2')
-@require_permission('admin.experiments or @edit experiment :eid')
+@require_permission('Experiment:eid allow $current_user edit')
 def edit(request):
     """Handles the creation of a new experiment."""
     experiment = request.dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()

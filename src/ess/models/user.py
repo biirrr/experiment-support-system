@@ -1,9 +1,19 @@
+from collections import OrderedDict
 from datetime import datetime
+from pyramid.decorator import reify
 from sqlalchemy import (Column, Index, Integer, Unicode, DateTime)
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
 
 from .meta import Base
+
+
+PERMISSIONS = OrderedDict((('admin.view', 'Access the Admin Interface'),
+                           ('admin.users', 'Administer Users'),
+                           ('admin.experiments', 'Administer Experiments'),
+                           ('experiment.create', 'Create new Experiments')))
+GROUPS = OrderedDict((('admin', ('admin.view', 'admin.users', 'admin.experiments')),
+                      ('creator', ('experiment.create',))))
 
 
 class User(Base):
@@ -32,13 +42,24 @@ class User(Base):
         :type action: ``str``
         """
         if action == 'view':
-            return user is not None and user.id == self.id
+            return user is not None and (user.id == self.id or user.has_permission('admin.users'))
         elif action == 'edit':
-            return user is not None and user.id == self.id
+            return user is not None and (user.id == self.id or user.has_permission('admin.users'))
         elif action == 'delete':
-            return user is not None and user.id == self.id
+            return user is not None and (user.id == self.id or user.has_permission('admin.users'))
         else:
             return False
+
+    def has_permission(self, permission, include_groups=True):
+        if include_groups:
+            return permission in self.full_permissions
+        else:
+            return permission in self.permissions
+
+    @reify
+    def full_permissions(self):
+        return self.permissions + [perm for group, permissions in GROUPS.items()
+                                   if group in self.groups for perm in permissions]
 
 
 Index('users_email_ix', User.email, unique=True, mysql_length=191)

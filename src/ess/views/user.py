@@ -230,7 +230,7 @@ def view(request):
 
 
 @view_config(route_name='user.experiments', renderer='ess:templates/user/experiments.jinja2')
-@require_permission('users.admin or @view user :uid')
+@require_permission('User:uid allow $current_user view')
 def experiments(request):
     """Handle showing the user experiments page."""
     experiments = request.dbsession.query(Experiment).\

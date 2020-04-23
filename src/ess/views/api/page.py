@@ -22,7 +22,7 @@ post_page_schema = {'type': type_schema('pages'),
 
 
 @view_config(route_name='api.page.collection.post', renderer='json')
-@require_permission('admin.experiments or @edit experiment :eid')
+@require_permission('Experiment:eid allow $current_user edit')
 def post_collection(request):
     """Handles fetching a single :class:`~ess.models.page.Page`."""
     body = validated_body(request, post_page_schema)
@@ -34,7 +34,7 @@ def post_collection(request):
 
 
 @view_config(route_name='api.page.item.get', renderer='json')
-@require_permission('admin.experiments or @edit experiment :eid')
+@require_permission('Experiment:eid allow $current_user edit')
 def get_item(request):
     """Handles fetching a single :class:`~ess.models.page.Page`."""
     item = request.dbsession.query(Page).filter(and_(Page.id == request.matchdict['pid'],
@@ -72,7 +72,7 @@ patch_page_schema = {'type': type_schema('pages'),
 
 
 @view_config(route_name='api.page.item.patch', renderer='json')
-@require_permission('admin.experiments or @edit experiment :eid')
+@require_permission('Experiment:eid allow $current_user edit')
 def patch_item(request):
     """Handles updating a single :class:`~ess.models.page.Page`."""
     body = validated_body(request, patch_page_schema)

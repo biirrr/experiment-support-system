@@ -16,7 +16,7 @@ post_question_schema = {'type': type_schema('questions'),
 
 
 @view_config(route_name='api.question.collection.post', renderer='json')
-@require_permission('admin.experiments or @edit experiment :eid')
+@require_permission('Experiment:eid allow $current_user edit')
 def post_collection(request):
     """Handles fetching a single :class:`~ess.models.page.Page`."""
     body = validated_body(request, post_question_schema)
@@ -31,7 +31,7 @@ def post_collection(request):
 
 
 @view_config(route_name='api.question.item.get', renderer='json')
-@require_permission('admin.experiments or @edit experiment :eid')
+@require_permission('Experiment:eid allow $current_user edit')
 def get_item(request):
     """Handles fetching a single :class:`~ess.models.question.Question`."""
     item = request.dbsession.query(Question).join(Page).\
