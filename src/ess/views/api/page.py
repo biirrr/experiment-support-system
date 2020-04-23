@@ -1,3 +1,4 @@
+from copy import deepcopy
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config
 from sqlalchemy import and_
@@ -25,7 +26,14 @@ post_page_schema = {'type': type_schema('pages'),
 @require_permission('Experiment:eid allow $current_user edit')
 def post_collection(request):
     """Handles fetching a single :class:`~ess.models.page.Page`."""
-    body = validated_body(request, post_page_schema)
+    def validate_unique_name(field, value, error):
+        for page in request.dbsession.query(Page).filter(Page.experiment_id == request.matchdict['eid']):
+            if page.attributes['name'] == value:
+                error(field, 'Page names must be unique')
+
+    schema = deepcopy(post_page_schema)
+    schema['attributes']['schema']['name']['validator'] = [validate_unique_name]
+    body = validated_body(request, schema)
     body = override_tree(body, {'data.relationships.experiment': {
         'data': {'type': 'experiments',
                  'id': request.matchdict['eid']}}})
@@ -75,6 +83,14 @@ patch_page_schema = {'type': type_schema('pages'),
 @require_permission('Experiment:eid allow $current_user edit')
 def patch_item(request):
     """Handles updating a single :class:`~ess.models.page.Page`."""
-    body = validated_body(request, patch_page_schema)
+    def validate_unique_name(field, value, error):
+        for page in request.dbsession.query(Page).filter(and_(Page.experiment_id == request.matchdict['eid'],
+                                                              Page.id != request.matchdict['pid'])):
+            if page.attributes['name'] == value:
+                error(field, 'Page names must be unique')
+
+    schema = deepcopy(patch_page_schema)
+    schema['attributes']['schema']['name']['validator'] = [validate_unique_name]
+    body = validated_body(request, schema)
     obj = store_object(request, body)
     return {'data': obj.as_jsonapi()}
