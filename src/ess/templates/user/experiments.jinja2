@@ -30,12 +30,12 @@
     <ul class="no-bullet experiment-list">
       {% for experiment in experiments %}
         <li>
-          <h2><a href="{{ 'experiment.edit'|route_url(eid=experiment.id) }}">{{ experiment.title }}</a></h2>
-          <p>{{ experiment.description }}</p>
+          <h2><a href="{{ 'experiment.edit'|route_url(eid=experiment.id) }}">{{ experiment.attributes.title }}</a></h2>
+          <p>{{ experiment.attributes.description }}</p>
           <ul class="menu simple">
             <li class="icon-text small">
               <span>{{ icon('checkbox-blank-circle', cls='medium-gray') }}</span>
-              <span>{{ experiment.status|title }}</span>
+              <span>{{ experiment.attributes.status|title }}</span>
             </li>
           </ul>
         </li>
