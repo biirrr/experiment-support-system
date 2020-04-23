@@ -2,7 +2,7 @@ from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config
 
 from ess.models import QuestionType
-from ess.session import require_logged_in
+from pwh_pyramid_session import require_logged_in
 
 
 @view_config(route_name='api.question_type.item.get', renderer='json')
