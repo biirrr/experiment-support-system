@@ -449,6 +449,18 @@ version = "1.1.0"
 
 [[package]]
 category = "main"
+description = "Route helpers for Pyramid"
+name = "pwh-pyramid-routes"
+optional = false
+python-versions = ">=3.7,<4.0"
+version = "1.0.0"
+
+[package.dependencies]
+decorator = ">=4.4.2,<5.0.0"
+pyramid_jinja2 = ">=2.8,<3.0"
+
+[[package]]
+category = "main"
 description = "Session helpers for Pyramid"
 name = "pwh-pyramid-session"
 optional = false
@@ -961,7 +973,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 postgresql = []
 
 [metadata]
-content-hash = "19faebd09edf026b2e823b248bc1c4a427d7110d1556c06caf51e66167774cdc"
+content-hash = "859d2b09c38679d338b776d7c61ba391ecf4c0f396e537268313607bc708a8f1"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -1221,6 +1233,10 @@ pre-commit = [
 pwh-permissions = [
     {file = "pwh_permissions-1.1.0-py3-none-any.whl", hash = "sha256:ef8c75433156569dc5da902fb1cd89df1d0f2c4343f42a1e2cc69446fd2ff6b4"},
     {file = "pwh_permissions-1.1.0.tar.gz", hash = "sha256:60e9549fa8f9911c27792408105a804dd83802fe789a162bae2bcd52508714f8"},
+]
+pwh-pyramid-routes = [
+    {file = "pwh_pyramid_routes-1.0.0-py3-none-any.whl", hash = "sha256:67a46d71825533d168029b3a2d3e5d4d4d38b83dbbca66ee55ce34e27d50623c"},
+    {file = "pwh_pyramid_routes-1.0.0.tar.gz", hash = "sha256:7cb0138449bc7867c133fe71434a82074cbba85fbde5c58efd83341e7762e359"},
 ]
 pwh-pyramid-session = [
     {file = "pwh_pyramid_session-0.2.0-py3-none-any.whl", hash = "sha256:ee84598d11b5cfd18360a53b29b47581dfcaa9a457d38fa232c2c40a5fe02137"},

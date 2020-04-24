@@ -2,6 +2,7 @@ from copy import deepcopy
 from email_validator import validate_email, EmailNotValidError
 from hashlib import sha512
 from pwh_permissions.pyramid import require_permission
+from pwh_pyramid_routes import decode_route
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 from random import sample, choice
@@ -9,7 +10,6 @@ from secrets import token_hex
 from sqlalchemy import and_, desc
 
 from ..models import User, Experiment, ExperimentPermission
-from ..routes import decode_route
 from ..util import get_config_setting, send_email, Validator
 
 
