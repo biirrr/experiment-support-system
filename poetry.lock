@@ -445,7 +445,7 @@ description = "A simple permissions parsing library for Python"
 name = "pwh-permissions"
 optional = false
 python-versions = ">=3.7,<4.0"
-version = "1.1.0"
+version = "1.2.0"
 
 [[package]]
 category = "main"
@@ -465,10 +465,11 @@ description = "Session helpers for Pyramid"
 name = "pwh-pyramid-session"
 optional = false
 python-versions = ">=3.7,<4.0"
-version = "0.2.0"
+version = "1.0.0"
 
 [package.dependencies]
 decorator = ">=4.4.2,<5.0.0"
+pwh_pyramid_routes = ">=1.0.0,<2.0.0"
 pyramid_nacl_session = ">=0.3,<0.4"
 sqlalchemy = ">=1.3.16,<2.0.0"
 
@@ -973,7 +974,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 postgresql = []
 
 [metadata]
-content-hash = "859d2b09c38679d338b776d7c61ba391ecf4c0f396e537268313607bc708a8f1"
+content-hash = "d656362fd164e27b3b330327790be118bcc61c3a4a3610aebfc1930bd4e47e4c"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -1231,16 +1232,16 @@ pre-commit = [
     {file = "pre_commit-2.3.0.tar.gz", hash = "sha256:f3e85e68c6d1cbe7828d3471896f1b192cfcf1c4d83bf26e26beeb5941855257"},
 ]
 pwh-permissions = [
-    {file = "pwh_permissions-1.1.0-py3-none-any.whl", hash = "sha256:ef8c75433156569dc5da902fb1cd89df1d0f2c4343f42a1e2cc69446fd2ff6b4"},
-    {file = "pwh_permissions-1.1.0.tar.gz", hash = "sha256:60e9549fa8f9911c27792408105a804dd83802fe789a162bae2bcd52508714f8"},
+    {file = "pwh_permissions-1.2.0-py3-none-any.whl", hash = "sha256:874852bf453f8b0023e6bd6c0eeb1a654a481bef26e4e0187a3b4931ef3b5336"},
+    {file = "pwh_permissions-1.2.0.tar.gz", hash = "sha256:9d4b20f6d1ece445e93c60f16ff924b0c94b196bfa71c1c12b195d627c4c0193"},
 ]
 pwh-pyramid-routes = [
     {file = "pwh_pyramid_routes-1.0.0-py3-none-any.whl", hash = "sha256:67a46d71825533d168029b3a2d3e5d4d4d38b83dbbca66ee55ce34e27d50623c"},
     {file = "pwh_pyramid_routes-1.0.0.tar.gz", hash = "sha256:7cb0138449bc7867c133fe71434a82074cbba85fbde5c58efd83341e7762e359"},
 ]
 pwh-pyramid-session = [
-    {file = "pwh_pyramid_session-0.2.0-py3-none-any.whl", hash = "sha256:ee84598d11b5cfd18360a53b29b47581dfcaa9a457d38fa232c2c40a5fe02137"},
-    {file = "pwh_pyramid_session-0.2.0.tar.gz", hash = "sha256:11a7bea924146954a9836f0bce7f41b6580c19657ed273c1ffcf2c2fcf1eebff"},
+    {file = "pwh_pyramid_session-1.0.0-py3-none-any.whl", hash = "sha256:627cb9e0f3f689d90c049bc84758ce05b1f4edea28103ba71e3020400f0142ec"},
+    {file = "pwh_pyramid_session-1.0.0.tar.gz", hash = "sha256:f9263c551b0ab84e3c778241f4f91864788b913411e6deeadf1a96ca963cdacf"},
 ]
 py = [
     {file = "py-1.8.1-py2.py3-none-any.whl", hash = "sha256:c20fdd83a5dbc0af9efd622bee9a5564e278f6380fffcacc43ba6f43db2813b0"},
