@@ -1,8 +1,8 @@
+from pwh_permissions.pyramid import require_permission
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import view_config
 
 from ..models import Experiment, ExperimentPermission
-from ..permissions import require_permission
 from ..util import Validator
 
 

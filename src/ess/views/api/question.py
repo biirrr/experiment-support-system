@@ -1,9 +1,9 @@
+from pwh_permissions.pyramid import require_permission
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config
 from sqlalchemy import and_
 
 from ess.models import Question, Page
-from ess.permissions import require_permission
 from . import (validated_body, type_schema, relationship_schema, store_object)
 
 

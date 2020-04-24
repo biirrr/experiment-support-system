@@ -20,8 +20,8 @@ cerberus = "^1.3.2"
 sqlalchemy-json = "^0.4.0"
 email-validator = "^1.0.5"
 inflect = "^4.1.0"
-pwh_permissions = "^1.0.0"
 pwh_pyramid_session = "^0.2.0"
+pwh_permissions = {version = "^1.1.0", extras = ["pyramid"]}
 
 [tool.poetry.dev-dependencies]
 webtest = ">=1.3.1"
