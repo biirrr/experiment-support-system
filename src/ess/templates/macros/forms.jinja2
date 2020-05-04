@@ -26,5 +26,5 @@
 {% endmacro %}
 
 {% macro csrf_token() %}
-{{ input('csrf_token', 'hidden', attributes={'value': request|get_csrf_token }) }}
+{{ input('csrf_token', 'hidden', attributes={'value': get_csrf_token() }) }}
 {% endmacro %}

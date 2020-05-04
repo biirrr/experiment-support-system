@@ -156,20 +156,6 @@ def date_to_json(date):
     return date.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
-MONTHS = {1: 'January',
-          2: 'February',
-          3: 'March',
-          4: 'April',
-          5: 'May',
-          6: 'June',
-          7: 'July',
-          8: 'August',
-          9: 'September',
-          10: 'October',
-          11: 'November',
-          12: 'December'}
-
-
 def strftime(value, format):
     """Apply a stftime format to a date value."""
     return value.strftime(format)

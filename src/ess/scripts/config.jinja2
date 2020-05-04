@@ -7,7 +7,7 @@
 sqlalchemy.url = sqlite:///%(here)s/ess.sqlite
 
 # Secure session secret
-app.session_secret = {{ session_secret }}
+pwh.pyramid_session.secret = {{ session_secret }}
 
 # Email configuration
 app.email.smtp_host =
@@ -34,7 +34,7 @@ pyramid.includes =
 {% endif %}
 
 # DO NOT CHANGE
-use = egg:experiment-support-system
+use = egg:ess
 
 ###
 # WSGI server configuration

@@ -239,10 +239,7 @@ export default new Vuex.Store({
                         'X-CSRF-TOKEN': state.config.api.csrfToken,
                     },
                 });
-                commit('setPage', {
-                    id: response.data.data.id,
-                    page: response.data.data,
-                });
+                commit('setPage', response.data.data);
                 if (payload.mode === 'first') {
                     // For a new first page, set the appropriate attribute
                     const experiment = deepcopy(state.experiment);
@@ -289,10 +286,7 @@ export default new Vuex.Store({
                             'X-CSRF-TOKEN': state.config.api.csrfToken,
                         },
                     });
-                    commit('setTransition', {
-                        id: response.data.data.id,
-                        transition: response.data.data,
-                    });
+                    commit('setTransition', response.data.data);
                     dispatch('loadPage', payload.parentPageId);
                 }
                 router.push('/pages');

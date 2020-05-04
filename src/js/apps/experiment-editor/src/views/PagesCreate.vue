@@ -4,7 +4,7 @@
             <h2>Add a new page</h2>
             <form @submit.prevent="createPage">
                 <input-field type="text" label="Name" v-model="pageName" :error="errors.name"/>
-                <input-field type="text" label="Title" v-model="pageTitle" :error="errors.name"/>
+                <input-field type="text" label="Title" v-model="pageTitle" :error="errors.title"/>
                 <label>
                     <input type="radio" name="parent" value="first" v-model="addMode" />
                     Add as the first page

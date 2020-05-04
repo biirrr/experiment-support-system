@@ -1,10 +1,10 @@
+from pwh_permissions.pyramid import require_permission
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config
 from sqlalchemy import and_
 
 from ess.models import Transition, Page
-from ess.permissions import require_permission
-from . import (validated_body, override_tree, type_schema, relationship_schema, store_object)
+from . import (validated_body, type_schema, relationship_schema, store_object)
 
 
 post_transition_schema = {'type': type_schema('transitions'),
@@ -17,7 +17,7 @@ post_transition_schema = {'type': type_schema('transitions'),
 
 
 @view_config(route_name='api.transition.collection.post', renderer='json')
-@require_permission('admin.experiments or @edit experiment :eid')
+@require_permission('Experiment:eid allow $current_user edit')
 def post_collection(request):
     """Handles fetching a single :class:`~ess.models.page.Page`."""
     body = validated_body(request, post_transition_schema)
@@ -26,7 +26,7 @@ def post_collection(request):
 
 
 @view_config(route_name='api.transition.item.get', renderer='json')
-@require_permission('admin.experiments or @edit experiment :eid')
+@require_permission('Experiment:eid allow $current_user edit')
 def get_item(request):
     """Handles fetching a single :class:`~ess.models.page.Transition`."""
     item = request.dbsession.query(Transition).join(Transition.source).\

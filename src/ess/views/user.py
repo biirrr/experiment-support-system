@@ -1,6 +1,8 @@
 from copy import deepcopy
 from email_validator import validate_email, EmailNotValidError
 from hashlib import sha512
+from pwh_permissions.pyramid import require_permission
+from pwh_pyramid_routes import decode_route
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 from random import sample, choice
@@ -8,8 +10,6 @@ from secrets import token_hex
 from sqlalchemy import and_, desc
 
 from ..models import User, Experiment, ExperimentPermission
-from ..permissions import require_permission
-from ..routes import decode_route
 from ..util import get_config_setting, send_email, Validator
 
 
@@ -223,14 +223,14 @@ def logout(request):
 
 
 @view_config(route_name='user.view', renderer='ess:templates/user/view.jinja2')
-@require_permission('users.admin or @view user :uid')
+@require_permission('User:uid allow $current_user view')
 def view(request):
     """Handle showing the user overview page."""
     return {}
 
 
 @view_config(route_name='user.experiments', renderer='ess:templates/user/experiments.jinja2')
-@require_permission('users.admin or @view user :uid')
+@require_permission('User:uid allow $current_user view')
 def experiments(request):
     """Handle showing the user experiments page."""
     experiments = request.dbsession.query(Experiment).\
