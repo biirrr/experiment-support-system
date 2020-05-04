@@ -1,9 +1,9 @@
+from pwh_permissions.pyramid import require_permission
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config
 
 from ess.models import Experiment
-from ess.permissions import require_permission
-from . import (validated_body, override_tree, type_schema, id_schema, relationship_schema, store_object)
+from . import (validated_body, type_schema, id_schema, relationship_schema, store_object)
 
 
 edit_experiment_schema = {'title': {'type': 'string', 'empty': False},
@@ -11,7 +11,7 @@ edit_experiment_schema = {'title': {'type': 'string', 'empty': False},
 
 
 @view_config(route_name='api.experiment.item.get', renderer='json')
-@require_permission('admin.experiments or @edit experiment :eid')
+@require_permission('Experiment:eid allow $current_user edit')
 def get_item(request):
     """Handles fetching a single :class:`~ess.models.experiment.Experiment`."""
     item = request.dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
@@ -35,13 +35,13 @@ patch_experiment_schema = {'type': type_schema('experiments'),
                                                                 'required': True,
                                                                 'allowed': ['development', 'live',
                                                                             'paused', 'completed']}}},
-                    'relationships': {'type': 'dict',
-                                      'schema': {'first-page': relationship_schema('pages'),
-                                                 'pages': relationship_schema('pages', many=True)}}}
+                           'relationships': {'type': 'dict',
+                                             'schema': {'first-page': relationship_schema('pages'),
+                                                        'pages': relationship_schema('pages', many=True)}}}
 
 
 @view_config(route_name='api.experiment.item.patch', renderer='json')
-@require_permission('admin.experiments or @edit experiment :eid')
+@require_permission('Experiment:eid allow $current_user edit')
 def patch_item(request):
     body = validated_body(request, patch_experiment_schema)
     obj = store_object(request, body)
