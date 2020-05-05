@@ -10,5 +10,5 @@ def get_collection(request):
     """Handles fetching all :class:`~ess.models.question_type_group.QuestionTypeGroup`."""
     return {'data': [qtg.as_jsonapi()
                      for qtg in request.dbsession.query(QuestionTypeGroup).
-                     filter(QuestionTypeGroup.enabled is True).
+                     filter(QuestionTypeGroup.enabled == True).  # noqa: E712
                      order_by(QuestionTypeGroup.position)]}
