@@ -12,5 +12,8 @@
     "gulp-concat": "^2.6.1",
     "gulp-sass": "^4.0.2",
     "pump": "^3.0.0"
+  },
+  "devDependencies": {
+    "testcafe": "^1.8.4"
   }
 }
