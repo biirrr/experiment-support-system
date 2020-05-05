@@ -271,3 +271,7 @@ export interface UpdateQuestionAction {
     errors?: (errors: Error[]) => {};
     success?: () => {};
 }
+
+export interface DeleteQuestionAction {
+    question: Question;
+}

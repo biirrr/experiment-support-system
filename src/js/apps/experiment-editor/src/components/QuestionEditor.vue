@@ -29,6 +29,13 @@
                             </svg>
                         </a>
                     </li>
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="0" aria-label="Cancel" @keyup="keyboardNav" @click="deleteQuestion">
+                            <svg viewBox="0 0 24 24" class="mdi icon alert">
+                                <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+                            </svg>
+                        </a>
+                    </li>
                 </ul>
             </aria-menubar>
         </div>
@@ -134,6 +141,12 @@ export default class QuestionEditor extends Vue {
             }
         } else {
             this.$emit('close');
+        }
+    }
+
+    public deleteQuestion() {
+        if (confirm('Please confirm that you wish to delete this question?')) {
+            this.$store.dispatch('deleteQuestion', {question: this.$props.question});
         }
     }
 }

@@ -6,8 +6,9 @@ import axios from 'axios';
 import deepcopy from 'deepcopy';
 
 import router from '@/router/index';
-import { Config, State, Experiment, Page, CreatePageAction, UpdatePageAction, UpdateExperimentAction, QuestionTypeGroup,
-    QuestionType, AddQuestionAction, Question, LoadQuestionAction, Transition, UpdateQuestionAction } from '@/interfaces';
+import { Config, State, Experiment, Page, CreatePageAction, UpdatePageAction, UpdateExperimentAction,
+    DeleteQuestionAction, QuestionTypeGroup, QuestionType, AddQuestionAction, Question, LoadQuestionAction,
+    Transition, UpdateQuestionAction } from '@/interfaces';
 
 Vue.use(Vuex)
 
@@ -96,7 +97,11 @@ export default new Vuex.Store({
 
         setQuestion(state, payload: Question) {
             Vue.set(state.questions, payload.id, payload);
-        }
+        },
+
+        deleteQuestion(state, payload: Question) {
+            Vue.delete(state.questions, payload.id);
+        },
     },
 
     actions: {
@@ -147,19 +152,34 @@ export default new Vuex.Store({
             }
         },
 
-        async loadPage({ commit, dispatch, state }, payload: number) {
+        async loadPage({ commit, dispatch, state }, payload: string) {
             commit('setBusy', true);
             try {
                 const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload);
+                let existingQuestions = null;
+                if (state.pages[payload]) {
+                    existingQuestions = state.pages[payload].relationships.questions.data.map((questionRef) => {
+                        return questionRef.id
+                    });
+                }
                 const page = response.data.data as Page;
                 commit('setPage', page);
                 for (let idx = 0; idx < page.relationships.next.data.length; idx++) {
                     dispatch('loadTransition', page.relationships.next.data[idx].id);
                 }
+                const newQuestionIds = [] as string[];
                 for (let idx = 0; idx < page.relationships.questions.data.length; idx++) {
+                    newQuestionIds.push(page.relationships.questions.data[idx].id);
                     dispatch('loadQuestion', {
                         pageId: payload,
                         questionId: page.relationships.questions.data[idx].id
+                    });
+                }
+                if (existingQuestions) {
+                    existingQuestions.forEach((qid) => {
+                        if (newQuestionIds.indexOf(qid) < 0) {
+                            commit('deleteQuestion', state.questions[qid]);
+                        }
                     });
                 }
                 commit('setBusy', false);
@@ -170,7 +190,7 @@ export default new Vuex.Store({
             }
         },
 
-        async loadTransition({ commit, state}, payload: number) {
+        async loadTransition({ commit, state}, payload: string) {
             try {
                 commit('setBusy', true);
                 const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions/' + payload);
@@ -395,6 +415,23 @@ export default new Vuex.Store({
                 commit('setBusy', false);
             }
         },
+
+        async deleteQuestion({ commit, dispatch, state }, payload: DeleteQuestionAction) {
+            try {
+                commit('setBusy', true);
+                await axios({
+                    method: 'delete',
+                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.question.relationships.page.data.id + '/questions/' + payload.question.id,
+                    headers: {
+                        'X-CSRF-TOKEN': state.config.api.csrfToken,
+                    }
+                });
+                dispatch('loadPage', payload.question.relationships.page.data.id);
+                commit('setBusy', false);
+            } catch(error) {
+                commit('setBusy', false);
+            }
+        }
     },
     modules: {
     }
