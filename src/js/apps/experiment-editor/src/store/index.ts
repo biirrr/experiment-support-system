@@ -175,6 +175,7 @@ export default new Vuex.Store({
                         questionId: page.relationships.questions.data[idx].id
                     });
                 }
+                // Clear out any deleted questions from the state
                 if (existingQuestions) {
                     existingQuestions.forEach((qid) => {
                         if (newQuestionIds.indexOf(qid) < 0) {
