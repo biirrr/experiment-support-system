@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from 'vue-property-decorator';
+import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
 
 import { Question } from '@/interfaces';
 import AriaMenubar from '@/components/AriaMenubar.vue';
@@ -37,7 +37,26 @@ import QuestionEditor from '@/components/QuestionEditor.vue';
 })
 export default class QuestionBlock extends Vue {
     @Prop() question!: Question;
-    editing = false;
+    public editing = false;
+
+    public mounted() {
+        if (this.$props.question.id == this.newQuestionId) {
+            this.editing = true;
+            this.$store.commit('setNewQuestionId', '');
+        }
+    }
+
+    public get newQuestionId() {
+        return this.$store.state.ui.newQuestionId;
+    }
+
+    @Watch('newQuestionId')
+    public newQuestionIdUpdate() {
+        if (!this.editing && this.$props.question.id == this.newQuestionId) {
+            this.editing = true;
+            this.$store.commit('setNewQuestionId', '');
+        }
+    }
 
     public startEditing() {
         this.editing = true;

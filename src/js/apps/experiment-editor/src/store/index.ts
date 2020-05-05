@@ -32,6 +32,7 @@ export default new Vuex.Store({
         ui: {
             busy: false,
             busyCounter: 0,
+            newQuestionId: '',
         }
     } as State,
 
@@ -101,6 +102,10 @@ export default new Vuex.Store({
 
         deleteQuestion(state, payload: Question) {
             Vue.delete(state.questions, payload.id);
+        },
+
+        setNewQuestionId(state, payload: string) {
+            Vue.set(state.ui, 'newQuestionId', payload);
         },
     },
 
@@ -368,6 +373,7 @@ export default new Vuex.Store({
                 const question = response.data.data;
                 const page = deepcopy(payload.page);
                 commit('setQuestion', question);
+                commit('setNewQuestionId', question.id);
                 if (payload.idx === -1) {
                     page.relationships.questions.data.push({
                         type: 'questions',

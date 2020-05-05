@@ -30,6 +30,7 @@ export interface State {
 export interface UIState {
     busy: boolean;
     busyCounter: number;
+    newQuestionId: string;
 }
 
 export interface QuestionTypeDict {
