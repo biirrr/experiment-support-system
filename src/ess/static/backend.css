@@ -4837,11 +4837,29 @@ html.is-reveal-open {
 .icon.dark-gray path, .icon.dark-gray g {
   fill: #8a8a8a; }
 
+.icon.success path, .icon.success g {
+  fill: #3adb76; }
+
+.icon.alert path, .icon.alert g {
+  fill: #cc4b37; }
+
+.icon.secondary path, .icon.secondary g {
+  fill: #767676; }
+
 a .icon path, a .icon g {
   fill: #1779ba; }
 
 a:hover .icon path, a:hover .icon g {
   fill: #1468a0; }
+
+a:hover .icon.success path, a:hover .icon.success g {
+  fill: #1b9448; }
+
+a:hover .icon.alert path, a:hover .icon.alert g {
+  fill: #7d2c20; }
+
+a:hover .icon.secondary path, a:hover .icon.secondary g {
+  fill: #434343; }
 
 .icon-text {
   display: flex;
@@ -4948,6 +4966,10 @@ form .buttons {
     width: 100%;
     height: 100%; }
 
+.page-editor .question h2.required::after {
+  content: '*';
+  color: #cc4b37; }
+
 .page-editor .question .insert-link {
   border-bottom: 1px dashed #1779ba;
   position: relative;
@@ -4961,6 +4983,9 @@ form .buttons {
 
 .page-editor .question:hover .insert-link {
   visibility: visible; }
+
+.page-editor .question textarea {
+  min-height: 10rem; }
 
 .verification {
   display: flex;

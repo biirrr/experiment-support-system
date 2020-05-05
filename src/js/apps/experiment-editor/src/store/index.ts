@@ -7,7 +7,7 @@ import deepcopy from 'deepcopy';
 
 import router from '@/router/index';
 import { Config, State, Experiment, Page, CreatePageAction, UpdatePageAction, UpdateExperimentAction, QuestionTypeGroup,
-    QuestionType, AddQuestionAction, Question, LoadQuestionAction, Transition } from '@/interfaces';
+    QuestionType, AddQuestionAction, Question, LoadQuestionAction, Transition, UpdateQuestionAction } from '@/interfaces';
 
 Vue.use(Vuex)
 
@@ -363,6 +363,32 @@ export default new Vuex.Store({
                 });
                 commit('setBusy', false);
             } catch (error) {
+                if (payload.errors) {
+                    payload.errors(error.response.data.errors);
+                }
+                commit('setBusy', false);
+            }
+        },
+
+        async updateQuestion({ commit, state }, payload: UpdateQuestionAction) {
+            try {
+                commit('setBusy', true);
+                const response = await axios({
+                    method: 'patch',
+                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.question.relationships.page.data.id + '/questions/' + payload.question.id,
+                    data: {
+                        data: payload.question,
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': state.config.api.csrfToken,
+                    }
+                });
+                commit('setQuestion', response.data.data);
+                if (payload.success) {
+                    payload.success();
+                }
+                commit('setBusy', false);
+            } catch(error) {
                 if (payload.errors) {
                     payload.errors(error.response.data.errors);
                 }

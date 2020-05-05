@@ -201,11 +201,14 @@ export interface Question {
 }
 
 export interface QuestionAttributes {
-
 }
 
 export interface QuestionRelationships {
+    page: QuestionPageRelationship;
+}
 
+export interface QuestionPageRelationship {
+    data: PageReference;
 }
 
 export interface QuestionReference {
@@ -226,8 +229,7 @@ export interface QuestionType {
 }
 
 export interface QuestionTypeAttributes {
-    _name: string;
-    _title: string;
+    [x:string]: string;
 }
 
 export interface QuestionTypeRelationships {
@@ -262,4 +264,10 @@ export interface QuestionsDict {
 export interface LoadQuestionAction {
     pageId: number;
     questionId: number;
+}
+
+export interface UpdateQuestionAction {
+    question: Question;
+    errors?: (errors: Error[]) => {};
+    success?: () => {};
 }

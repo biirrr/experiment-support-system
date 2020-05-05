@@ -1,5 +1,14 @@
 .page-editor {
     .question {
+        h2 {
+            &.required {
+                &::after {
+                    content: '*';
+                    color: $alert-color;
+                }
+            }
+        }
+
         .insert-link {
             border-bottom: 1px dashed $primary-color;
             position: relative;
@@ -18,6 +27,10 @@
             .insert-link {
                 visibility: visible;
             }
+        }
+
+        textarea {
+            min-height: 10rem;
         }
     }
 }

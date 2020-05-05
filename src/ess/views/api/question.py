@@ -1,10 +1,11 @@
+from copy import deepcopy
 from pwh_permissions.pyramid import require_permission
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config
 from sqlalchemy import and_
 
 from ess.models import Question, Page
-from . import (validated_body, type_schema, relationship_schema, store_object)
+from . import (validated_body, type_schema, relationship_schema, id_schema, store_object)
 
 
 post_question_schema = {'type': type_schema('questions'),
@@ -40,5 +41,43 @@ def get_item(request):
                     Page.experiment_id == request.matchdict['eid'])).first()
     if item is not None:
         return {'data': item.as_jsonapi()}
+    else:
+        raise HTTPNotFound()
+
+
+patch_question_schema = {'type': type_schema('questions'),
+                         'attributes': {'type': 'dict',
+                                        'required': True,
+                                        'schema': {}},
+                         'relationships': {'type': 'dict',
+                                           'required': True,
+                                           'schema': {}}}
+
+
+@view_config(route_name='api.question.item.patch', renderer='json')
+@require_permission('Experiment:eid allow $current_user edit')
+def patch_item(request):
+    """Handles updating a single :class:`~ess.models.question.Question`."""
+    item = request.dbsession.query(Question).join(Page).\
+        filter(and_(Question.id == request.matchdict['qid'],
+                    Page.id == request.matchdict['pid'],
+                    Page.experiment_id == request.matchdict['eid'])).first()
+    if item is not None:
+        schema = deepcopy(patch_question_schema)
+        schema['relationships']['schema']['page'] = relationship_schema('pages', fixed_value=str(item.page.id))
+        schema['relationships']['schema']['question-type'] = \
+            relationship_schema('question-types',
+                                fixed_value=str(item.question_type.id))
+        schema['id'] = id_schema(str(item.id))
+        for key, value in item.question_type.inherited_attributes().items():
+            if value == '{user:singleValue}' or value == '{user:multilineText}':
+                schema['attributes']['schema'][key] = {'type': 'string',
+                                                       'required': True}
+            elif value == '{user:trueFalseValue}':
+                schema['attributes']['schema'][key] = {'type': 'boolean',
+                                                       'required': True}
+        body = validated_body(request, schema)
+        obj = store_object(request, body)
+        return {'data': obj.as_jsonapi()}
     else:
         raise HTTPNotFound()

@@ -29,6 +29,24 @@
             fill: $dark-gray;
         }
     }
+
+    &.success {
+        path, g {
+            fill: $success-color;
+        }
+    }
+
+    &.alert {
+        path, g {
+            fill: $alert-color;
+        }
+    }
+
+    &.secondary {
+        path, g {
+            fill: $secondary-color;
+        }
+    }
 }
 
 a {
@@ -43,6 +61,24 @@ a {
         .icon {
             path, g {
                 fill: $anchor-color-hover;
+            }
+
+            &.success {
+                path, g {
+                    fill: darken($color: $success-color, $amount: 20);
+                }
+            }
+
+            &.alert {
+                path, g {
+                    fill: darken($alert-color, $amount: 20);
+                }
+            }
+
+            &.secondary {
+                path, g {
+                    fill: darken($secondary-color, $amount: 20);
+                }
             }
         }
     }
@@ -71,7 +107,7 @@ a {
             &:first-child {
                 padding-top: rem-calc(2);
             }
-            
+
             .icon {
                 width: 14px;
                 height: 15px;

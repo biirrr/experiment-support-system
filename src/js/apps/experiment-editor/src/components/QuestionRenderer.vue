@@ -1,6 +1,6 @@
 <template>
     <section>
-        <h2 v-if="attributes.title">{{ attributes.title }}</h2>
+        <h2 v-if="attributes.title" :class="attributes.required ? 'required' : ''">{{ attributes.title }}</h2>
         <div v-if="renderType === 'USEFDisplay'" v-html="attributes.content"></div>
         <div v-else-if="renderType === 'USEFSingleLineInput'">
             <label>
@@ -17,7 +17,7 @@ import { Component, Vue, Prop } from 'vue-property-decorator';
 import { Question } from '@/interfaces';
 
 @Component
-export default class AddQuestion extends Vue {
+export default class QuestionRenderer extends Vue {
     @Prop() question!: Question;
 
     public get questionType() {
@@ -25,7 +25,20 @@ export default class AddQuestion extends Vue {
     }
 
     public get attributes() {
-        return { ...this.questionType.attributes, ...this.$props.question.attributes };
+        const attributes = {} as {[x: string]: string | boolean};
+        Object.entries(this.questionType.attributes).forEach((attr) => {
+            if (this.$props.question.attributes[attr[0]] === undefined) {
+                if (attr[1] === '{user:trueFalseValue}') {
+                    attributes[attr[0]] = false;
+                } else {
+                    attributes[attr[0]] = '';
+                }
+            } else {
+                attributes[attr[0]] = this.$props.question.attributes[attr[0]];
+            }
+        });
+        return attributes;
+        //return { ...this.questionType.attributes, ...this.$props.question.attributes };
     }
 
     public get renderType() {

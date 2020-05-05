@@ -1,7 +1,6 @@
 import json
 
 from copy import deepcopy
-from decorator import decorator
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest
 
 from ess.util import Validator
@@ -28,7 +27,7 @@ def parse_body(request):
     """Parse the JSON body data."""
     try:
         return json.loads(request.body)
-    except:
+    except json.decoder.JSONDecodeError:
         raise HTTPBadRequest()
 
 
@@ -71,20 +70,26 @@ def type_schema(type_name):
             'empty': False}
 
 
-def id_schema():
+def id_schema(fixed_value=None):
     """Return a Cerberus schema for an id attribute."""
-    return {'type': 'string',
-            'required': True,
-            'empty': False}
+    if fixed_value:
+        return {'type': 'string',
+                'required': True,
+                'allowed': [fixed_value],
+                'empty': False}
+    else:
+        return {'type': 'string',
+                'required': True,
+                'empty': False}
 
 
-def reference_schema(type_name):
+def reference_schema(type_name, fixed_value=None):
     """Return a Cerberus schema for a reference to an object of type ``type_name``."""
     return {'type': type_schema(type_name),
-            'id': id_schema()}
+            'id': id_schema(fixed_value)}
 
 
-def relationship_schema(type_name, required=False, many=False):
+def relationship_schema(type_name, required=False, many=False, fixed_value=None):
     """Return a Cerberus schema for a relationship structure."""
     if many:
         return {'type': 'dict',
@@ -93,14 +98,14 @@ def relationship_schema(type_name, required=False, many=False):
                                     'required': True,
                                     'schema': {'type': 'dict',
                                                'belongs_to_experiment': True,
-                                               'schema': reference_schema(type_name)}}}}
+                                               'schema': reference_schema(type_name, fixed_value=fixed_value)}}}}
     else:
         return {'type': 'dict',
                 'required': required,
                 'schema': {'data': {'type': 'dict',
                                     'required': True,
                                     'belongs_to_experiment': True,
-                                    'schema': reference_schema(type_name)}}}
+                                    'schema': reference_schema(type_name, fixed_value=fixed_value)}}}
 
 
 def class_for_type(data):

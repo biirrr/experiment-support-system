@@ -31,7 +31,7 @@
                                     </svg>
                                 </a>
                             </div>
-                            <render-question :question="question"></render-question>
+                            <question-block :question="question"/>
                             <add-question v-if="insertIdx === idx && insertPosition === 'after'" :page="page" :idx="idx + 1" :canCancel="true" @close="insertQuestion(-1, '')" />
                             <div v-else class="insert-link">
                                 <a @click="insertQuestion(idx, 'after')" aria-label="Insert a question after this question" title="Insert a question after this question">
@@ -56,14 +56,14 @@ import { Component, Vue } from 'vue-property-decorator';
 
 import AriaMenubar from '@/components/AriaMenubar.vue';
 import AddQuestion from '@/components/AddQuestion.vue';
-import RenderQuestion from '@/components/RenderQuestion.vue';
+import QuestionBlock from '@/components/QuestionBlock.vue';
 import { QuestionReference, Question } from '@/interfaces';
 
 @Component({
     components: {
         AriaMenubar,
         AddQuestion,
-        RenderQuestion,
+        QuestionBlock,
     }
 })
 export default class PageEdit extends Vue {
