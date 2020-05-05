@@ -43,7 +43,7 @@
             </div>
         </div>
         <aria-menubar v-slot="{ keyboardNav }">
-            <nav>
+            <nav class="margin-bottom">
                 <ul class="menu" role="menubar">
                     <router-link to="/" v-slot="{ href, navigate, isActive, isExactActive }">
                         <li :class="isExactActive ? 'is-active': ''" role="presentation">

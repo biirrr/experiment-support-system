@@ -3,7 +3,11 @@
 {% block title %}{{ experiment.attributes.title }}{% endblock title %}
 
 {% block main %}
-<div id="app"></div>
+<div class="grid-x grid-padding-x">
+  <div class="cell">
+    <div id="app"></div>
+  </div>
+</div>
 {% endblock main %}
 
 {% block post_body_scripts %}
