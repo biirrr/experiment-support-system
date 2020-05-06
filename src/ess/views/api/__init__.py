@@ -2,6 +2,7 @@ import json
 
 from copy import deepcopy
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest
+from sqlalchemy.ext.orderinglist import OrderingList
 
 from ess.util import Validator
 from ess.models import Experiment, Page, Transition, Question, QuestionType
@@ -147,6 +148,9 @@ def store_object(request, data, valid_target=None):
             if isinstance(relationship_data['data'], list):
                 setattr(obj, key.replace('-', '_'), [find_object(request, value)
                                                      for value in relationship_data['data']])
+                items = getattr(obj, key.replace('-', '_'))
+                if isinstance(items, OrderingList):
+                    items.reorder()
             elif isinstance(relationship_data['data'], dict):
                 setattr(obj, key.replace('-', '_'), find_object(request, relationship_data['data']))
     request.dbsession.add(obj)

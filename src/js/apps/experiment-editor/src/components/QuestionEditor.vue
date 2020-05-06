@@ -23,14 +23,38 @@
                         </a>
                     </li>
                     <li role="presentation">
-                        <a role="menuitem" tabindex="0" aria-label="Cancel" @keyup="keyboardNav" @click="save">
+                        <a role="menuitem" tabindex="-2" aria-label="Cancel" @keyup="keyboardNav" @click="save">
                             <svg viewBox="0 0 24 24" :class="{'mdi': true, 'icon': true, 'secondary': !hasChanges}">
                                 <path d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z" />
                             </svg>
                         </a>
                     </li>
+                    <li v-if="canMoveUp" role="presentation">
+                        <a role="menuitem" tabindex="-1" aria-label="Cancel" @keyup="keyboardNav" @click="moveQuestion(-1)">
+                            <svg viewBox="0 0 24 24" class="mdi icon">
+                                <path d="M15,20H9V12H4.16L12,4.16L19.84,12H15V20Z" />
+                            </svg>
+                        </a>
+                    </li>
+                    <li v-else role="presentation" class="menu-text">
+                            <svg viewBox="0 0 24 24" class="mdi icon secondary">
+                                <path d="M15,20H9V12H4.16L12,4.16L19.84,12H15V20Z" />
+                            </svg>
+                    </li>
+                    <li v-if="canMoveDown" role="presentation">
+                        <a role="menuitem" tabindex="-1" aria-label="Cancel" @keyup="keyboardNav" @click="moveQuestion(1)">
+                            <svg viewBox="0 0 24 24" class="mdi icon">
+                                <path d="M9,4H15V12H19.84L12,19.84L4.16,12H9V4Z" />
+                            </svg>
+                        </a>
+                    </li>
+                    <li v-else role="presentation" class="menu-text">
+                            <svg viewBox="0 0 24 24" class="mdi icon secondary">
+                                <path d="M9,4H15V12H19.84L12,19.84L4.16,12H9V4Z" />
+                            </svg>
+                    </li>
                     <li role="presentation">
-                        <a role="menuitem" tabindex="0" aria-label="Cancel" @keyup="keyboardNav" @click="deleteQuestion">
+                        <a role="menuitem" tabindex="-1" aria-label="Cancel" @keyup="keyboardNav" @click="deleteQuestion">
                             <svg viewBox="0 0 24 24" class="mdi icon alert">
                                 <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
                             </svg>
@@ -48,7 +72,7 @@ import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import { Question, StringKeyValueDict, Error } from '@/interfaces';
+import { Question, StringKeyValueDict, Error, QuestionReference } from '@/interfaces';
 import AriaMenubar from '@/components/AriaMenubar.vue';
 import InputField from '@/components/InputField.vue';
 
@@ -86,6 +110,22 @@ export default class QuestionEditor extends Vue {
             }
         });
         return changes;
+    }
+
+    public get canMoveUp() {
+        const page = this.$store.state.pages[this.$props.question.relationships.page.data.id];
+        if (page.relationships.questions.data[0].id === this.$props.question.id) {
+            return false;
+        }
+        return true;
+    }
+
+    public get canMoveDown() {
+        const page = this.$store.state.pages[this.$props.question.relationships.page.data.id];
+        if (page.relationships.questions.data[page.relationships.questions.data.length - 1].id === this.$props.question.id) {
+            return false;
+        }
+        return true;
     }
 
     public label(label: string) {
@@ -141,6 +181,25 @@ export default class QuestionEditor extends Vue {
             }
         } else {
             this.$emit('close');
+        }
+    }
+
+    public moveQuestion(direction: number) {
+        const page = deepcopy(this.$store.state.pages[this.$props.question.relationships.page.data.id]);
+        let questionIdx = -1;
+        page.relationships.questions.data.forEach((questionRef: QuestionReference, idx: number) => {
+            if (questionRef.id === this.$props.question.id) {
+                questionIdx = idx;
+            }
+        });
+        if (questionIdx !== -1) {
+            const newIdx = questionIdx + direction;
+            page.relationships.questions.data.splice(questionIdx, 1);
+            page.relationships.questions.data.splice(newIdx, 0, {
+                type: 'questions',
+                id: this.$props.question.id,
+            });
+            this.$store.dispatch('updatePage', { page: page });
         }
     }
 

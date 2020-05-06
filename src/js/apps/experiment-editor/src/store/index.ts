@@ -438,7 +438,7 @@ export default new Vuex.Store({
             } catch(error) {
                 commit('setBusy', false);
             }
-        }
+        },
     },
     modules: {
     }
