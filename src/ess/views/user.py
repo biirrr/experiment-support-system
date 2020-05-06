@@ -57,6 +57,8 @@ def register(request):
         schema = deepcopy(register_schema)
         schema['email']['validator'].append(nonexistant_email)
         if 'verification_id' in request.session:
+            print(request.session['verification_id'])
+            print(request.params)
             schema['icon']['allowed'].append(request.session['verification_id'])
         validator = Validator(schema)
         if validator.validate(request.params):
@@ -99,8 +101,11 @@ Experiment Support System
                     'verification_icons': verification_icons,
                     'selected_icon': selected_icon[1]}
     verification_icons = list(enumerate(sample(VALIDATION_ICONS, 7)))
-    selected_icon = choice(verification_icons[1:])
-    request.session['verification_id'] = selected_icon[0]
+    if get_config_setting(request, 'app.testing', 'boolean', False):
+        selected_icon = verification_icons[0]
+    else:
+        selected_icon = choice(verification_icons[1:])
+    request.session['verification_id'] = str(selected_icon[0])
     return {'errors': {},
             'verification_icons': verification_icons,
             'selected_icon': selected_icon[1]}

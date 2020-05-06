@@ -34,6 +34,13 @@
         </ul>
       </nav>
     </header>
+    {% if request.session.peek_flash('info') %}
+      <ul>
+        {% for msg in request.session.pop_flash('info') %}
+          <li>{{ msg }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
     {% block body %}
     {% endblock body %}
   </div>
