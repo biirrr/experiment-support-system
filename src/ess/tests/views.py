@@ -8,7 +8,6 @@ def init_db(request):
     Base.metadata.create_all(request.dbsession.bind)
 
 
-@view_config(route_name='tests.create', renderer='json')
 def create(request):
     """Handles the setup of test 1"""
     init_db(request)
