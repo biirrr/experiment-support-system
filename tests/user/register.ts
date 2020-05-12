@@ -71,3 +71,36 @@ test('Invalid existing email', async (test) => {
     await test.click(Selector('button').withText('Sign up'));
     await test.expect(Selector('input[name="email"] + span.form-error').innerText).eql('This e-mail address is already registered.');
 });
+
+test('Invalid new password', async (test) => {
+    await test.click(Selector('a').withText('Sign up'));
+    await test.expect(Selector('h1').innerText).eql('Sign up');
+    await test.typeText(Selector('input[name="email"]'), 'test@example.com');
+    await test.typeText(Selector('input[name="name"]'), 'Test Person');
+    await test.click(Selector('.verification label:nth-child(1)'));
+    await test.click(Selector('button').withText('Sign up'));
+    await test.expect(Selector('li').withText('You have registered. You should shortly receive a confirmation e-mail.').innerText).eql('You have registered. You should shortly receive a confirmation e-mail.')
+    const validationToken = (await Selector('li').withText('Validation token:').innerText).substring(18);
+    await test.navigateTo('http://localhost:6543//users/confirm/test@example.com/' + validationToken);
+    await test.expect(Selector('h1').innerText).eql('Set your Password');
+    await test.click(Selector('button').withText('Set your Password'));
+    await test.expect(Selector('input[name="password"] + span.form-error').innerText).eql('Empty values not allowed');
+    await test.expect(Selector('input[name="confirm_password"] + span.form-error').innerText).eql('Empty values not allowed');
+});
+
+test('Invalid confirm password', async (test) => {
+    await test.click(Selector('a').withText('Sign up'));
+    await test.expect(Selector('h1').innerText).eql('Sign up');
+    await test.typeText(Selector('input[name="email"]'), 'test@example.com');
+    await test.typeText(Selector('input[name="name"]'), 'Test Person');
+    await test.click(Selector('.verification label:nth-child(1)'));
+    await test.click(Selector('button').withText('Sign up'));
+    await test.expect(Selector('li').withText('You have registered. You should shortly receive a confirmation e-mail.').innerText).eql('You have registered. You should shortly receive a confirmation e-mail.')
+    const validationToken = (await Selector('li').withText('Validation token:').innerText).substring(18);
+    await test.navigateTo('http://localhost:6543//users/confirm/test@example.com/' + validationToken);
+    await test.expect(Selector('h1').innerText).eql('Set your Password');
+    await test.typeText(Selector('input[name="password"]'), 'test1');
+    await test.typeText(Selector('input[name="confirm_password"]'), 'test2');
+    await test.click(Selector('button').withText('Set your Password'));
+    await test.expect(Selector('input[name="confirm_password"] + span.form-error').innerText).eql('The value does not match.');
+});
