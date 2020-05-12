@@ -76,6 +76,8 @@ def register(request):
                 user.trust = 'full'
             request.dbsession.add(user)
             request.session.flash('You have registered. You should shortly receive a confirmation e-mail.', 'info')
+            if get_config_setting(request, 'app.testing', 'boolean', False):
+                request.session.flash(f'Validation token: {user.attributes["validation_token"]}', 'info')
             send_email(request, user.email, get_config_setting(request,
                                                                'app.email.sender',
                                                                default='admin@the-old-joke-archive.org'),
