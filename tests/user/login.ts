@@ -1,7 +1,7 @@
 import { Selector } from 'testcafe';
 import { request } from 'http';
 
-fixture(`Registration`).beforeEach(async (test) => {
+fixture(`Login`).beforeEach(async (test) => {
     const req = request('http://localhost:6543/tests/create?obj=user1');
     req.end();
     await test.resizeWindow(1100, 800);
