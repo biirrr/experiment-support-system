@@ -19,6 +19,9 @@ def create_user_1(request):
     hash.update(b'$$test1')
     user.password = hash.hexdigest()
     user.status = 'active'
+    user.permissions = []
+    user.groups = ['admin', 'creator']
+    user.attributes = {'name': 'Test 1'}
     request.dbsession.add(user)
     return user
 
