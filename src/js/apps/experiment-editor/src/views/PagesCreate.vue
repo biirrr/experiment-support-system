@@ -39,7 +39,7 @@
 import { Component, Vue, Watch } from 'vue-property-decorator';
 
 import InputField from '@/components/InputField.vue';
-import { Page, StringKeyValueDict, Error } from '@/interfaces';
+import { Page, StringKeyValueDict, CreatePageAction, Error } from '@/interfaces';
 
 @Component({
     components: {
@@ -103,33 +103,23 @@ export default class PagesCreate extends Vue {
         }
     }
 
-    public createPage() {
-        if (this.addMode === 'first') {
-            this.$store.dispatch('createPage', {
-                mode: 'first',
+    public async createPage() {
+        try {
+            const newPage = {
+                mode: this.addMode,
                 name: this.pageName,
                 title: this.pageTitle,
-                errors: (errors: Error[]) => {
-                    this.errors = {};
-                    errors.forEach((error) => {
-                        const pointer = error.source.pointer.split('/');
-                        this.errors[pointer[pointer.length - 1]] = error.title;
-                    });
-                },
-            });
-        } else {
-            this.$store.dispatch('createPage', {
-                mode: 'after',
-                name: this.pageName,
-                title: this.pageTitle,
-                parentPageId: this.parentPageId,
-                errors: (errors: Error[]) => {
-                    this.errors = {};
-                    errors.forEach((error) => {
-                        const pointer = error.source.pointer.split('/');
-                        this.errors[pointer[pointer.length - 1]] = error.title;
-                    });
-                },
+            } as CreatePageAction;
+            if (this.addMode === 'after') {
+                newPage.parentPageId = this.parentPageId;
+            }
+            const page = await this.$store.dispatch('createPage', newPage);
+            this.$router.push('/pages/' + page.id);
+        } catch(error) {
+            this.errors = {};
+            error.forEach((entry: Error) => {
+                const pointer = entry.source.pointer.split('/');
+                this.errors[pointer[pointer.length - 1]] = entry.title;
             });
         }
     }

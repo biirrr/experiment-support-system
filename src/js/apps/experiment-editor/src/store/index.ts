@@ -5,7 +5,6 @@ import axios from 'axios';
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import router from '@/router/index';
 import { Config, State, Experiment, Page, CreatePageAction, UpdatePageAction, UpdateExperimentAction,
     DeleteQuestionAction, QuestionTypeGroup, QuestionType, AddQuestionAction, Question, LoadQuestionAction,
     Transition, UpdateQuestionAction } from '@/interfaces';
@@ -265,7 +264,8 @@ export default new Vuex.Store({
                         'X-CSRF-TOKEN': state.config.api.csrfToken,
                     },
                 });
-                commit('setPage', response.data.data);
+                const page = response.data.data
+                commit('setPage', page);
                 if (payload.mode === 'first') {
                     // For a new first page, set the appropriate attribute
                     const experiment = deepcopy(state.experiment);
@@ -277,7 +277,7 @@ export default new Vuex.Store({
                     }
                     experiment.relationships['first-page'].data = {
                         type: 'pages',
-                        id: response.data.data.id,
+                        id: page.id,
                     };
                     dispatch('updateExperiment', experiment);
                 } else {
@@ -302,7 +302,7 @@ export default new Vuex.Store({
                                     target: {
                                         data: {
                                             type: 'pages',
-                                            id: response.data.data.id,
+                                            id: page.id,
                                         },
                                     },
                                 }
@@ -315,11 +315,11 @@ export default new Vuex.Store({
                     commit('setTransition', response.data.data);
                     dispatch('loadPage', payload.parentPageId);
                 }
-                router.push('/pages');
                 commit('setBusy', false);
-            } catch (error) {
-                payload.errors(error.response.data.errors);
+                return Promise.resolve(page);
+            } catch (errors) {
                 commit('setBusy', false);
+                return Promise.reject(errors);
             }
         },
 

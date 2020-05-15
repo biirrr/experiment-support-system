@@ -152,8 +152,7 @@ export interface CreatePageAction {
     mode: 'first' | 'after';
     name: string;
     title: string;
-    parentPageId: number | null;
-    errors: (errors: Error[]) => {};
+    parentPageId: string | null;
 }
 
 export interface UpdatePageAction {
