@@ -184,6 +184,8 @@ export interface QuestionTypeGroup {
 
 export interface QuestionTypeGroupAttributes {
     title: string;
+    enabled: boolean;
+    position: number;
 }
 
 export interface QuestionTypeGroupRelationships {
@@ -230,7 +232,13 @@ export interface QuestionType {
 }
 
 export interface QuestionTypeAttributes {
-    [x:string]: string;
+    [x:string]: string | QuestionTypeAttribute;
+}
+
+export interface QuestionTypeAttribute {
+    source: 'user';
+    type: 'singleValue' | 'multiLineTextValue' | 'booleanValue' | 'listOfValues';
+    allowed?: string[];
 }
 
 export interface QuestionTypeRelationships {

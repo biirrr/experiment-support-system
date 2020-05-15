@@ -1,9 +1,10 @@
-from sqlalchemy import (Column, Integer, Unicode, ForeignKey)
+from sqlalchemy import (Column, Integer, ForeignKey)
 from sqlalchemy.ext.orderinglist import ordering_list
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
 
 from .meta import Base
+
 
 class Page(Base):
 

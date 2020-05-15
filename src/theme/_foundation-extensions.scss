@@ -16,3 +16,23 @@
         }
     }
 }
+
+td {
+    .switch {
+        margin-bottom: 0;
+    }
+}
+
+th[scope="row"] {
+    text-align: left;
+}
+
+td {
+    #{text-inputs()}, input[type="radio"], input[type="checkbox"] {
+        margin-bottom: 0;
+    }
+}
+
+tfoot td {
+    padding: 0;
+}

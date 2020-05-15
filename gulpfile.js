@@ -20,8 +20,23 @@ gulp.task('javascript:apps:experiment-editor:copy', function(cb) {
     ], cb);
 });
 
-gulp.task('javascript:apps:watch', gulp.parallel('javascript:apps:experiment-editor:watch'));
-gulp.task('javascript:apps:copy', gulp.parallel('javascript:apps:experiment-editor:copy'));
+gulp.task('javascript:apps:questions-admin:watch', function(cb) {
+    const builder = spawn('yarn', ['build', '--mode production', '--watch', '--no-clean'], {
+        cwd: 'src/js/apps/questions-admin',
+        stdio: 'inherit',
+    });
+    builder.on('exit', cb);
+});
+
+gulp.task('javascript:apps:questions-admin:copy', function(cb) {
+    pump([
+        gulp.src('src/js/apps/questions-admin/dist/js/*.*', { base: 'src/js/apps/questions-admin/dist/' }),
+        gulp.dest('src/ess/static/questions-admin')
+    ], cb);
+});
+
+gulp.task('javascript:apps:watch', gulp.parallel('javascript:apps:experiment-editor:watch', 'javascript:apps:questions-admin:watch'));
+gulp.task('javascript:apps:copy', gulp.parallel('javascript:apps:experiment-editor:copy', 'javascript:apps:questions-admin:copy'));
 
 gulp.task('javascript:apps:experiment-editor', function(cb) {
     const builder = spawn('yarn', ['build', '--mode production'], {
@@ -31,7 +46,15 @@ gulp.task('javascript:apps:experiment-editor', function(cb) {
     builder.on('exit', cb);
 });
 
-gulp.task('javascript:apps', gulp.parallel('javascript:apps:experiment-editor'));
+gulp.task('javascript:apps:questions-admin', function(cb) {
+    const builder = spawn('yarn', ['build', '--mode production'], {
+        cwd: 'src/js/apps/questions-admin',
+        stdio: 'inherit',
+    });
+    builder.on('exit', cb);
+});
+
+gulp.task('javascript:apps', gulp.parallel('javascript:apps:experiment-editor', 'javascript:apps:questions-admin'));
 
 gulp.task('javascript:plugins', function(cb) {
     pump([

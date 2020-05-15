@@ -1,6 +1,6 @@
-from sqlalchemy import (Column, Integer, Unicode, Boolean)
+from sqlalchemy import (Column, Integer, Unicode, Boolean, UnicodeText)
+from sqlalchemy.ext.orderinglist import ordering_list
 from sqlalchemy.orm import relationship
-from sqlalchemy_json import NestedMutableJson
 
 from .meta import Base
 
@@ -11,13 +11,12 @@ class QuestionTypeGroup(Base):
 
     id = Column(Integer, primary_key=True)
     title = Column(Unicode(255))
-    position = Column(Integer);
+    position = Column(Integer)
     enabled = Column(Boolean(create_constraint=False))
+    source = Column(UnicodeText)
 
-    question_types = relationship('QuestionType',
-                                  primaryjoin='and_(QuestionTypeGroup.id == QuestionType.question_type_group_id,' +
-                                  ' QuestionType.enabled == True)',
-                                  order_by='QuestionType.position')
+    question_types = relationship('QuestionType', order_by='QuestionType.position',
+                                  collection_class=ordering_list('position'))
 
     def allow(self, user, action):
         """Check whether the given user is allowed to undertake the given action. The ``'view'`` ``action`` is always
@@ -35,14 +34,16 @@ class QuestionTypeGroup(Base):
 
     def as_jsonapi(self):
         return {
-            'type': 'question_type_groups',
+            'type': 'question-type-groups',
             'id': str(self.id),
             'attributes': {
                 'title': self.title,
+                'enabled': self.enabled,
+                'position': self.position,
             },
             'relationships': {
                 'question-types': {
-                    'data': [{'type': 'question_types', 'id': str(question_type.id)}
+                    'data': [{'type': 'question-types', 'id': str(question_type.id)}
                              for question_type in self.question_types]
                 },
             }

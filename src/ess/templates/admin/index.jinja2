@@ -1,0 +1,16 @@
+{% extends 'ess:templates/layouts/backend/wide.jinja2' %}
+
+{% block title %}Administration{% endblock title %}
+
+{% block main %}
+<div class="grid-x grid-padding-x">
+  <div class="cell large-12">
+    <h1>Administration</h1>
+    <ul class="no-bullet">
+      {% if request|permitted('$current_user has_permission admin.question_types') %}
+        <li><a href="{{ 'admin.question_types'|route_url() }}">Administer Question Types</a></li>
+      {% endif %}
+    </ul>
+  </div>
+</div>
+{% endblock main %}

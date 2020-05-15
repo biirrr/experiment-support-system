@@ -12,10 +12,13 @@
   <div class="show-for-large">
     <header class="top-bar margin-bottom">
       <nav class="top-bar-left">
-        <ul class="menu">
+        <ul class="menu dropdown" data-dropdown-menu>
           <li class="menu-text">Experiment Support System</li>
           {% if request|logged_in %}
             <li><a href="{{ 'user.experiments'|route_url(uid=request.current_user.id) }}">Experiments</a></li>
+          {% endif %}
+          {% if request|permitted('$current_user has_permission admin.view') %}
+            <li><a href="{{ 'admin'|route_url() }}">Administration</a></li>
           {% endif %}
         </ul>
       </nav>

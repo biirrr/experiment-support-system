@@ -5,7 +5,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest
 from sqlalchemy.ext.orderinglist import OrderingList
 
 from ess.util import Validator
-from ess.models import Experiment, Page, Transition, Question, QuestionType
+from ess.models import Experiment, Page, Transition, Question, QuestionType, QuestionTypeGroup
 
 
 COLLECTION_POST_SCHEMA = {'data': {'type': 'dict', 'schema': None, 'belongs_to_experiment': True}}
@@ -84,6 +84,16 @@ def id_schema(fixed_value=None):
                 'empty': False}
 
 
+def links_schema():
+    """Return a Cerberus schema for the links element."""
+    return {'type': 'dict',
+            'required': True,
+            'empty': False,
+            'schema': {'self': {'type': 'string',
+                                'required': True,
+                                'empty': False}}}
+
+
 def reference_schema(type_name, fixed_value=None):
     """Return a Cerberus schema for a reference to an object of type ``type_name``."""
     return {'type': type_schema(type_name),
@@ -121,6 +131,8 @@ def class_for_type(data):
         return Question
     elif data['type'] == 'question-types':
         return QuestionType
+    elif data['type'] == 'question-type-groups':
+        return QuestionTypeGroup
     return None
 
 
@@ -133,7 +145,7 @@ def find_object(request, data):
         return None
 
 
-def store_object(request, data, valid_target=None):
+def store_object(request, data, overrides=None):
     """Store the given JSONAPI ``data`` object in the database."""
     if 'id' in data['data']:
         obj = find_object(request, data['data'])
@@ -153,6 +165,9 @@ def store_object(request, data, valid_target=None):
                     items.reorder()
             elif isinstance(relationship_data['data'], dict):
                 setattr(obj, key.replace('-', '_'), find_object(request, relationship_data['data']))
+    if overrides:
+        for key, value in overrides.items():
+            setattr(obj, key, value)
     request.dbsession.add(obj)
     request.dbsession.flush()
     return obj

@@ -51,15 +51,15 @@ export default new Vuex.Store({
         },
 
         setQuestionTypeGroups(state, payload: QuestionTypeGroup[]) {
-            state.questionTypeGroups = payload;
+            Vue.set(state, 'questionTypeGroups', payload);
         },
 
         setQuestionType(state, payload: QuestionType) {
-            state.questionTypes[payload.id] = payload;
+            Vue.set(state.questionTypes, payload.id, payload);
         },
 
         setExperiment(state, payload: Experiment) {
-            state.experiment = payload;
+            Vue.set(state, 'experiment', payload);
         },
 
         setPage(state, payload: Page) {

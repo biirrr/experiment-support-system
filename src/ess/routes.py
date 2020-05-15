@@ -33,7 +33,13 @@ def includeme(config):
     config.add_route('api.question.item.delete', '/api/experiments/:eid/pages/:pid/questions/:qid',
                      request_method='DELETE')
     config.add_route('api.question_type_group.collection.get', '/api/question_type_groups', request_method='GET')
+    config.add_route('api.question_type_group.item.patch', '/api/question_type_groups/:qtgid', request_method='PATCH')
     config.add_route('api.question_type.item.get', '/api/question_types/:qtid', request_method='GET')
+    config.add_route('api.question_type.item.patch', '/api/question_types/:qtid', request_method='PATCH')
+    config.add_route('api.question_type.item.delete', '/api/question_types/:qtid', request_method='DELETE')
+
+    config.add_route('admin', '/admin')
+    config.add_route('admin.question_types', '/admin/question_types')
 
     # Jinja2 configuration
     config.include('pwh_pyramid_routes')

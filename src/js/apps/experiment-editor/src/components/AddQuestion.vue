@@ -32,15 +32,17 @@ export default class AddQuestion extends Vue {
     public activeGroup = -1;
 
     public get menuStructure() {
-        return this.$store.state.questionTypeGroups.map((questionTypeGroup: QuestionTypeGroup) => {
-            return {
-                id: questionTypeGroup.id,
-                title: questionTypeGroup.attributes.title,
-                questionTypes: questionTypeGroup.relationships['question-types'].data.map((questionType) => {
-                    return this.$store.state.questionTypes[questionType.id];
-                }),
-            }
-        });
+        return this.$store.state.questionTypeGroups
+            .filter((questionTypeGroup: QuestionTypeGroup) => { return questionTypeGroup.attributes['enabled']})
+            .map((questionTypeGroup: QuestionTypeGroup) => {
+                return {
+                    id: questionTypeGroup.id,
+                    title: questionTypeGroup.attributes.title,
+                    questionTypes: questionTypeGroup.relationships['question-types'].data.map((questionTypeReference) => {
+                        return this.$store.state.questionTypes[questionTypeReference.id];
+                    }).filter((qt) => { return qt && qt.attributes['_enabled'] }),
+                }
+            });
     }
 
     public mounted() {

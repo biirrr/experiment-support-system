@@ -70,12 +70,16 @@ def patch_item(request):
                                 fixed_value=str(item.question_type.id))
         schema['id'] = id_schema(str(item.id))
         for key, value in item.question_type.inherited_attributes().items():
-            if value == '{user:singleValue}' or value == '{user:multilineText}':
-                schema['attributes']['schema'][key] = {'type': 'string',
-                                                       'required': True}
-            elif value == '{user:trueFalseValue}':
-                schema['attributes']['schema'][key] = {'type': 'boolean',
-                                                       'required': True}
+            if isinstance(value, dict) and value['source'] == 'user':
+                if value['type'] == 'singleValue' or value['type'] == 'multiLineTextValue':
+                    schema['attributes']['schema'][key] = {'type': 'string',
+                                                           'required': True}
+                elif value['type'] == 'booleanValue':
+                    schema['attributes']['schema'][key] = {'type': 'boolean',
+                                                           'required': True}
+                elif value['type'] == 'listOfValues':
+                    schema['attributes']['schema'][key] = {'type': 'list',
+                                                           'schema': {'type': 'string'}}
         body = validated_body(request, schema)
         obj = store_object(request, body)
         return {'data': obj.as_jsonapi()}

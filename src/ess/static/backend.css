@@ -4817,6 +4817,12 @@ html.is-reveal-open {
 .full-width {
   width: 100%; }
 
+.sticky {
+  position: -webkit-sticky !important;
+  position: sticky !important; }
+  .sticky.top {
+    top: 0; }
+
 /*
  * Icon styling
  */
@@ -4908,6 +4914,18 @@ form .buttons {
 .menu li.expander {
   flex: 1 1 auto; }
 
+td .switch {
+  margin-bottom: 0; }
+
+th[scope="row"] {
+  text-align: left; }
+
+td [type='text'], td [type='password'], td [type='date'], td [type='datetime'], td [type='datetime-local'], td [type='month'], td [type='week'], td [type='email'], td [type='number'], td [type='search'], td [type='tel'], td [type='time'], td [type='url'], td [type='color'], td input[type="radio"], td input[type="checkbox"] {
+  margin-bottom: 0; }
+
+tfoot td {
+  padding: 0; }
+
 .font-small {
   font-size: 80%; }
 
@@ -4986,6 +5004,17 @@ form .buttons {
 
 .page-editor .question textarea {
   min-height: 10rem; }
+
+section.question th[scope="col"] {
+  text-align: center; }
+
+section.question td {
+  text-align: center;
+  vertical-align: middle;
+  padding-left: 0;
+  padding-right: 0; }
+  section.question td input[type="radio"], section.question td input[type="checkbox"] {
+    margin-right: 0; }
 
 .verification {
   display: flex;

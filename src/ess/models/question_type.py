@@ -1,4 +1,5 @@
-from sqlalchemy import (Column, Integer, Boolean, ForeignKey)
+from copy import deepcopy
+from sqlalchemy import (Column, Integer, Boolean, Unicode, UnicodeText, ForeignKey)
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
 
@@ -12,12 +13,16 @@ class QuestionType(Base):
     id = Column(Integer, primary_key=True)
     question_type_group_id = Column(Integer, ForeignKey('question_type_groups.id'))
     parent_id = Column(Integer, ForeignKey('question_types.id'))
+    name = Column(Unicode(255))
+    title = Column(Unicode(255))
     enabled = Column(Boolean(create_constraint=False))
     position = Column(Integer)
+    source = Column(UnicodeText)
     attributes = Column(NestedMutableJson)
 
     question_type_group = relationship('QuestionTypeGroup')
     parent = relationship('QuestionType', remote_side=[id])
+    children = relationship('QuestionType', cascade="all, delete-orphan")
 
     def allow(self, user, action):
         """Check whether the given user is allowed to undertake the given action. The ``'view'`` ``action`` is always
@@ -38,13 +43,22 @@ class QuestionType(Base):
             attributes = dict([(key, value) for key, value in self.parent.inherited_attributes().items()
                                if not key.startswith('_')])
             attributes.update(self.attributes)
+            attributes['_name'] = self.name
+            attributes['_title'] = self.title
+            attributes['_enabled'] = self.enabled
+            attributes['_position'] = self.position
             return attributes
         else:
-            return self.attributes
+            attributes = deepcopy(self.attributes)
+            attributes['_name'] = self.name
+            attributes['_title'] = self.title
+            attributes['_enabled'] = self.enabled
+            attributes['_position'] = self.position
+            return attributes
 
     def as_jsonapi(self):
         data = {
-            'type': 'question_types',
+            'type': 'question-types',
             'id': str(self.id),
             'attributes': self.inherited_attributes(),
             'relationships': {
