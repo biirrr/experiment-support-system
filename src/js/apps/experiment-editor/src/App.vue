@@ -55,7 +55,7 @@
                             <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Pages</a>
                         </li>
                     </router-link>
-                    <router-link to="/data" v-slot="{ href, navigate, isActive }">
+                    <!--<router-link to="/data" v-slot="{ href, navigate, isActive }">
                         <li :class="isActive ? 'is-active': ''" role="presentation">
                             <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Data</a>
                         </li>
@@ -69,7 +69,7 @@
                         <li :class="isActive ? 'is-active': ''" role="presentation">
                             <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Results</a>
                         </li>
-                    </router-link>
+                    </router-link>-->
                     <router-link to="/settings" v-slot="{ href, navigate, isActive }">
                         <li :class="isActive ? 'is-active': ''" role="presentation">
                             <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Settings</a>

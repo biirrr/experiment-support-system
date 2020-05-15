@@ -43,7 +43,7 @@ const routes = [
             }
         ],
     },
-    {
+    /*{
         path: '/data',
         name: 'data',
         component: Data,
@@ -57,7 +57,7 @@ const routes = [
         path: '/results',
         name: 'results',
         component: Results,
-    },
+    },*/
     {
         path: '/settings',
         name: 'settings',
