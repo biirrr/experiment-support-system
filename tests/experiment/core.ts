@@ -23,7 +23,7 @@ test('Create a new experiment', async (test) => {
     await test.expect(Selector('h1').innerText).eql('Test Experiment')
 });
 
-test('Failed to create a new experiment', async (test) => {
+test('Failed to create a experiment without title', async (test) => {
     await test.click(Selector('a').withText('Sign in'));
     await test.expect(Selector('h1').innerText).eql('Sign in');
     await test.typeText(Selector('input[name="email"]'), 'test1@example.com');
