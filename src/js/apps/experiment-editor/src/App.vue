@@ -12,6 +12,16 @@
                 <nav>
                     <ul class="menu">
                         <li>
+                            <a :href="$store.state.config.experiment.externalUrl" target="_blank" rel="noopener">
+                                <template v-if="experiment.attributes.status === 'development'">
+                                    Test the Experiment
+                                </template>
+                                <template v-else>
+                                    Test URL
+                                </template>
+                            </a>
+                        </li>
+                        <li>
                             <select @change="changeStatus($event)">
                                 <template v-if="experiment.attributes.status === 'development'">
                                     <option value="development" selected="selected">Development</option>

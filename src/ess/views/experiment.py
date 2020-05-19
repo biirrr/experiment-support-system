@@ -1,6 +1,7 @@
 from pwh_permissions.pyramid import require_permission
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import view_config
+from uuid import uuid4
 
 from ..models import Experiment, ExperimentPermission
 from ..util import Validator
@@ -18,7 +19,11 @@ def create(request):
     if request.method == 'POST':
         validator = Validator(create_experiment_schema)
         if validator.validate(request.params):
-            experiment = Experiment(attributes={'title': request.params['title'],
+            uuid = uuid4()
+            while request.dbsession.query(Experiment).filter(Experiment.external_id == uuid.hex).first():
+                uuid = uuid4()
+            experiment = Experiment(external_id=uuid.hex,
+                                    attributes={'title': request.params['title'],
                                                 'description': request.params['description'],
                                                 'status': 'development'})
             permission = ExperimentPermission(user=request.current_user,

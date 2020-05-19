@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import (Column, Integer, DateTime, ForeignKey)
+from sqlalchemy import (Column, Integer, DateTime, Unicode, ForeignKey, Index)
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
 
@@ -12,6 +12,7 @@ class Experiment(Base):
 
     id = Column(Integer, primary_key=True)
     first_page_id = Column(Integer, ForeignKey('pages.id'))
+    external_id = Column(Unicode(191))
     attributes = Column(NestedMutableJson)
     created = Column(DateTime, default=datetime.now)
     updated = Column(DateTime, default=None, onupdate=datetime.now)
@@ -60,3 +61,6 @@ class Experiment(Base):
                 }
             }
         return data
+
+
+Index('experiment_external_id_ix', Experiment.external_id, unique=True, mysql_length=191)

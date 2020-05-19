@@ -18,7 +18,8 @@
     "csrfToken": "{{ get_csrf_token() }}"
   },
   "experiment": {
-    "id": "{{ experiment.id }}"
+    "id": "{{ experiment.id }}",
+    "externalUrl": "{{ request.route_url('experiment.run', eid=experiment.external_id) }}"
   }
 }
 </script>

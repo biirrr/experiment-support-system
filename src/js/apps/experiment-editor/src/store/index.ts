@@ -19,6 +19,7 @@ export default new Vuex.Store({
             },
             experiment: {
                 id: '',
+                externalUrl: '',
             }
         },
         experiment: null,

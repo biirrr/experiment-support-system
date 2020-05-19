@@ -14,6 +14,7 @@ export interface ApiConfig {
 
 export interface ExperimentConfig {
     id: string;
+    externalUrl: string;
 }
 
 export interface State {

@@ -11,6 +11,7 @@ def includeme(config):
     config.add_route('user.experiments', '/users/:uid/experiments')
 
     config.add_route('experiment.create', '/experiments/create')
+    config.add_route('experiment.run', '/experiments/run/:eid')
     config.add_route('experiment.edit', '/experiments/:eid/edit')
 
     config.add_route('api', '/api')
