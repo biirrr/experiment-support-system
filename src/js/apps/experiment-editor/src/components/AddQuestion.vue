@@ -59,13 +59,17 @@ export default class AddQuestion extends Vue {
         }
     }
 
-    public addQuestion(questionType: QuestionType) {
-        this.$store.dispatch('addQuestion', {
-            questionType: questionType,
-            page: this.$props.page,
-            idx: this.$props.idx,
-        });
-        this.$emit('close')
+    public async addQuestion(questionType: QuestionType) {
+        try {
+            await this.$store.dispatch('addQuestion', {
+                questionType: questionType,
+                page: this.$props.page,
+                idx: this.$props.idx,
+            });
+            this.$emit('close');
+        } catch(error) {
+            this.$emit('close');
+        }
     }
 }
 </script>

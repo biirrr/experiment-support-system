@@ -1,12 +1,12 @@
 <template>
     <div>
-        <transition-editor v-for="transition in transitions" :key="transition.id" :transition="transition"/>
-        <transition-editor v-if="newTransition" :transition="newTransition" @created="newTransitionCreated"/>
-        <div v-else class="buttons">
+        <div class="buttons">
             <ul>
                 <li><button class="button hollow primary small" @click="addTransition">Add a transition</button></li>
             </ul>
         </div>
+        <transition-editor v-for="transition in transitions" :key="transition.id" :transition="transition"/>
+        <transition-editor v-if="newTransition" :transition="newTransition" @created="newTransitionCreated"/>
     </div>
 </template>
 

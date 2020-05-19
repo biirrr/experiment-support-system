@@ -31,7 +31,6 @@ export interface UIState {
     busy: boolean;
     busyCounter: number;
     busyMaxCounter: number;
-    newQuestionId: string;
 }
 
 export interface QuestionTypeDict {
@@ -160,10 +159,6 @@ export interface CreatePageAction {
     parentPageId: string | null;
 }
 
-export interface UpdatePageAction {
-    page: Page;
-    errors?: (errors: Error[]) => {};
-}
 
 export interface Error {
     title: string;
@@ -172,11 +167,6 @@ export interface Error {
 
 export interface ErrorSource {
     pointer: string;
-}
-
-export interface UpdateExperimentAction {
-    experiment: Experiment;
-    errors?: (errors: Error[]) => {};
 }
 
 export interface QuestionTypeGroup {
@@ -277,14 +267,4 @@ export interface QuestionsDict {
 export interface LoadQuestionAction {
     pageId: number;
     questionId: number;
-}
-
-export interface UpdateQuestionAction {
-    question: Question;
-    errors?: (errors: Error[]) => {};
-    success?: () => {};
-}
-
-export interface DeleteQuestionAction {
-    question: Question;
 }

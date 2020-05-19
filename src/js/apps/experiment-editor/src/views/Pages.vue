@@ -61,7 +61,7 @@
 import { Component, Vue } from 'vue-property-decorator';
 
 import AriaMenubar from '@/components/AriaMenubar.vue';
-import { Page, PageReference, TransitionReference } from '@/interfaces';
+import { Page, TransitionReference } from '@/interfaces';
 
 @Component({
     components: {
@@ -114,7 +114,9 @@ export default class Pages extends Vue {
     }
 
     public async deletePage(page: Page) {
-        await this.$store.dispatch('deletePage', page);
+        if (confirm('Please confirm that you wish to delete the page "' + page.attributes.name + '"?')) {
+            await this.$store.dispatch('deletePage', page);
+        }
     }
 
     private flattenPages(page: Page) {

@@ -99,7 +99,9 @@ export default class TransitionEditor extends Vue {
             if (!this.localTransition.id) {
                 this.$emit('created');
             } else {
-                this.$store.dispatch('deleteTransition', this.localTransition);
+                if (confirm('Please confirm that you wish to delete this transition?')) {
+                    this.$store.dispatch('deleteTransition', this.localTransition);
+                }
             }
         }
     }

@@ -254,19 +254,20 @@ export default class QuestionEditor extends Vue {
         });
     }
 
-    public save() {
+    public async save() {
         const question = deepcopy(this.$props.question);
         question.attributes = this.localAttributes;
-        this.$store.dispatch('updateQuestion', {
-            question: question,
-            errors: (errors: Error[]) => {
-                this.errors = {};
-                errors.forEach((error) => {
-                    const pointer = error.source.pointer.split('/');
-                    this.errors[pointer[pointer.length - 1]] = error.title;
-                });
-            },
-        });
+        try {
+            this.errors = {};
+            await this.$store.dispatch('updateQuestion', question);
+        } catch(error) {
+            const errors = {} as StringKeyValueDict;
+            error.forEach((entry: Error) => {
+                const pointer = entry.source.pointer.split('/');
+                errors[pointer[pointer.length - 1]] = entry.title;
+            });
+            this.errors = errors;
+        }
     }
 
     public close() {
@@ -300,7 +301,7 @@ export default class QuestionEditor extends Vue {
 
     public deleteQuestion() {
         if (confirm('Please confirm that you wish to delete this question?')) {
-            this.$store.dispatch('deleteQuestion', {question: this.$props.question});
+            this.$store.dispatch('deleteQuestion', this.$props.question);
         }
     }
 

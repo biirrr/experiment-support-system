@@ -5,9 +5,8 @@ import axios from 'axios';
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import { Config, State, Experiment, Page, CreatePageAction, DeleteQuestionAction,
-    QuestionTypeGroup, QuestionType, AddQuestionAction, Question, LoadQuestionAction, Transition,
-    UpdateQuestionAction } from '@/interfaces';
+import { Config, State, Experiment, Page, CreatePageAction, QuestionTypeGroup, QuestionType,
+    AddQuestionAction, Question, LoadQuestionAction, Transition } from '@/interfaces';
 
 Vue.use(Vuex)
 
@@ -32,7 +31,6 @@ export default new Vuex.Store({
             busy: false,
             busyCounter: 0,
             busyMaxCounter: 0,
-            newQuestionId: '',
         }
     } as State,
 
@@ -358,7 +356,7 @@ export default new Vuex.Store({
         async deletePage({ commit, dispatch, state}, payload: Page) {
             try {
                 commit('setBusy', true);
-                const response = await axios({
+                await axios({
                     method: 'delete',
                     url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.id,
                     headers: {
@@ -402,7 +400,6 @@ export default new Vuex.Store({
                 const question = response.data.data;
                 const page = deepcopy(payload.page);
                 commit('setQuestion', question);
-                commit('setNewQuestionId', question.id);
                 if (payload.idx === -1) {
                     page.relationships.questions.data.push({
                         type: 'questions',
@@ -414,58 +411,53 @@ export default new Vuex.Store({
                         id: question.id,
                     });
                 }
-                dispatch('updatePage', {
-                    page: page,
-                });
+                await dispatch('updatePage', page);
                 commit('setBusy', false);
+                return Promise.resolve(question);
             } catch (error) {
-                if (payload.errors) {
-                    payload.errors(error.response.data.errors);
-                }
                 commit('setBusy', false);
+                return Promise.reject(error.response.data.errors);
             }
         },
 
-        async updateQuestion({ commit, state }, payload: UpdateQuestionAction) {
+        async updateQuestion({ commit, state }, payload: Question) {
             try {
                 commit('setBusy', true);
                 const response = await axios({
                     method: 'patch',
-                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.question.relationships.page.data.id + '/questions/' + payload.question.id,
+                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.relationships.page.data.id + '/questions/' + payload.id,
                     data: {
-                        data: payload.question,
+                        data: payload,
                     },
                     headers: {
                         'X-CSRF-TOKEN': state.config.api.csrfToken,
                     }
                 });
                 commit('setQuestion', response.data.data);
-                if (payload.success) {
-                    payload.success();
-                }
                 commit('setBusy', false);
+                return Promise.resolve(response.data.data);
             } catch(error) {
-                if (payload.errors) {
-                    payload.errors(error.response.data.errors);
-                }
                 commit('setBusy', false);
+                return Promise.reject(error.response.data.errors);
             }
         },
 
-        async deleteQuestion({ commit, dispatch, state }, payload: DeleteQuestionAction) {
+        async deleteQuestion({ commit, dispatch, state }, payload: Question) {
             try {
                 commit('setBusy', true);
                 await axios({
                     method: 'delete',
-                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.question.relationships.page.data.id + '/questions/' + payload.question.id,
+                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.relationships.page.data.id + '/questions/' + payload.id,
                     headers: {
                         'X-CSRF-TOKEN': state.config.api.csrfToken,
                     }
                 });
-                dispatch('loadPage', payload.question.relationships.page.data.id);
+                dispatch('loadPage', payload.relationships.page.data.id);
                 commit('setBusy', false);
+                return Promise.resolve()
             } catch(error) {
                 commit('setBusy', false);
+                return Promise.reject(error.response.data.errors);
             }
         },
 
