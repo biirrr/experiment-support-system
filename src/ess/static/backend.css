@@ -4937,23 +4937,22 @@ tfoot td {
 #app.experiment-editor {
   min-height: 400px; }
 
-.busy-overlay {
+.busy progress {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 0.1875rem;
+  z-index: 10001; }
+
+.busy .busy-overlay {
   position: fixed;
   left: 0;
   top: 0;
   width: 100vw;
   height: 100vh;
   z-index: 10000;
-  background: #ffffffaa; }
-  .busy-overlay svg {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 100px;
-    height: 100px; }
-    .busy-overlay svg circle, .busy-overlay svg path {
-      stroke: #1779ba; }
+  background: transparent; }
 
 .dialog-overlay {
   position: fixed;

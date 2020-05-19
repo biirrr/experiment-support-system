@@ -31,6 +31,7 @@ export default new Vuex.Store({
         ui: {
             busy: false,
             busyCounter: 0,
+            busyMaxCounter: 0,
             newQuestionId: '',
         }
     } as State,
@@ -43,8 +44,12 @@ export default new Vuex.Store({
         setBusy(state, payload: boolean) {
             if (payload) {
                 state.ui.busyCounter = state.ui.busyCounter + 1;
+                state.ui.busyMaxCounter = state.ui.busyMaxCounter + 1;
             } else {
                 state.ui.busyCounter = state.ui.busyCounter - 1;
+                if (state.ui.busyCounter === 0) {
+                    state.ui.busyMaxCounter = 0;
+                }
             }
             state.ui.busy = state.ui.busyCounter > 0;
         },
