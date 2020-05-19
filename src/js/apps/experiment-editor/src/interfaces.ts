@@ -106,7 +106,7 @@ export interface PageDict {
 
 export interface Transition {
     type: 'transitions';
-    id: string;
+    id?: string;
     attributes: TransitionAttributes;
     relationships: TransitionRelationships;
 }

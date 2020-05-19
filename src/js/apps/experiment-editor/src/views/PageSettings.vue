@@ -1,8 +1,8 @@
 <template>
   <div>
       <form v-if="this.page" @submit.prevent="updatePage">
-          <input-field type="text" label="Name" v-model="name" :error="errors.name"/>
-          <input-field type="text" label="Title" v-model="title" :error="errors.title"/>
+          <input-field type="text" label="Name" v-model="page.attributes.name" :error="errors.name"/>
+          <input-field type="text" label="Title" v-model="page.attributes.title" :error="errors.title"/>
           <div class="buttons">
               <ul>
                   <li>
@@ -34,44 +34,31 @@ export default class PageSettings extends Vue {
     public errors: StringKeyValueDict = {};
 
     public get page() {
-        return this.$store.state.pages[this.$route.params.pid];
+        return deepcopy(this.$store.state.pages[this.$route.params.pid]);
     }
 
     public mounted() {
-        if (this.page) {
-            this.name = this.page.attributes.name;
-            this.title = this.page.attributes.title;
-        }
+        this.errors = {};
     }
 
     @Watch('page')
     public watchPage() {
-        if (this.page) {
-            this.name = this.page.attributes.name;
-            this.title = this.page.attributes.title;
-        } else {
-            this.name = '';
-            this.title = '';
-        }
         this.errors = {};
     }
 
-    public updatePage() {
+    public async updatePage() {
         if (this.page) {
-            const page = deepcopy(this.page);
-            page.attributes.name = this.name;
-            page.attributes.title = this.title;
-            this.errors = {};
-            this.$store.dispatch('updatePage', {
-                page: page,
-                errors: (errors: Error[]) => {
-                    this.errors = {};
-                    errors.forEach((error) => {
-                        const pointer = error.source.pointer.split('/');
-                        this.errors[pointer[pointer.length - 1]] = error.title;
-                    });
-                },
-            });
+            try {
+                this.errors = {}
+                await this.$store.dispatch('updatePage', this.page);
+            } catch(error) {
+                const errors = {} as StringKeyValueDict;
+                error.forEach((entry: Error) => {
+                    const pointer = entry.source.pointer.split('/');
+                    errors[pointer[pointer.length - 1]] = entry.title;
+                });
+                this.errors = errors;
+            }
         }
     }
 }

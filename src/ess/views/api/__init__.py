@@ -71,17 +71,17 @@ def type_schema(type_name):
             'empty': False}
 
 
-def id_schema(fixed_value=None):
+def id_schema(fixed_value=None, required=True):
     """Return a Cerberus schema for an id attribute."""
     if fixed_value:
         return {'type': 'string',
-                'required': True,
+                'required': required,
                 'allowed': [fixed_value],
-                'empty': False}
+                'empty': not required}
     else:
         return {'type': 'string',
-                'required': True,
-                'empty': False}
+                'required': required,
+                'empty': not required}
 
 
 def links_schema():

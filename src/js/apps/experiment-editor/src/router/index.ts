@@ -5,6 +5,7 @@ import Overview from '@/views/Overview.vue';
 import Pages from '@/views/Pages.vue';
 import PagesCreate from '@/views/PagesCreate.vue'
 import PageEdit from '@/views/PageEdit.vue';
+import PageTransitions from '@/views/PageTransitions.vue';
 import PageSettings from '@/views/PageSettings.vue';
 import Data from '@/views/Data.vue';
 import LatinSquares from '@/views/LatinSquares.vue';
@@ -34,6 +35,11 @@ const routes = [
                 name: 'page.edit',
                 component: PageEdit,
                 children: [
+                    {
+                        path: 'transitions',
+                        name: 'page.transitions',
+                        component: PageTransitions,
+                    },
                     {
                         path: 'settings',
                         name: 'page.settings',

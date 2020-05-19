@@ -5,9 +5,9 @@ import axios from 'axios';
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import { Config, State, Experiment, Page, CreatePageAction, UpdatePageAction, UpdateExperimentAction,
-    DeleteQuestionAction, QuestionTypeGroup, QuestionType, AddQuestionAction, Question, LoadQuestionAction,
-    Transition, UpdateQuestionAction } from '@/interfaces';
+import { Config, State, Experiment, Page, CreatePageAction, UpdateExperimentAction, DeleteQuestionAction,
+    QuestionTypeGroup, QuestionType, AddQuestionAction, Question, LoadQuestionAction, Transition,
+    UpdateQuestionAction } from '@/interfaces';
 
 Vue.use(Vuex)
 
@@ -92,7 +92,9 @@ export default new Vuex.Store({
         },
 
         setTransition(state, payload: Transition) {
-            Vue.set(state.transitions, payload.id, payload);
+            if (payload.id) {
+                Vue.set(state.transitions, payload.id, payload);
+            }
         },
 
         setQuestion(state, payload: Question) {
@@ -317,20 +319,20 @@ export default new Vuex.Store({
                 }
                 commit('setBusy', false);
                 return Promise.resolve(page);
-            } catch (errors) {
+            } catch (error) {
                 commit('setBusy', false);
-                return Promise.reject(errors);
+                return Promise.reject(error.response.data.errors);
             }
         },
 
-        async updatePage({ commit, state }, payload: UpdatePageAction) {
+        async updatePage({ commit, state }, payload: Page) {
             try {
                 commit('setBusy', true);
                 const response = await axios({
                     method: 'patch',
-                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.page.id,
+                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.id,
                     data: {
-                        data: payload.page
+                        data: payload,
                     },
                     headers: {
                         'X-CSRF-TOKEN': state.config.api.csrfToken,
@@ -338,11 +340,10 @@ export default new Vuex.Store({
                 });
                 commit('setPage', response.data.data);
                 commit('setBusy', false);
+                return Promise.resolve(response.data.data);
             } catch (error) {
-                if (payload.errors) {
-                    payload.errors(error.response.data.errors);
-                }
                 commit('setBusy', false);
+                return Promise.reject(error.response.data.errors);
             }
         },
 
@@ -439,6 +440,72 @@ export default new Vuex.Store({
                 commit('setBusy', false);
             }
         },
+
+        async createTransition({ commit, state}, payload: Transition) {
+            try {
+                commit('setBusy', true);
+                const response = await axios({
+                    method: 'post',
+                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions',
+                    data: {
+                        data: payload,
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': state.config.api.csrfToken,
+                    }
+                });
+                commit('setTransition', response.data.data);
+                this.dispatch('loadPage', response.data.data.relationships.source.data.id);
+                this.dispatch('loadPage', response.data.data.relationships.target.data.id);
+                commit('setBusy', false);
+                return Promise.resolve(response.data.data);
+            } catch(error) {
+                commit('setBusy', false);
+                return Promise.reject(error.response.data.errors);
+            }
+        },
+
+        async updateTransition({ commit, state }, payload: Transition) {
+            try {
+                commit('setBusy', true);
+                const response = await axios({
+                    method: 'patch',
+                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions/' + payload.id,
+                    data: {
+                        data: payload,
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': state.config.api.csrfToken,
+                    }
+                });
+                commit('setTransition', response.data.data);
+                commit('setBusy', false);
+                return Promise.resolve(response.data.data);
+            } catch(error) {
+                commit('setBusy', false);
+                return Promise.reject(error.response.data.errors);
+            }
+        },
+
+        async deleteTransition({ commit, state }, payload: Transition) {
+            try {
+                commit('setBusy', true);
+                await axios({
+                    method: 'delete',
+                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions/' + payload.id,
+                    headers: {
+                        'X-CSRF-TOKEN': state.config.api.csrfToken,
+                    }
+                });
+                this.dispatch('loadPage', payload.relationships.source.data.id);
+                this.dispatch('loadPage', payload.relationships.target.data.id);
+                commit('setBusy', false);
+                return Promise.resolve();
+            } catch(error) {
+                commit('setBusy', false);
+                return Promise.reject(error.response.data.errors);
+            }
+        }
     },
     modules: {
     }

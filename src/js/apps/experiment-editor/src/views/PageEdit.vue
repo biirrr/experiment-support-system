@@ -11,6 +11,11 @@
                                     <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="0" role="menuitem">Edit</a>
                                 </li>
                             </router-link>
+                            <router-link :to="'/pages/' + page.id + '/transitions'" v-slot="{ href, navigate, isActive }">
+                                <li :class="isActive ? 'is-active': ''" role="presentation">
+                                    <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="0" role="menuitem">Transitions</a>
+                                </li>
+                            </router-link>
                             <router-link :to="'/pages/' + page.id + '/settings'" v-slot="{ href, navigate, isActive }">
                                 <li :class="isActive ? 'is-active': ''" role="presentation">
                                     <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="0" role="menuitem">Settings</a>

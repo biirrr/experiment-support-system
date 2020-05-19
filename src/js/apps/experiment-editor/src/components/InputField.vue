@@ -25,6 +25,10 @@ export default class InputField extends Vue {
         return this.$props.type != 'radio' && this.$props.type != 'checkbox';
     }
 
+    public mounted() {
+        this.localValue = this.$props.value;
+    }
+
     @Watch('value')
     public updatedValue(newValue: string) {
         this.localValue = newValue;

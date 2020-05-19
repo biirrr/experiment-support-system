@@ -4884,25 +4884,25 @@ a:hover .icon.secondary path, a:hover .icon.secondary g {
       width: 14px;
       height: 15px; }
 
-form .buttons {
+.buttons {
   margin-top: 1rem;
   display: flex; }
-  form .buttons ul {
+  .buttons ul {
     flex: 1 1 auto;
     display: flex;
     margin: 0; }
-    form .buttons ul:first-child {
+    .buttons ul:first-child {
       justify-content: flex-start; }
-      form .buttons ul:first-child li {
+      .buttons ul:first-child li {
         margin-right: 1rem; }
-    form .buttons ul:last-child {
+    .buttons ul:last-child {
       justify-content: flex-end; }
-      form .buttons ul:last-child li {
+      .buttons ul:last-child li {
         margin-left: 1rem; }
-    form .buttons ul li {
+    .buttons ul li {
       flex: 0 0 auto;
       list-style-type: none; }
-      form .buttons ul li button {
+      .buttons ul li button {
         margin-bottom: 0; }
 
 .button.light-gray {
