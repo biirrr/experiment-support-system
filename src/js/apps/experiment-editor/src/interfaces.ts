@@ -53,11 +53,15 @@ export interface ExperimentAttributes {
 
 export interface ExperimentRelationships {
     pages: ExperimentPagesRelationship;
-    'first-page'?: PageReference;
+    'first-page'?: ExperimentFirstPageReference;
 }
 
 export interface ExperimentPagesRelationship {
     data: PageReference[];
+}
+
+export interface ExperimentFirstPageReference {
+    data: PageReference;
 }
 
 export interface PageReference {

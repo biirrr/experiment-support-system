@@ -229,26 +229,26 @@ export default new Vuex.Store({
             }
         },
 
-        async updateExperiment({ commit, state }, payload: UpdateExperimentAction) {
+        async updateExperiment({ commit, state }, payload: Experiment) {
             try {
                 commit('setBusy', true);
+                console.log(payload);
                 const response = await axios({
                     method: 'patch',
-                    url: state.config.api.baseUrl + '/experiments/' + payload.experiment.id,
+                    url: state.config.api.baseUrl + '/experiments/' + payload.id,
                     data: {
-                        data: payload.experiment,
+                        data: payload,
                     },
                     headers: {
                         'X-CSRF-TOKEN': state.config.api.csrfToken,
                     }
                 });
-                commit('setExperiment', response.data.data as Experiment);
+                commit('setExperiment', response.data.data);
                 commit('setBusy', false);
+                return Promise.resolve(response.data.data);
             } catch (error) {
-                if (payload.errors) {
-                    payload.errors(error.response.data.errors);
-                }
                 commit('setBusy', false);
+                return Promise.reject(error.response.data.errors);
             }
         },
 

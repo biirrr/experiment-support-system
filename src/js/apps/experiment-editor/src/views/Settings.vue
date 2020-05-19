@@ -1,19 +1,24 @@
 <template>
-  <div class="grid-x grid-padding-x">
-      <div class="cell auto">
-          <form @submit.prevent="updateExperiment">
-              <input-field type="text" label="Title" v-model="title" :error="errors.title"/>
-              <input-field type="textarea" label="Description" v-model="description" :error="errors.description"/>
-              <div class="buttons">
-                  <ul>
-                      <li>
-                          <button class="button primary">Update</button>
-                      </li>
-                  </ul>
-              </div>
-          </form>
-      </div>
-  </div>
+    <div v-if="localExperiment" class="grid-x grid-padding-x">
+          <div class="cell auto">
+            <form @submit.prevent="updateExperiment">
+                <input-field type="text" label="Title" v-model="localExperiment.attributes.title" :error="errors.title"/>
+                <input-field type="textarea" label="Description" v-model="localExperiment.attributes.description" :error="errors.description"/>
+                <label>First page
+                    <select v-model="localFirstPage.id">
+                        <option v-for="page in pages" :key="page.id" :value="page.id">{{ page.attributes.name }} ({{ page.attributes.title }})</option>
+                    </select>
+                </label>
+                <div class="buttons">
+                    <ul>
+                        <li>
+                            <button class="button primary">Update</button>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+    </div>
 </template>
 
 <script lang="ts">
@@ -22,7 +27,7 @@ import { Component, Vue, Watch } from 'vue-property-decorator';
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import { StringKeyValueDict, Error } from '@/interfaces';
+import { StringKeyValueDict, Error, Experiment, PageReference, Page } from '@/interfaces';
 import InputField from '@/components/InputField.vue';
 
 @Component({
@@ -31,45 +36,78 @@ import InputField from '@/components/InputField.vue';
     }
 })
 export default class Settings extends Vue {
-    public title = '';
-    public description = '';
+    public localExperiment: Experiment | null = null;
+    public localFirstPage: PageReference | null = null;
     public errors: StringKeyValueDict = {};
 
-    public get experiment() {
-        return this.$store.state.experiment;
+    public get pages() {
+        if (this.localExperiment) {
+            return this.localExperiment.relationships.pages.data.map((pageRef: PageReference) => {
+                if (this.$store.state.pages[pageRef.id]) {
+                    return this.$store.state.pages[pageRef.id];
+                } else {
+                    return null;
+                }
+            }).filter((page: Page | null) => { return page; });
+        } else {
+            return [];
+        }
     }
 
     public mounted() {
-        if (this.experiment) {
-            this.title = this.experiment.attributes.title;
-            this.description = this.experiment.attributes.description;
+        if (this.$store.state.experiment) {
+            this.localExperiment = deepcopy(this.$store.state.experiment);
+            if (this.localExperiment && this.localExperiment.relationships['first-page']) {
+                this.localFirstPage = deepcopy(this.localExperiment.relationships['first-page'].data);
+            } else {
+                this.localFirstPage = {
+                    type: 'pages',
+                    id: '',
+                }
+            }
+        } else {
+            this.localExperiment = null;
+            this.localFirstPage = null;
         }
     }
 
     @Watch('experiment')
     public watchExperiment() {
-        if (this.experiment) {
-            this.title = this.experiment.attributes.title;
-            this.description = this.experiment.attributes.description;
+        if (this.$store.state.experiment) {
+            this.localExperiment = deepcopy(this.$store.state.experiment);
+            if (this.localExperiment && this.localExperiment.relationships['first-page']) {
+                this.localFirstPage = deepcopy(this.localExperiment.relationships['first-page'].data);
+            } else {
+                this.localFirstPage = {
+                    type: 'pages',
+                    id: '',
+                }
+            }
+        } else {
+            this.localExperiment = null;
+            this.localFirstPage = null;
         }
     }
 
-    public updateExperiment() {
-        if (this.experiment) {
-            const experiment = deepcopy(this.experiment);
-            experiment.attributes.title = this.title;
-            experiment.attributes.description = this.description;
-            this.errors = {};
-            this.$store.dispatch('updateExperiment', {
-                experiment: experiment,
-                errors: (errors: Error[]) => {
-                    this.errors = {};
-                    errors.forEach((error) => {
-                        const pointer = error.source.pointer.split('/');
-                        this.errors[pointer[pointer.length - 1]] = error.title;
-                    });
-                },
-            })
+    public async updateExperiment() {
+        if (this.localExperiment) {
+            try {
+                this.errors = {};
+                const experiment = deepcopy(this.localExperiment);
+                if (!experiment.relationships['first-page']) {
+                    experiment.relationships['first-page'] = {data: deepcopy(this.localFirstPage)};
+                } else {
+                    experiment.relationships['first-page'].data = deepcopy(this.localFirstPage);
+                }
+                await this.$store.dispatch('updateExperiment', experiment);
+            } catch(error) {
+                const errors = {} as StringKeyValueDict;
+                error.forEach((entry: Error) => {
+                    const pointer = entry.source.pointer.split('/');
+                    errors[pointer[pointer.length - 1]] = entry.title;
+                });
+                this.errors = errors;
+            }
         }
     }
 }
