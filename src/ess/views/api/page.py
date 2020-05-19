@@ -1,6 +1,6 @@
 from copy import deepcopy
 from pwh_permissions.pyramid import require_permission
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPNotFound, HTTPNoContent
 from pyramid.view import view_config
 from sqlalchemy import and_
 
@@ -94,3 +94,21 @@ def patch_item(request):
     body = validated_body(request, schema)
     obj = store_object(request, body)
     return {'data': obj.as_jsonapi()}
+
+
+@view_config(route_name='api.page.item.delete')
+@require_permission('Experiment:eid allow $current_user edit')
+def delete_item(request):
+    """Handles deleting a single :class:`~ess.models.page.Page`."""
+    item = request.dbsession.query(Page).filter(and_(Page.id == request.matchdict['pid'],
+                                                     Page.experiment_id == request.matchdict['eid'])).first()
+    if item is not None:
+        for prev in item.prev:
+            request.dbsession.delete(prev)
+        if item.experiment.first_page == item:
+            item.experiment.first_page = None
+            request.dbsession.add(item.experiment)
+        request.dbsession.delete(item)
+        return HTTPNoContent()
+    else:
+        raise HTTPNotFound()

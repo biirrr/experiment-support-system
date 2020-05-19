@@ -5,7 +5,7 @@ import axios from 'axios';
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import { Config, State, Experiment, Page, CreatePageAction, UpdateExperimentAction, DeleteQuestionAction,
+import { Config, State, Experiment, Page, CreatePageAction, DeleteQuestionAction,
     QuestionTypeGroup, QuestionType, AddQuestionAction, Question, LoadQuestionAction, Transition,
     UpdateQuestionAction } from '@/interfaces';
 
@@ -94,6 +94,10 @@ export default new Vuex.Store({
                     });
                 }
             }
+        },
+
+        deletePage(state, payload: Page) {
+            Vue.delete(state.pages, payload.id);
         },
 
         setTransition(state, payload: Transition) {
@@ -232,7 +236,6 @@ export default new Vuex.Store({
         async updateExperiment({ commit, state }, payload: Experiment) {
             try {
                 commit('setBusy', true);
-                console.log(payload);
                 const response = await axios({
                     method: 'patch',
                     url: state.config.api.baseUrl + '/experiments/' + payload.id,
@@ -346,6 +349,26 @@ export default new Vuex.Store({
                 commit('setPage', response.data.data);
                 commit('setBusy', false);
                 return Promise.resolve(response.data.data);
+            } catch (error) {
+                commit('setBusy', false);
+                return Promise.reject(error.response.data.errors);
+            }
+        },
+
+        async deletePage({ commit, dispatch, state}, payload: Page) {
+            try {
+                commit('setBusy', true);
+                const response = await axios({
+                    method: 'delete',
+                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.id,
+                    headers: {
+                        'X-CSRF-TOKEN': state.config.api.csrfToken,
+                    },
+                });
+                commit('deletePage', payload);
+                dispatch('loadExperiment');
+                commit('setBusy', false);
+                return Promise.resolve();
             } catch (error) {
                 commit('setBusy', false);
                 return Promise.reject(error.response.data.errors);
