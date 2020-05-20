@@ -1,8 +1,8 @@
 <template>
     <div id="app" class="experiment-editor">
-        <div v-if="$store.state.ui.busy" class="busy">
+        <div v-if="progress >= 0" class="busy">
             <progress max="100" :value="progress"/>
-            <div class="busy-overlay"></div>
+            <div v-if="$store.state.ui.busy" class="busy-overlay"></div>
         </div>
         <div v-if="experiment" class="grid-x grid-padding-x">
             <div class="cell auto">
@@ -98,7 +98,7 @@ export default class App extends Vue {
         if (this.$store.state.ui.busyMaxCounter > 0) {
             return 100 / this.$store.state.ui.busyMaxCounter * (this.$store.state.ui.busyMaxCounter - this.$store.state.ui.busyCounter);
         } else {
-            return 0;
+            return -1;
         }
     }
 

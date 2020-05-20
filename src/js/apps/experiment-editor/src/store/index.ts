@@ -47,7 +47,9 @@ export default new Vuex.Store({
             } else {
                 state.ui.busyCounter = state.ui.busyCounter - 1;
                 if (state.ui.busyCounter === 0) {
-                    state.ui.busyMaxCounter = 0;
+                    setTimeout(() => {
+                        state.ui.busyMaxCounter = 0;
+                    }, 400);
                 }
             }
             state.ui.busy = state.ui.busyCounter > 0;
