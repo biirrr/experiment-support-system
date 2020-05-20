@@ -24,6 +24,6 @@ test('Access experiment 2', async (test) => {
     await test.click(Selector('a').withText('Test 2'));
     await test.expect(Selector('h1').withText('Test 2').innerText).eql('Test 2');
     await test.click(Selector('a').withText('Pages'));
-    await test.expect(Selector('h2').withText('Welcome').innerText).eql('Welcome');
-    await test.expect(Selector('h2').withText('Informed Consent').innerText).eql('Informed Consent');
+    await test.expect(Selector('h2').withText('Welcome').innerText).eql('welcome (Welcome)');
+    await test.expect(Selector('h2').withText('Informed Consent').innerText).eql('consent (Informed Consent)');
 });

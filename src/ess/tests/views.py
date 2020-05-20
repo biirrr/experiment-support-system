@@ -1,14 +1,32 @@
+import requests
+
 from hashlib import sha512
 from pyramid.view import view_config
 from secrets import token_hex
 
-from ess.models import User, Experiment, ExperimentPermission, Page, Transition
+from ess.models import User, Experiment, ExperimentPermission, Page, Transition, QuestionType, QuestionTypeGroup
 from ess.models.meta import Base
+from ess.scripts.db import import_question_type, DEFAULT_QUESTION_TYPES
 
 
 def init_db(request):
     Base.metadata.drop_all(request.dbsession.bind)
     Base.metadata.create_all(request.dbsession.bind)
+    question_type_group = QuestionTypeGroup(title='Core Questions',
+                                            position=0,
+                                            enabled=True,
+                                            source='https://biirrr.github.io/usef/questions/')
+    request.dbsession.add(question_type_group)
+    for idx, source in enumerate(DEFAULT_QUESTION_TYPES):
+        response = requests.get(source[0])
+        if response.status_code == 200:
+            question_type = import_question_type(response.json(), request.dbsession)
+            question_type.title = source[1]
+            question_type.enabled = source[1] != 'Abstract Question'
+            question_type.position = idx
+            question_type.question_type_group = question_type_group
+            request.dbsession.add(question_type)
+    request.dbsession.flush()
 
 
 def create_user_1(request):
