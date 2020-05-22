@@ -58,12 +58,12 @@ const routes = [
         path: '/latin-squares',
         name: 'latinSquares',
         component: LatinSquares,
-    },
+    },*/
     {
         path: '/results',
         name: 'results',
         component: Results,
-    },*/
+    },
     {
         path: '/settings',
         name: 'settings',

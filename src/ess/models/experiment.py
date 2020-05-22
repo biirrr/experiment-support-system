@@ -1,3 +1,4 @@
+from copy import deepcopy
 from datetime import datetime
 from sqlalchemy import (Column, Integer, DateTime, Unicode, ForeignKey, Index)
 from sqlalchemy.orm import relationship
@@ -20,6 +21,9 @@ class Experiment(Base):
     authorised_users = relationship('ExperimentPermission')
     first_page = relationship('Page', foreign_keys='Experiment.first_page_id', post_update=True)
     pages = relationship('Page', foreign_keys='Page.experiment_id', order_by='Page.id')
+    participants = relationship('Participant')
+    completed = relationship('Participant', primaryjoin='and_(Experiment.id == Participant.experiment_id,' +
+                             'Participant.completed == True)')
 
     def allow(self, user, action):
         """Check whether the given user is allowed to undertake the given action.
@@ -45,10 +49,13 @@ class Experiment(Base):
         return False
 
     def as_jsonapi(self):
+        attributes = deepcopy(self.attributes)
+        attributes['_stats'] = {'participants': {'started': len(self.participants),
+                                                 'completed': len(self.completed)}}
         data = {
             'type': 'experiments',
             'id': str(self.id),
-            'attributes': self.attributes,
+            'attributes': attributes,
             'relationships': {
                 'pages': {
                     'data': [{'type': 'pages', 'id': str(page.id)} for page in self.pages]
