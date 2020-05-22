@@ -12,6 +12,8 @@ def includeme(config):
 
     config.add_route('experiment.create', '/experiments/create')
     config.add_route('experiment.run', '/experiments/run/:eid')
+    config.add_route('experiment.run.validate', '/experiments/run/:eid/validate')
+    config.add_route('experiment.run.submit', '/experiments/run/:eid/submit')
     config.add_route('experiment.edit', '/experiments/:eid/edit')
 
     config.add_route('api', '/api')
@@ -38,6 +40,9 @@ def includeme(config):
     config.add_route('api.question_type.item.get', '/api/question_types/:qtid', request_method='GET')
     config.add_route('api.question_type.item.patch', '/api/question_types/:qtid', request_method='PATCH')
     config.add_route('api.question_type.item.delete', '/api/question_types/:qtid', request_method='DELETE')
+    config.add_route('api.participant.collection.post', '/api/experiments/:eid/participants', request_method='POST')
+    config.add_route('api.participant.item.get', '/api/experiments/:eid/participants/:pid', request_method='GET')
+    config.add_route('api.participant.item.patch', '/api/experiments/:eid/participants/:pid', request_method='PATCH')
 
     config.add_route('admin', '/admin')
     config.add_route('admin.question_types', '/admin/question_types')

@@ -40,6 +40,8 @@ class Experiment(Base):
                     elif permission.role == 'tester':
                         if action == 'view':
                             return True
+        if action == 'participate':
+            return True
         return False
 
     def as_jsonapi(self):
@@ -63,4 +65,4 @@ class Experiment(Base):
         return data
 
 
-Index('experiment_external_id_ix', Experiment.external_id, unique=True, mysql_length=191)
+Index('experiments_external_id_ix', Experiment.external_id, unique=True, mysql_length=191)

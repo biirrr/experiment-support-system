@@ -1,0 +1,23 @@
+@import 'settings';
+@import 'foundation';
+
+@include foundation-everything;
+
+@import 'foundation-extensions';
+@import 'generic';
+@import 'icons';
+@import 'overlay';
+@import 'forms';
+@import 'question-types';
+@import 'questions';
+
+#app.frontend {
+    padding-top: $global-padding;
+    padding-bottom: 50vh;
+
+    .reset-experiment {
+        position: fixed;
+        right: 0;
+        top: 0;
+    }
+}

@@ -47,6 +47,12 @@
             fill: $secondary-color;
         }
     }
+
+    &.white {
+        path, g {
+            fill: $white;
+        }
+    }
 }
 
 a {
@@ -80,6 +86,20 @@ a {
                     fill: darken($secondary-color, $amount: 20);
                 }
             }
+        }
+    }
+}
+
+.button {
+    .icon {
+        path, g {
+            fill: $white;
+        }
+    }
+
+    &:hover {
+        path, g {
+            fill: darken($white, $amount: 20);
         }
     }
 }

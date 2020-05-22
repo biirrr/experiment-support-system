@@ -114,10 +114,6 @@ export default new Vuex.Store({
         deleteQuestion(state, payload: Question) {
             Vue.delete(state.questions, payload.id);
         },
-
-        setNewQuestionId(state, payload: string) {
-            Vue.set(state.ui, 'newQuestionId', payload);
-        },
     },
 
     actions: {

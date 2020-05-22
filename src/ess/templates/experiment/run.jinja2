@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>{{ experiment.attributes.title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ 'ess:static/frontend.css'|static_url }}" media="screen">
+</head>
+<body>
+  <div id="app"></div>
+  <script id="ExperimentFrontendConfig" type="application/json">
+  {
+    "api": {
+      "baseUrl": "{{ 'api'|route_url }}",
+      "csrfToken": "{{ get_csrf_token() }}",
+      "validationUrl": "{{ 'experiment.run.validate'|route_url(eid=experiment.external_id) }}",
+      "submissionUrl": "{{ 'experiment.run.submit'|route_url(eid=experiment.external_id) }}"
+    },
+    "experiment": {
+      "id": "{{ experiment.id }}"
+    }
+  }
+</script>
+  <script src="{{ 'ess:static/frontend/js/chunk-vendors.js'|static_url }}"></script>
+  <script src="{{ 'ess:static/frontend/js/app.js'|static_url }}"></script>
+</body>
+</html>

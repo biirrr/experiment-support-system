@@ -1,21 +1,49 @@
-.busy {
-    progress {
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: rem-calc(3);
-        z-index:10001;
+progress {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: rem-calc(3);
+    z-index:10001;
+}
+
+.busy-overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index:10000;
+    background: transparent;
+}
+
+.loading {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+    svg {
+        height: rem-calc(200);
+        width: rem-calc(200);
+        transform: rotate(-90deg);
+
+        circle {
+            &:nth-child(1) {
+                stroke: $light-gray;
+            }
+
+            &:nth-child(2) {
+                stroke: $primary-color;
+            }
+        }
     }
 
-    .busy-overlay {
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index:10000;
-        background: transparent;
+    span {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
     }
 }
 
@@ -45,11 +73,13 @@
 }
 
 #app {
-    position: relative;
+    &.experiment-editor, &.questions-admin {
+        position: relative;
 
-    .busy-overlay, .dialog-overlay {
-        position: absolute;
-        width: 100%;
-        height: 100%;
+        .busy-overlay, .dialog-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
     }
 }

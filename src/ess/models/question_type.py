@@ -43,6 +43,8 @@ class QuestionType(Base):
             attributes = dict([(key, value) for key, value in self.parent.inherited_attributes().items()
                                if not key.startswith('_')])
             attributes.update(self.attributes)
+            if self.name.startswith('USEF'):
+                attributes['_core_type'] = self.name
             attributes['_name'] = self.name
             attributes['_title'] = self.title
             attributes['_enabled'] = self.enabled
