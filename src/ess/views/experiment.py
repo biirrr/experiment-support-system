@@ -225,6 +225,7 @@ def submit(request):
                     first()
                 if participant:
                     participant.responses = body['responses']
+                    participant.completed = True
                     request.dbsession.add(participant)
                     return HTTPNoContent()
                 else:

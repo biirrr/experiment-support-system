@@ -354,12 +354,13 @@ export default new Vuex.Store({
             }
         },
 
-        developmentResetExperiment({ dispatch, commit, state}) {
+        async developmentResetExperiment({ dispatch, commit, state}) {
             if (state.experiment && state.experiment.attributes.status === 'development') {
                 sessionDeleteValue(state.experiment.id);
                 localDeleteValue(state.experiment.id);
                 commit('setCompleted', false);
                 commit('setResponses', {});
+                await dispatch('loadParticipant');
                 dispatch('resetExperiment');
             }
         },

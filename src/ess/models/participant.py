@@ -1,4 +1,4 @@
-from sqlalchemy import (Column, Integer, ForeignKey, Index, Unicode)
+from sqlalchemy import (Column, Integer, ForeignKey, Index, Unicode, Boolean)
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
 
@@ -14,6 +14,7 @@ class Participant(Base):
     external_id = Column(Unicode(191))
     attributes = Column(NestedMutableJson)
     responses = Column(NestedMutableJson)
+    completed = Column(Boolean(name='is_boolean'))
 
     experiment = relationship('Experiment')
 
