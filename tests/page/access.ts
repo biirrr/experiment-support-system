@@ -13,12 +13,12 @@ fixture(`Experiment`).beforeEach(async (test) => {
 }).page('http://localhost:6543/');
 
 test('Access all pages in an experiment', async (test) => {
-    await test.click(Selector('a').withText('Experiments'))
-    await test.click(Selector('.grid-container a').withText('Experiment 2'))
-    await test.click(Selector('a').withText('Pages'))
-    await test.click(Selector('a').withText('Welcome'))
+    await test.click(Selector('a').withText('Experiments'));
+    await test.click(Selector('.grid-container a').withText('Experiment 2'));
+    await test.click(Selector('a').withText('Pages'));
+    await test.click(Selector('a').withText('Welcome'));
     await test.expect(Selector('h2').withText('Welcome').innerText).eql('Welcome');
-    await test.click(Selector('a').withText('Pages'))
-    await test.click(Selector('a').withText('Informed Consent'))
+    await test.click(Selector('a').withText('Pages'));
+    await test.click(Selector('a').withText('Informed Consent'));
     await test.expect(Selector('h2').withText('Informed Consent').innerText).eql('Informed Consent');
 });
