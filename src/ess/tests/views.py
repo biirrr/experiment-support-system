@@ -48,7 +48,7 @@ def create_user_1(request):
 
 def create_experiment_1(request):
     user = create_user_1(request)
-    experiment = Experiment(attributes={'title': 'Test 1',
+    experiment = Experiment(attributes={'title': 'Experiment 1',
                                         'description': 'The first test experiment',
                                         'status': 'development'})
     request.dbsession.add(experiment)
@@ -59,7 +59,7 @@ def create_experiment_1(request):
 
 def create_experiment_2(request):
     user = create_user_1(request)
-    experiment = Experiment(attributes={'title': 'Test 2',
+    experiment = Experiment(attributes={'title': 'Experiment 2',
                                         'description': 'The second test experiment',
                                         'status': 'development'})
     request.dbsession.add(experiment)
