@@ -20,3 +20,12 @@ test('Delete a page from an experiment', async (test) => {
     await test.click(Selector('a').withText('Welcome').parent().parent().nextSibling().find('a[aria-label="Delete this page"'));
     await test.expect(Selector('a').withText('Welcome').exists).notOk();
 });
+
+test('Do not delete a page from an experiment on cancel', async (test) => {
+    await test.click(Selector('a').withText('Experiments'));
+    await test.click(Selector('.grid-container a').withText('Experiment 2'));
+    await test.click(Selector('a').withText('Pages'));
+    await test.setNativeDialogHandler(() => false);
+    await test.click(Selector('a').withText('Welcome').parent().parent().nextSibling().find('a[aria-label="Delete this page"'));
+    await test.expect(Selector('h2').withText('Welcome').innerText).eql('welcome (Welcome)');
+});
