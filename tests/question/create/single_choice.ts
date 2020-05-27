@@ -114,11 +114,11 @@ test('Create a required single choice vertical list question', async (test) => {
         .expect(Selector('li.question h2.required').withText('Select your age').innerText).eql('Select your age')
         .expect(Selector('li.question ul.no-bullet').childElementCount).eql(3)
         .expect(Selector('li.question li label').nth(0).innerText).eql(' under 18')
-        .expect(Selector('li.question li input').nth(0).value).eql('0')
+        .expect(Selector('li.question li input[type="radio"]').nth(0).value).eql('0')
         .expect(Selector('li.question li label').nth(1).innerText).eql(' 18 - 65')
-        .expect(Selector('li.question li input').nth(1).value).eql('1')
+        .expect(Selector('li.question li input[type="radio"]').nth(1).value).eql('1')
         .expect(Selector('li.question li label').nth(2).innerText).eql(' over 65')
-        .expect(Selector('li.question li input').nth(2).value).eql('2');
+        .expect(Selector('li.question li input[type="radio"]').nth(2).value).eql('2');
 });
 
 test('Create an optional single choice vertical list question', async (test) => {
@@ -151,11 +151,11 @@ test('Create an optional single choice vertical list question', async (test) => 
         .expect(Selector('li.question h2.required').exists).notOk()
         .expect(Selector('li.question ul.no-bullet').childElementCount).eql(3)
         .expect(Selector('li.question li label').nth(0).innerText).eql(' under 18')
-        .expect(Selector('li.question li input').nth(0).value).eql('0')
+        .expect(Selector('li.question li input[type="radio"]').nth(0).value).eql('0')
         .expect(Selector('li.question li label').nth(1).innerText).eql(' 18 - 65')
-        .expect(Selector('li.question li input').nth(1).value).eql('1')
+        .expect(Selector('li.question li input[type="radio"]').nth(1).value).eql('1')
         .expect(Selector('li.question li label').nth(2).innerText).eql(' over 65')
-        .expect(Selector('li.question li input').nth(2).value).eql('2');
+        .expect(Selector('li.question li input[type="radio"]').nth(2).value).eql('2');
 });
 
 test('Create a required single choice horizontal list question', async (test) => {
@@ -189,11 +189,11 @@ test('Create a required single choice horizontal list question', async (test) =>
         .expect(Selector('li.question table thead tr').childElementCount).eql(3)
         .expect(Selector('li.question table tbody tr').childElementCount).eql(3)
         .expect(Selector('li.question table thead th').nth(0).innerText).eql('under 18')
-        .expect(Selector('li.question table tbody td input').nth(0).value).eql('0')
+        .expect(Selector('li.question table tbody td input[type="radio"]').nth(0).value).eql('0')
         .expect(Selector('li.question table thead th').nth(1).innerText).eql('18 - 65')
-        .expect(Selector('li.question table tbody td input').nth(1).value).eql('1')
+        .expect(Selector('li.question table tbody td input[type="radio"]').nth(1).value).eql('1')
         .expect(Selector('li.question table thead th').nth(2).innerText).eql('over 65')
-        .expect(Selector('li.question table tbody td input').nth(2).value).eql('2');
+        .expect(Selector('li.question table tbody td input[type="radio"]').nth(2).value).eql('2');
 });
 
 test('Create an optional single choice horizontal list question', async (test) => {
@@ -226,9 +226,9 @@ test('Create an optional single choice horizontal list question', async (test) =
         .expect(Selector('li.question table thead tr').childElementCount).eql(3)
         .expect(Selector('li.question table tbody tr').childElementCount).eql(3)
         .expect(Selector('li.question table thead th').nth(0).innerText).eql('under 18')
-        .expect(Selector('li.question table tbody td input').nth(0).value).eql('0')
+        .expect(Selector('li.question table tbody td input[type="radio"]').nth(0).value).eql('0')
         .expect(Selector('li.question table thead th').nth(1).innerText).eql('18 - 65')
-        .expect(Selector('li.question table tbody td input').nth(1).value).eql('1')
+        .expect(Selector('li.question table tbody td input[type="radio"]').nth(1).value).eql('1')
         .expect(Selector('li.question table thead th').nth(2).innerText).eql('over 65')
-        .expect(Selector('li.question table tbody td input').nth(2).value).eql('2');
+        .expect(Selector('li.question table tbody td input[type="radio"]').nth(2).value).eql('2');
 });
