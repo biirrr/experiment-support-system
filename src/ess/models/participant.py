@@ -1,3 +1,4 @@
+from copy import deepcopy
 from sqlalchemy import (Column, Integer, ForeignKey, Index, Unicode, Boolean)
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
@@ -30,11 +31,12 @@ class Participant(Base):
         return self.experiment.allow(user, action)
 
     def as_jsonapi(self):
+        attributes = deepcopy(self.attributes)
+        attributes['responses'] = self.responses
         return {
             'type': 'participants',
             'id': str(self.external_id),
-            'attributes': self.attributes,
-            'responses': self.responses,
+            'attributes': attributes,
             'relationships': {
                 'experiment': {
                     'data': {

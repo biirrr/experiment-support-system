@@ -43,6 +43,7 @@ def includeme(config):
     config.add_route('api.participant.collection.post', '/api/experiments/:eid/participants', request_method='POST')
     config.add_route('api.participant.item.get', '/api/experiments/:eid/participants/:pid', request_method='GET')
     config.add_route('api.participant.item.patch', '/api/experiments/:eid/participants/:pid', request_method='PATCH')
+    config.add_route('api.result.item.get', '/api/experiments/:eid/results/:pid', request_method='GET')
 
     config.add_route('admin', '/admin')
     config.add_route('admin.question_types', '/admin/question_types')

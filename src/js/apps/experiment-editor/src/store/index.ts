@@ -6,7 +6,7 @@ import axios from 'axios';
 import deepcopy from 'deepcopy';
 
 import { Config, State, Experiment, Page, CreatePageAction, QuestionTypeGroup, QuestionType,
-    AddQuestionAction, Question, LoadQuestionAction, Transition } from '@/interfaces';
+    AddQuestionAction, Question, LoadQuestionAction, Transition, Result } from '@/interfaces';
 
 Vue.use(Vuex)
 
@@ -28,6 +28,7 @@ export default new Vuex.Store({
         questionTypeGroups: [],
         questionTypes: {},
         questions: {},
+        results: {},
         ui: {
             busy: false,
             busyCounter: 0,
@@ -114,37 +115,58 @@ export default new Vuex.Store({
         deleteQuestion(state, payload: Question) {
             Vue.delete(state.questions, payload.id);
         },
+
+        setResult(state, payload: Result) {
+            Vue.set(state.results, payload.id, payload);
+        },
     },
 
     actions: {
         async init({ commit, dispatch }, payload: Config) {
             commit('setConfig', payload);
-            dispatch('loadQuestionTypes');
-        },
-
-        async loadQuestionTypes({ commit, state }) {
             try {
                 commit('setBusy', true);
-                let response = await axios.get(state.config.api.baseUrl + '/question_type_groups');
-                const questionTypeGroups = response.data.data;
-                commit('setQuestionTypeGroups', questionTypeGroups);
-                for (let idx = 0; idx < questionTypeGroups.length; idx++) {
-                    const questionTypeGroup = questionTypeGroups[idx];
-                    try {
-                        commit('setBusy', true);
-                        for (let idx2 = 0; idx2 < questionTypeGroup.relationships['question-types'].data.length; idx2++) {
-                            const questionType = questionTypeGroup.relationships['question-types'].data[idx2];
-                            response = await axios.get(state.config.api.baseUrl + '/question_types/' + questionType.id);
-                            commit('setQuestionType', response.data.data);
-                        }
-                        commit('setBusy', false);
-                    } catch(error) {
-                        commit('setBusy', false);
-                    }
-                }
+                await Promise.all([dispatch('loadQuestionTypes'), dispatch('loadExperiment')]);
                 commit('setBusy', false);
+                return Promise.resolve()
             } catch(error) {
                 commit('setBusy', false);
+                return Promise.reject(error);
+            }
+        },
+
+        async loadQuestionTypes({ dispatch, commit, state }) {
+            try {
+                commit('setBusy', true);
+                const response = await axios.get(state.config.api.baseUrl + '/question_type_groups');
+                const questionTypeGroups = response.data.data;
+                commit('setQuestionTypeGroups', questionTypeGroups);
+                const promises = [];
+                for (let idx = 0; idx < questionTypeGroups.length; idx++) {
+                    const questionTypeGroup = questionTypeGroups[idx];
+                    for (let idx2 = 0; idx2 < questionTypeGroup.relationships['question-types'].data.length; idx2++) {
+                        promises.push(dispatch('loadQuestionType', questionTypeGroup.relationships['question-types'].data[idx2].id));
+                    }
+                }
+                await Promise.all(promises);
+                commit('setBusy', false);
+                return Promise.resolve();
+            } catch(error) {
+                commit('setBusy', false);
+                return Promise.reject(error);
+            }
+        },
+
+        async loadQuestionType({ commit, state}, payload: string) {
+            try {
+                commit('setBusy', true);
+                const response = await axios.get(state.config.api.baseUrl + '/question_types/' + payload);
+                commit('setQuestionType', response.data.data);
+                commit('setBusy', false);
+                return Promise.resolve(response.data.data);
+            } catch(error) {
+                commit('setBusy', true);
+                return Promise.reject(error);
             }
         },
 
@@ -154,13 +176,16 @@ export default new Vuex.Store({
                 const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id);
                 const experiment = response.data.data as Experiment;
                 commit('setExperiment', experiment);
+                const promises = [];
                 for (let idx = 0; idx < experiment.relationships.pages.data.length; idx++) {
-                    dispatch('loadPage', experiment.relationships.pages.data[idx].id);
+                    promises.push(dispatch('loadPage', experiment.relationships.pages.data[idx].id));
                 }
+                await Promise.all(promises);
                 commit('setBusy', false);
+                return Promise.resolve(experiment);
             } catch (error) {
-                // eslint-disable-next-line no-console
-                console.log(error);
+                commit('setBusy', false);
+                return Promise.reject(error);
             }
         },
 
@@ -176,17 +201,19 @@ export default new Vuex.Store({
                 }
                 const page = response.data.data as Page;
                 commit('setPage', page);
+                const promises = [];
                 for (let idx = 0; idx < page.relationships.next.data.length; idx++) {
-                    dispatch('loadTransition', page.relationships.next.data[idx].id);
+                    promises.push(dispatch('loadTransition', page.relationships.next.data[idx].id));
                 }
                 const newQuestionIds = [] as string[];
                 for (let idx = 0; idx < page.relationships.questions.data.length; idx++) {
                     newQuestionIds.push(page.relationships.questions.data[idx].id);
-                    dispatch('loadQuestion', {
+                    promises.push(dispatch('loadQuestion', {
                         pageId: payload,
                         questionId: page.relationships.questions.data[idx].id
-                    });
+                    }));
                 }
+                await Promise.all(promises);
                 // Clear out any deleted questions from the state
                 if (existingQuestions) {
                     existingQuestions.forEach((qid) => {
@@ -195,11 +222,12 @@ export default new Vuex.Store({
                         }
                     });
                 }
+                dispatch('loadResult', page.id);
                 commit('setBusy', false);
+                return Promise.resolve(page);
             } catch (error) {
-                // eslint-disable-next-line no-console
-                console.log(error);
                 commit('setBusy', false);
+                return Promise.reject(error);
             }
         },
 
@@ -209,10 +237,10 @@ export default new Vuex.Store({
                 const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions/' + payload);
                 commit('setTransition', response.data.data);
                 commit('setBusy', false);
+                return Promise.resolve(response.data.data);
             } catch (error) {
-                // eslint-disable-next-line no-console
-                console.log(error);
                 commit('setBusy', false);
+                return Promise.reject(error);
             }
         },
 
@@ -223,10 +251,40 @@ export default new Vuex.Store({
                 const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.pageId + '/questions/' + payload.questionId);
                 commit('setQuestion', response.data.data);
                 commit('setBusy', false);
+                return Promise.resolve(response.data.data);
             } catch (error) {
-                // eslint-disable-next-line no-console
-                console.log(error);
                 commit('setBusy', false);
+                return Promise.reject(error);
+            }
+        },
+
+        async loadResults({ commit, dispatch, state}) {
+            try {
+                commit('setBusy', true);
+                const promises = [];
+                const pages = Object.values(state.pages);
+                for (let idx = 0; idx < pages.length; idx++) {
+                    promises.push(dispatch('loadResult', pages[idx].id));
+                }
+                await Promise.all(promises);
+                commit('setBusy', false);
+                return Promise.resolve();
+            } catch(error) {
+                commit('setBusy', false);
+                return Promise.reject(error);
+            }
+        },
+
+        async loadResult({ commit, state }, payload: string) {
+            try {
+                commit('setBusy', true);
+                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/results/' + payload);
+                commit('setResult', response.data.data);
+                commit('setBusy', false);
+                return Promise.resolve(response.data.data);
+            } catch(error) {
+                commit('setBusy', false);
+                return Promise.reject(error);
             }
         },
 

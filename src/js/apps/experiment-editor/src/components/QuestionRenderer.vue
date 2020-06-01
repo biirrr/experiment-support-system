@@ -139,8 +139,8 @@ export default class QuestionRenderer extends Vue {
     }
 
     public get renderType() {
-        if (this.questionType && this.questionType.attributes._name.indexOf('USEF') === 0) {
-            return this.questionType.attributes._name;
+        if (this.questionType && this.questionType.attributes._core_type.indexOf('USEF') === 0) {
+            return this.questionType.attributes._core_type;
         } else {
             return 'USEFInvalid'
         }

@@ -25,6 +25,7 @@ export interface State {
     questionTypeGroups: QuestionTypeGroup[];
     questionTypes: QuestionTypeDict;
     questions: QuestionsDict;
+    results: ResultsDict;
     ui: UIState;
 }
 
@@ -268,4 +269,13 @@ export interface QuestionsDict {
 export interface LoadQuestionAction {
     pageId: number;
     questionId: number;
+}
+
+export interface ResultsDict {
+    [x: string]: Result;
+}
+
+export interface Result {
+    type: 'results';
+    id: string;
 }

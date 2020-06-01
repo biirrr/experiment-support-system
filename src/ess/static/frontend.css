@@ -4897,6 +4897,12 @@ a:hover .icon.secondary path, a:hover .icon.secondary g {
 .button:hover path, .button:hover g {
   fill: #cbcbcb; }
 
+.button.hollow .icon path, .button.hollow .icon g {
+  fill: #1779ba; }
+
+.button.hollow:hover .icon path, .button.hollow:hover .icon g {
+  fill: #0c3e5f; }
+
 .icon-text {
   display: flex;
   flex-direction: row; }

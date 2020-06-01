@@ -60,12 +60,12 @@
                         <li :class="isActive ? 'is-active': ''" role="presentation">
                             <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Latin Squares</a>
                         </li>
-                    </router-link>
+                    </router-link>-->
                     <router-link to="/results" v-slot="{ href, navigate, isActive }">
                         <li :class="isActive ? 'is-active': ''" role="presentation">
                             <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Results</a>
                         </li>
-                    </router-link>-->
+                    </router-link>
                     <router-link to="/settings" v-slot="{ href, navigate, isActive }">
                         <li :class="isActive ? 'is-active': ''" role="presentation">
                             <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="-1" role="menuitem">Settings</a>
@@ -108,7 +108,6 @@ export default class App extends Vue {
             const config = JSON.parse(configElement.innerHTML);
             if (config) {
                 this.$store.dispatch('init', config);
-                this.$store.dispatch('loadExperiment');
             }
         }
     }

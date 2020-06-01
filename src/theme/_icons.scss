@@ -102,6 +102,24 @@ a {
             fill: darken($white, $amount: 20);
         }
     }
+
+    &.hollow {
+        .icon {
+            path, g {
+                fill: $anchor-color;
+            }
+
+        }
+
+        &:hover {
+            .icon {
+                path, g {
+                    fill: darken($anchor-color, 20);
+                }
+
+            }
+        }
+    }
 }
 
 .icon-text {
