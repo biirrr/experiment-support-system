@@ -1,5 +1,6 @@
+from pwh_permissions import permitted
 from pwh_permissions.pyramid import require_permission
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.view import view_config
 
 from ess.models import Experiment
@@ -11,14 +12,26 @@ edit_experiment_schema = {'title': {'type': 'string', 'empty': False},
 
 
 @view_config(route_name='api.experiment.item.get', renderer='json')
-@require_permission('Experiment:eid allow $current_user edit')
+@view_config(route_name='experiment.run.api.experiment.item.get', renderer='json')
 def get_item(request):
     """Handles fetching a single :class:`~ess.models.experiment.Experiment`."""
-    item = request.dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
-    if item is not None:
-        return {'data': item.as_jsonapi()}
-    else:
-        raise HTTPNotFound()
+    if request.matched_route.name == 'experiment.run.api.experiment.item.get':
+        item = request.dbsession.query(Experiment).filter(Experiment.external_id == request.matchdict['eid']).first()
+        if item is not None:
+            if permitted('experiment allow current_user participate', {'experiment': item,
+                                                                       'current_user': request.current_user}):
+                return {'data': item.as_jsonapi(external=True)}
+            else:
+                raise HTTPForbidden()
+    elif request.matched_route.name == 'api.experiment.item.get':
+        item = request.dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+        if item is not None:
+            if permitted('experiment allow current_user participate', {'experiment': item,
+                                                                       'current_user': request.current_user}):
+                return {'data': item.as_jsonapi()}
+            else:
+                raise HTTPForbidden()
+    raise HTTPNotFound()
 
 
 patch_experiment_schema = {'type': type_schema('experiments'),

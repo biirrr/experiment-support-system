@@ -30,7 +30,7 @@ class Page(Base):
         """
         return self.experiment.allow(user, action)
 
-    def as_jsonapi(self):
+    def as_jsonapi(self, external=False):
         return {
             'type': 'pages',
             'id': str(self.id),
@@ -39,7 +39,7 @@ class Page(Base):
                 'experiment': {
                     'data': {
                         'type': 'experiments',
-                        'id': str(self.experiment_id),
+                        'id': self.experiment.external_id if external else str(self.experiment_id),
                     }
                 },
                 'next': {

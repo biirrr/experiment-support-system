@@ -1,10 +1,11 @@
 from copy import deepcopy
+from pwh_permissions import permitted
 from pwh_permissions.pyramid import require_permission
-from pyramid.httpexceptions import HTTPNotFound, HTTPNoContent
+from pyramid.httpexceptions import HTTPNotFound, HTTPNoContent, HTTPForbidden
 from pyramid.view import view_config
 from sqlalchemy import and_
 
-from ess.models import Page
+from ess.models import Page, Experiment
 from . import (validated_body, override_tree, type_schema, id_schema, relationship_schema, store_object)
 
 
@@ -42,15 +43,31 @@ def post_collection(request):
 
 
 @view_config(route_name='api.page.item.get', renderer='json')
-@require_permission('Experiment:eid allow $current_user edit')
+@view_config(route_name='experiment.run.api.page.item.get', renderer='json')
 def get_item(request):
     """Handles fetching a single :class:`~ess.models.page.Page`."""
-    item = request.dbsession.query(Page).filter(and_(Page.id == request.matchdict['pid'],
-                                                     Page.experiment_id == request.matchdict['eid'])).first()
-    if item is not None:
-        return {'data': item.as_jsonapi()}
-    else:
-        raise HTTPNotFound()
+    if request.matched_route.name == 'experiment.run.api.page.item.get':
+        item = request.dbsession.query(Page)\
+            .join(Page.experiment)\
+            .filter(and_(Page.id == request.matchdict['pid'],
+                         Experiment.external_id == request.matchdict['eid'])).first()
+        if item is not None:
+            if permitted('page allow current_user participate', {'page': item,
+                                                                 'current_user': request.current_user}):
+                return {'data': item.as_jsonapi(external=True)}
+            else:
+                HTTPForbidden()
+    elif request.matched_route.name == 'api.page.item.get':
+        item = request.dbsession.query(Page)\
+            .filter(and_(Page.id == request.matchdict['pid'],
+                         Page.experiment_id == request.matchdict['eid'])).first()
+        if item is not None:
+            if permitted('page allow current_user participate', {'page': item,
+                                                                 'current_user': request.current_user}):
+                return {'data': item.as_jsonapi()}
+            else:
+                HTTPForbidden()
+    raise HTTPNotFound()
 
 
 patch_page_schema = {'type': type_schema('pages'),

@@ -41,7 +41,7 @@ class Participant(Base):
                 'experiment': {
                     'data': {
                         'type': 'experiments',
-                        'id': str(self.experiment_id),
+                        'id': str(self.experiment.external_id),
                     }
                 },
             }

@@ -1,12 +1,13 @@
 import json
 
 from copy import deepcopy
+from pwh_permissions import permitted
 from pwh_permissions.pyramid import require_permission
-from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPNoContent
+from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPNoContent, HTTPForbidden
 from pyramid.view import view_config
 from sqlalchemy import and_
 
-from ess.models import Transition, Page
+from ess.models import Transition, Page, Experiment
 from . import (validated_body, id_schema, type_schema, relationship_schema, store_object)
 
 
@@ -29,16 +30,35 @@ def post_collection(request):
 
 
 @view_config(route_name='api.transition.item.get', renderer='json')
-@require_permission('Experiment:eid allow $current_user edit')
+@view_config(route_name='experiment.run.api.transition.item.get', renderer='json')
 def get_item(request):
     """Handles fetching a single :class:`~ess.models.page.Transition`."""
-    item = request.dbsession.query(Transition).join(Transition.source).\
-        filter(and_(Transition.id == request.matchdict['tid'],
-                    Page.experiment_id == request.matchdict['eid'])).first()
-    if item is not None:
-        return {'data': item.as_jsonapi()}
-    else:
-        raise HTTPNotFound()
+    if request.matched_route.name == 'experiment.run.api.transition.item.get':
+        item = request.dbsession.query(Transition).join(Transition.source)\
+            .join(Transition.source)\
+            .join(Page.experiment)\
+            .filter(and_(Transition.id == request.matchdict['tid'],
+                         Experiment.external_id == request.matchdict['eid'])).first()
+        if item is not None:
+            if permitted('transition allow current_user participate', {'transition': item,
+                                                                       'current_user': request.current_user}):
+                return {'data': item.as_jsonapi()}
+            else:
+                raise HTTPForbidden()
+        else:
+            raise HTTPNotFound()
+    elif request.matched_route.name == 'api.transition.item.get':
+        item = request.dbsession.query(Transition).join(Transition.source)\
+            .filter(and_(Transition.id == request.matchdict['tid'],
+                         Page.experiment_id == request.matchdict['eid'])).first()
+        if item is not None:
+            if permitted('transition allow current_user edit', {'transition': item,
+                                                                'current_user': request.current_user}):
+                return {'data': item.as_jsonapi()}
+            else:
+                raise HTTPForbidden()
+        else:
+            raise HTTPNotFound()
 
 
 patch_transition_schema = {'type': type_schema('transitions'),

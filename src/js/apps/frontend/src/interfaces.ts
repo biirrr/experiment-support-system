@@ -9,6 +9,7 @@ export interface Config {
 
 export interface ApiConfig {
     baseUrl: string;
+    extraUrl: string;
     csrfToken: string;
     validationUrl: string;
     submissionUrl: string;

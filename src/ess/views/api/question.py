@@ -1,10 +1,11 @@
 from copy import deepcopy
+from pwh_permissions import permitted
 from pwh_permissions.pyramid import require_permission
-from pyramid.httpexceptions import HTTPNotFound, HTTPNoContent
+from pyramid.httpexceptions import HTTPNotFound, HTTPNoContent, HTTPForbidden
 from pyramid.view import view_config
 from sqlalchemy import and_
 
-from ess.models import Question, Page
+from ess.models import Question, Page, Experiment
 from . import (validated_body, type_schema, relationship_schema, id_schema, store_object)
 
 
@@ -32,17 +33,38 @@ def post_collection(request):
 
 
 @view_config(route_name='api.question.item.get', renderer='json')
-@require_permission('Experiment:eid allow $current_user edit')
+@view_config(route_name='experiment.run.api.question.item.get', renderer='json')
 def get_item(request):
     """Handles fetching a single :class:`~ess.models.question.Question`."""
-    item = request.dbsession.query(Question).join(Page).\
-        filter(and_(Question.id == request.matchdict['qid'],
-                    Page.id == request.matchdict['pid'],
-                    Page.experiment_id == request.matchdict['eid'])).first()
-    if item is not None:
-        return {'data': item.as_jsonapi()}
-    else:
-        raise HTTPNotFound()
+    if request.matched_route.name == 'experiment.run.api.question.item.get':
+        item = request.dbsession.query(Question)\
+            .join(Page)\
+            .join(Page.experiment)\
+            .filter(and_(Question.id == request.matchdict['qid'],
+                         Page.id == request.matchdict['pid'],
+                         Experiment.external_id == request.matchdict['eid'])).first()
+        if item is not None:
+            if permitted('question allow current_user participate', {'question': item,
+                                                                     'current_user': request.current_user}):
+                return {'data': item.as_jsonapi()}
+            else:
+                raise HTTPForbidden()
+        else:
+            raise HTTPNotFound()
+    elif request.matched_route.name == 'api.question.item.get':
+        item = request.dbsession.query(Question)\
+            .join(Page)\
+            .filter(and_(Question.id == request.matchdict['qid'],
+                         Page.id == request.matchdict['pid'],
+                         Page.experiment_id == request.matchdict['eid'])).first()
+        if item is not None:
+            if permitted('question allow current_user edit', {'question': item,
+                                                              'current_user': request.current_user}):
+                return {'data': item.as_jsonapi()}
+            else:
+                raise HTTPForbidden()
+        else:
+            raise HTTPNotFound()
 
 
 patch_question_schema = {'type': type_schema('questions'),

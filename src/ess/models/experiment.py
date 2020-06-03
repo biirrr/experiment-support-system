@@ -48,13 +48,13 @@ class Experiment(Base):
             return True
         return False
 
-    def as_jsonapi(self):
+    def as_jsonapi(self, external=False):
         attributes = deepcopy(self.attributes)
         attributes['_stats'] = {'participants': {'started': len(self.participants),
                                                  'completed': len(self.completed)}}
         data = {
             'type': 'experiments',
-            'id': str(self.id),
+            'id': self.external_id if external else str(self.id),
             'attributes': attributes,
             'relationships': {
                 'pages': {

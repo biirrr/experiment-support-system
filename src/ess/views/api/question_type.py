@@ -1,6 +1,5 @@
 from collections import OrderedDict
 from copy import deepcopy
-from pwh_pyramid_session import require_logged_in
 from pwh_permissions.pyramid import require_permission
 from pyramid.httpexceptions import HTTPNotFound, HTTPNoContent, HTTPClientError
 from pyramid.view import view_config
@@ -77,7 +76,6 @@ def import_question_type(data, dbsession):
 
 
 @view_config(route_name='api.question_type.item.get', renderer='json')
-@require_logged_in()
 def get_item(request):
     """Handles fetching a single :class:`~ess.models.question_type.QuestionType`."""
     item = request.dbsession.query(QuestionType).filter(QuestionType.id == request.matchdict['qtid']).first()

@@ -13,6 +13,7 @@ export default new Vuex.Store({
         config: {
             api: {
                 baseUrl: '',
+                extraUrl: '',
                 csrfToken: '',
                 validationUrl: '',
                 submissionUrl: '',
@@ -147,7 +148,7 @@ export default new Vuex.Store({
         async loadQuestionTypes({ commit, state }) {
             try {
                 commit('setBusy', true);
-                let response = await axios.get(state.config.api.baseUrl + '/question_type_groups');
+                let response = await axios.get(state.config.api.extraUrl + '/question_type_groups');
                 const questionTypeGroups = response.data.data;
                 commit('setQuestionTypeGroups', questionTypeGroups);
                 for (let idx = 0; idx < questionTypeGroups.length; idx++) {
@@ -156,7 +157,7 @@ export default new Vuex.Store({
                         commit('setBusy', true);
                         for (let idx2 = 0; idx2 < questionTypeGroup.relationships['question-types'].data.length; idx2++) {
                             const questionType = questionTypeGroup.relationships['question-types'].data[idx2];
-                            response = await axios.get(state.config.api.baseUrl + '/question_types/' + questionType.id);
+                            response = await axios.get(state.config.api.extraUrl + '/question_types/' + questionType.id);
                             commit('setQuestionType', response.data.data);
                         }
                         commit('setBusy', false);

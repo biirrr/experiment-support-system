@@ -12,13 +12,14 @@
   <script id="ExperimentFrontendConfig" type="application/json">
   {
     "api": {
-      "baseUrl": "{{ 'api'|route_url }}",
+      "baseUrl": "{{ 'experiment.run.api'|route_url }}",
+      "extraUrl": "{{ 'api'|route_url }}",
       "csrfToken": "{{ get_csrf_token() }}",
       "validationUrl": "{{ 'experiment.run.validate'|route_url(eid=experiment.external_id) }}",
       "submissionUrl": "{{ 'experiment.run.submit'|route_url(eid=experiment.external_id) }}"
     },
     "experiment": {
-      "id": "{{ experiment.id }}"
+      "id": "{{ experiment.external_id }}"
     }
   }
 </script>

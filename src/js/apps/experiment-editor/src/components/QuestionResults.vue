@@ -43,12 +43,12 @@
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
 
-import { Question, QuestionTypeAttribute, Results } from '@/interfaces';
+import { Question, QuestionTypeAttribute, Result } from '@/interfaces';
 
 @Component
 export default class QuestionResults extends Vue {
     @Prop() question!: Question;
-    @Prop() results!: Results;
+    @Prop() results!: Result;
 
     public get questionType() {
         return this.$store.state.questionTypes[this.$props.question.relationships['question-type'].data.id];
