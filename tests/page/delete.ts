@@ -1,7 +1,7 @@
 import { Selector } from 'testcafe';
 import { request } from 'http';
 
-fixture(`Experiment`).beforeEach(async (test) => {
+fixture(`Page Deletion`).beforeEach(async (test) => {
     const req = request('http://localhost:6543/tests/create?obj=experiment2');
     req.end();
     await test.resizeWindow(1100, 800);
