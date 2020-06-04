@@ -57,8 +57,6 @@ def register(request):
         schema = deepcopy(register_schema)
         schema['email']['validator'].append(nonexistant_email)
         if 'verification_id' in request.session:
-            print(request.session['verification_id'])
-            print(request.params)
             schema['icon']['allowed'].append(request.session['verification_id'])
         validator = Validator(schema)
         if validator.validate(request.params):
