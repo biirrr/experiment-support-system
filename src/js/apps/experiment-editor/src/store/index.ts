@@ -20,6 +20,7 @@ export default new Vuex.Store({
             experiment: {
                 id: '',
                 externalUrl: '',
+                downloadResultsUrl: '',
             }
         },
         experiment: null,

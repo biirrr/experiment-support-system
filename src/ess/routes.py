@@ -12,6 +12,7 @@ def includeme(config):
 
     config.add_route('experiment.create', '/experiments/create')
     config.add_route('experiment.edit', '/experiments/:eid/edit')
+    config.add_route('experiment.results.download', '/experiments/:eid/results/download')
 
     config.add_route('api', '/api')
     config.add_route('api.experiment.item.get', '/api/experiments/:eid', request_method='GET')

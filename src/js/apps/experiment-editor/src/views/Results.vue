@@ -10,7 +10,7 @@
                     </a>
                 </li>
                 <li role="presentation">
-                    <a role="menuitem" aria-label="Download results">
+                    <a role="menuitem" :href="$store.state.config.experiment.downloadResultsUrl" target="_blank" aria-label="Download results">
                         <svg viewBox="0 0 24 24" class="icon mdi">
                             <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
                         </svg>

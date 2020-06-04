@@ -1,8 +1,12 @@
 import json
 
+from csv import DictWriter
+from io import StringIO
 from pwh_permissions.pyramid import require_permission
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound, HTTPNoContent, HTTPBadRequest
+from pyramid.response import Response
 from pyramid.view import view_config
+from random import randint
 from secrets import token_hex
 from sqlalchemy import and_
 
@@ -234,5 +238,66 @@ def submit(request):
                 raise HTTPBadRequest(body=json.dumps({'errors': flatten_errors(validator.errors)}))
         except json.JSONDecodeError:
             raise HTTPBadRequest(body=json.dumps({'errors': [{'title': 'Invalid JSON body'}]}))
+    else:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='experiment.results.download')
+@require_permission('Experiment:eid allow $current_user edit')
+def download_results(request):
+    experiment = request.dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        columns = []
+        ids = []
+        for page in experiment.pages:
+            for question in page.questions:
+                core_type = question.question_type.inherited_attributes()['_core_type']
+                if core_type in ('USEFSingleLineInput', 'USEFMultiLineInput', 'USEFHidden', 'USEFSingleChoice'):
+                    columns.append(f"{page.attributes['name']}.{question.id}")
+                    ids.append((str(page.id), str(question.id)))
+                elif core_type == 'USEFMultiChoice':
+                    for value in question.attributes['values']:
+                        columns.append(f"{page.attributes['name']}.{question.id}.{value}")
+                        ids.append((str(page.id), str(question.id), value))
+                elif core_type == 'USEFSingleChoiceGrid':
+                    for row in question.attributes['row_values']:
+                        columns.append(f"{page.attributes['name']}.{question.id}.{row}")
+                        ids.append((str(page.id), str(question.id), row))
+                elif core_type == 'USEFMultiChoiceGrid':
+                    for row in question.attributes['row_values']:
+                        for value in question.attributes['column_values']:
+                            columns.append(f"{page.attributes['name']}.{question.id}.{row}.{value}")
+                            ids.append((str(page.id), str(question.id), row, value))
+        buffer = StringIO()
+        writer = DictWriter(buffer, fieldnames=columns, restval='NA', extrasaction='ignore')
+        writer.writeheader()
+        participants = request.dbsession.query(Participant)\
+            .filter(and_(Participant.experiment_id == request.matchdict['eid'],
+                         Participant.completed == True))  # noqa: E712
+        if experiment.attributes['status'] == 'development':
+            participants = participants.offset(randint(0, max(participants.count() - 10, 0))).limit(10)
+        for participant in participants:
+            responses = participant.responses
+            values = {}
+            for data_id, column in zip(ids, columns):
+                if data_id[0] in responses:
+                    if data_id[1] in responses[data_id[0]]:
+                        if len(data_id) == 3:
+                            if isinstance(responses[data_id[0]][data_id[1]], list):
+                                if data_id[2] in responses[data_id[0]][data_id[1]]:
+                                    values[column] = data_id[2]
+                            elif isinstance(responses[data_id[0]][data_id[1]], dict):
+                                if data_id[2] in responses[data_id[0]][data_id[1]]:
+                                    values[column] = responses[data_id[0]][data_id[1]][data_id[2]]
+                        elif len(data_id) == 4:
+                            if data_id[2] in responses[data_id[0]][data_id[1]]:
+                                if data_id[3] in responses[data_id[0]][data_id[1]][data_id[2]]:
+                                    values[column] = data_id[3]
+                        else:
+                            values[column] = responses[data_id[0]][data_id[1]]
+            writer.writerow(values)
+        return Response(body=buffer.getvalue(),
+                        headerlist=[('Content-Type', 'text/csv; charset=utf-8'),
+                                    ('Content-Disposition', 'attachment; filename="results.csv"')])
     else:
         raise HTTPNotFound()
