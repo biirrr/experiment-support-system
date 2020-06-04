@@ -24,14 +24,21 @@ question_type_import_schema = {'type': type_schema('questions'),
                                'links': links_schema(),
                                'attributes': {'type': 'dict',
                                               'required': True,
-                                              'keysrules': {'type': 'string', 'regex': '[_\\-a-z]+'}},
+                                              'keysrules': {'type': 'string', 'regex': '[a-z][a-zA-Z0-9]*'}},
                                'relationships': {'type': 'dict',
                                                  'schema': {'parent': relationship_schema('questions')}}}
 
 
-def import_question_type(data, dbsession):
+def import_question_type(data, dbsession, remap=True):
     """Import one or more question types from the USEF representation, returning the existing or newly created
-    :class:`~ess.models.question_type.QuestionType` objects."""
+    :class:`~ess.models.question_type.QuestionType` objects.
+
+    :param data: The question types to import
+    :type data: ``dict``
+    :param dbsession: The database session to use
+    :param remap: Whether to remap root question types to the ESS root types
+    :type remap: ``boolean``
+    """
     # Check that the data is valid and collect all questions to import
     if 'data' not in data:
         raise InvalidQuestionType('The data to import must contain a data key')
@@ -72,7 +79,7 @@ def import_question_type(data, dbsession):
         return dbsession.query(QuestionType).filter(QuestionType.source == data['data']['links']['self']).first()
     elif isinstance(data['data'], list):
         return dbsession.query(QuestionType).filter(QuestionType.source.in_([question['links']['self']
-                                                                             for question in data['data']]))
+                                                                             for question in data['data']])).all()
 
 
 @view_config(route_name='api.question_type.item.get', renderer='json')

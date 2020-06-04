@@ -2,19 +2,19 @@
     <section class="grid-x">
         <div class="cell large-auto">
             <div v-for="attribute, idx in editableAttributes" :key="idx">
-                <label v-if="questionType.attributes._name === 'USEFDisplay' && attribute[1].type === 'singleValue' && attribute[0] === 'format'">{{ label(attribute[0]) }}
+                <label v-if="questionType.attributes._core_type === 'USEFDisplay' && attribute[1].type === 'singleValue' && attribute[0] === 'format'">{{ attribute[1].label }}
                     <select v-model="localAttributes[attribute[0]]">
                         <option value="text/html">HTML</option>
                         <option value="text/text">Text</option>
                     </select>
                 </label>
-                <label v-else-if="(questionType.attributes._name === 'USEFSingleChoice' || questionType.attributes._name === 'USEFMultiChoice') && attribute[1].type === 'singleValue' && attribute[0] === 'display'">{{ label(attribute[0]) }}
+                <label v-else-if="(questionType.attributes._core_type === 'USEFSingleChoice' || questionType.attributes._core_type === 'USEFMultiChoice') && attribute[1].type === 'singleValue' && attribute[0] === 'display'">{{ attribute[1].label }}
                     <select v-model="localAttributes[attribute[0]]">
                         <option v-for="value, idx in attribute[1].allowed" :key="idx" :value="value">{{ label(value) }}</option>
                     </select>
                 </label>
                 <template v-else-if="attribute[1].type == 'listOfValues'">
-                    <label>{{ label(attribute[0]) }}</label>
+                    <label>{{ attribute[1].label }}</label>
                     <table>
                         <tbody>
                             <tr v-for="value, idx in localAttributes[attribute[0]]" :key="idx">
@@ -67,9 +67,9 @@
                         </tfoot>
                     </table>
                 </template>
-                <input-field v-else-if="attribute[1].type === 'singleValue'" type="text" v-model="localAttributes[attribute[0]]" :label="label(attribute[0])"/>
-                <input-field v-else-if="attribute[1].type === 'booleanValue'" type="checkbox" v-model="localAttributes[attribute[0]]" :label="label(attribute[0])"/>
-                <input-field v-else-if="attribute[1].type === 'multiLineTextValue'" type="textarea" v-model="localAttributes[attribute[0]]" :label="label(attribute[0])"/>
+                <input-field v-else-if="attribute[1].type === 'singleValue'" type="text" v-model="localAttributes[attribute[0]]" :label="attribute[1].label"/>
+                <input-field v-else-if="attribute[1].type === 'booleanValue'" type="checkbox" v-model="localAttributes[attribute[0]]" :label="attribute[1].label"/>
+                <input-field v-else-if="attribute[1].type === 'multiLineTextValue'" type="textarea" v-model="localAttributes[attribute[0]]" :label="attribute[1].label"/>
                 <div v-else>{{ attribute[1] }}</div>
             </div>
         </div>

@@ -5,7 +5,7 @@
                 <li v-if="questionTypeGroup.questionTypes.length > 0" :key="idx" class="is-accordion-submenu-parent" :aria-expanded="activeGroup === questionTypeGroup.id ? 'true': 'false'">
                     <a @click="setActiveGroup(questionTypeGroup.id)">{{ questionTypeGroup.title }}</a>
                     <ul v-if="activeGroup === questionTypeGroup.id" class="vertical menu nested is-accordion-submenu">
-                        <li v-for="questionType, idx2 in questionTypeGroup.questionTypes" :key="idx2"><a v-if="questionType" @click="addQuestion(questionType)">{{ questionType.attributes._title }}</a></li>
+                        <li v-for="questionType, idx2 in questionTypeGroup.questionTypes" :key="idx2"><a v-if="questionType" @click="addQuestion(questionType)">{{ questionType.attributes.label }}</a></li>
                     </ul>
                 </li>
             </template>

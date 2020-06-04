@@ -14,7 +14,6 @@ class QuestionType(Base):
     question_type_group_id = Column(Integer, ForeignKey('question_type_groups.id'))
     parent_id = Column(Integer, ForeignKey('question_types.id'))
     name = Column(Unicode(255))
-    title = Column(Unicode(255))
     enabled = Column(Boolean(create_constraint=False))
     position = Column(Integer)
     source = Column(UnicodeText)
@@ -41,19 +40,17 @@ class QuestionType(Base):
     def inherited_attributes(self):
         if self.parent:
             attributes = dict([(key, value) for key, value in self.parent.inherited_attributes().items()
-                               if not key.startswith('_')])
+                               if not key.startswith('_') or key == '_core_type'])
             attributes.update(self.attributes)
             if self.name.startswith('USEF'):
                 attributes['_core_type'] = self.name
             attributes['_name'] = self.name
-            attributes['_title'] = self.title
             attributes['_enabled'] = self.enabled
             attributes['_position'] = self.position
             return attributes
         else:
             attributes = deepcopy(self.attributes)
             attributes['_name'] = self.name
-            attributes['_title'] = self.title
             attributes['_enabled'] = self.enabled
             attributes['_position'] = self.position
             return attributes

@@ -19,10 +19,10 @@
                         <th scope="row">{{ questionType.attributes._name }}</th>
                         <td>
                             <template v-if="editing.indexOf(idx) < 0">
-                                {{ questionType.attributes._title }}
+                                {{ questionType.attributes.label }}
                             </template>
                             <template v-else>
-                                <input type="text" v-model="questionType.attributes._title"/>
+                                <input type="text" v-model="questionType.attributes.label"/>
                             </template>
                         </td>
                         <td>

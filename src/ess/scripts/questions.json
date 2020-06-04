@@ -1,0 +1,461 @@
+{
+    "data": [
+        {
+            "id": "ESSDisplay",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/ess/questions/ESSDisplay/v0_1_0.json"
+            },
+            "attributes": {
+                "version": "0.1.0",
+                "label": "Static Text"
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFDisplay"
+                    }
+                }
+            }
+        },
+        {
+            "id": "ESSSingleLineInput",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/ess/questions/ESSSingleLineInput/v0_1_0.json"
+            },
+            "attributes": {
+                "version": "0.1.0",
+                "label": "Single-line Input",
+                "essName": {
+                    "label": "Name",
+                    "source": "user",
+                    "type": "singleValue"
+                }
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFSingleLineInput"
+                    }
+                }
+            }
+        },
+        {
+            "id": "ESSMultiLineInput",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/ess/questions/ESSMultiLineInput/v0_1_0.json"
+            },
+            "attributes": {
+                "version": "0.1.0",
+                "label": "Multi-line Input",
+                "essName": {
+                    "label": "Name",
+                    "source": "user",
+                    "type": "singleValue"
+                }
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFMultiLineInput"
+                    }
+                }
+            }
+        },
+        {
+            "id": "ESSSingleChoice",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/ess/questions/ESSSingleChoice/v0_1_0.json"
+            },
+            "attributes": {
+                "version": "0.1.0",
+                "label": "Single-choice",
+                "essName": {
+                    "label": "Name",
+                    "source": "user",
+                    "type": "singleValue"
+                }
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFSingleChoice"
+                    }
+                }
+            }
+        },
+        {
+            "id": "ESSMultiChoice",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/ess/questions/ESSMultiChoice/v0_1_0.json"
+            },
+            "attributes": {
+                "version": "0.1.0",
+                "label": "Multi-choice",
+                "essName": {
+                    "label": "Name",
+                    "source": "user",
+                    "type": "singleValue"
+                }
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFMultiChoice"
+                    }
+                }
+            }
+        },
+        {
+            "id": "ESSSingleChoiceGrid",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/ess/questions/ESSSingleChoiceGrid/v0_1_0.json"
+            },
+            "attributes": {
+                "version": "0.1.0",
+                "label": "Single-choice Grid",
+                "essName": {
+                    "label": "Name",
+                    "source": "user",
+                    "type": "singleValue"
+                }
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFSingleChoiceGrid"
+                    }
+                }
+            }
+        },
+        {
+            "id": "ESSMultiChoiceGrid",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/ess/questions/ESSMultiChoiceGrid/v0_1_0.json"
+            },
+            "attributes": {
+                "version": "0.1.0",
+                "label": "Multi-choice Grid",
+                "essName": {
+                    "label": "Name",
+                    "source": "user",
+                    "type": "singleValue"
+                }
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFMultiChoiceGrid"
+                    }
+                }
+            }
+        },
+        {
+            "id": "ESSHidden",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/ess/questions/ESSHidden/v0_1_0.json"
+            },
+            "attributes": {
+                "version": "0.1.0",
+                "label": "Hidden Value",
+                "essName": {
+                    "label": "Name",
+                    "source": "user",
+                    "type": "singleValue"
+                }
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFHidden"
+                    }
+                }
+            }
+        }
+    ],
+    "included": [
+        {
+            "id": "USEFQuestion",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/usef/questions/USEFQuestion/v0_3_0.json"
+            },
+            "attributes": {
+                "version": "0.3.0",
+                "label": "USEF Base Question",
+                "title": {
+                    "label": "Title",
+                    "source": "user",
+                    "type": "singleValue"
+                },
+                "required":{
+                    "label": "Required",
+                    "source": "user",
+                    "type": "booleanValue"
+                }
+            }
+        },
+        {
+            "id": "USEFDisplay",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/usef/questions/USEFDisplay/v0_3_0.json"
+            },
+            "attributes": {
+                "version": "0.3.0",
+                "label": "USEF Static Display",
+                "title": null,
+                "required": null,
+                "content": {
+                    "label": "Content",
+                    "source": "user",
+                    "type": "multiLineTextValue"
+                },
+                "format": {
+                    "label": "Data-format",
+                    "source": "user",
+                    "type": "singleValue"
+                }
+            },
+            "relationships": {
+                  "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFQuestion"
+                    }
+                }
+            }
+        },
+        {
+            "id": "USEFSingleLineInput",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/usef/questions/USEFSingleLineInput/v0_3_0.json"
+            },
+            "attributes": {
+                "version": "0.3.0",
+                "label": "USEF Single-line Input",
+                "validation": {
+                    "label": "Validation",
+                    "source": "user",
+                    "type": "singleValue"
+                }
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFQuestion"
+                    }
+                }
+            }
+        },
+        {
+            "id": "USEFMultiLineInput",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/usef/questions/USEFMultiLineInput/v0_3_0.json"
+            },
+            "attributes": {
+                "version": "0.3.0",
+                "label": "USEF Multi-line Input"
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFQuestion"
+                    }
+                }
+            }
+        },
+        {
+            "id": "USEFSingleChoice",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/usef/questions/USEFSingleChoice/v0_3_0.json"
+            },
+            "attributes": {
+                "version": "0.3.0",
+                "label": "USEF Single-choice",
+                "values": {
+                    "label": "Values",
+                    "source": "user",
+                    "type": "listOfValues"
+                },
+                "labels": {
+                    "label": "Labels",
+                    "source": "user",
+                    "type": "listOfValues"
+                },
+                "display": {
+                    "label": "Display",
+                    "source": "user",
+                    "type": "singleValue",
+                    "allowed": ["dropdown", "vertical list", "horizontal list"]
+                }
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFQuestion"
+                    }
+                }
+            }
+        },
+        {
+            "id": "USEFMultiChoice",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/usef/questions/USEFMultiChoice/v0_3_0.json"
+            },
+            "attributes": {
+                "version": "0.3.0",
+                "label": "USEF Multi-choice",
+                "values": {
+                    "label": "Values",
+                    "source": "user",
+                    "type": "listOfValues"
+                },
+                "labels": {
+                    "label": "Labels",
+                    "source": "user",
+                    "type": "listOfValues"
+                },
+                "display": {
+                    "label": "Display",
+                    "source": "user",
+                    "type": "singleValue",
+                    "allowed": ["multiselect", "vertical list", "horizontal list"]
+                }
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFQuestion"
+                    }
+                }
+            }
+        },
+        {
+            "id": "USEFHidden",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/usef/questions/USEFHidden/v0_3_0.json"
+            },
+            "attributes": {
+                "version": "0.3.0",
+                "label": "USEF Hidden",
+                "title": null,
+                "value": {
+                    "label": "Value",
+                    "source": "user",
+                    "type": "singleValue"
+                }
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFQuestion"
+                    }
+                }
+            }
+        },
+        {
+            "id": "USEFSingleChoiceGrid",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/usef/questions/USEFSingleChoiceGrid/v0_3_0.json"
+            },
+            "attributes": {
+                "version": "0.3.0",
+                "label": "USEF Single-choice Grid",
+                "columnValues": {
+                    "label": "Column Values",
+                    "source": "user",
+                    "type": "listOfValues"
+                },
+                "columnLabels": {
+                    "label": "Column Labels",
+                    "source": "user",
+                    "type": "listOfValues"
+                },
+                "rowValues": {
+                    "label": "Row Values",
+                    "source": "user",
+                    "type": "listOfValues"
+                },
+                "rowLabels": {
+                    "label": "Row Labels",
+                    "source": "user",
+                    "type": "listOfValues"
+                }
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFQuestion"
+                    }
+                }
+            }
+        },
+        {
+            "id": "USEFMultiChoiceGrid",
+            "type": "questions",
+            "links": {
+                "self": "https://biirrr.github.io/usef/questions/USEFMultiChoiceGrid/v0_3_0.json"
+            },
+            "attributes": {
+                "version": "0.3.0",
+                "label": "USEF Multi-choice Grid",
+                "columnValues": {
+                    "label": "Column Values",
+                    "source": "user",
+                    "type": "listOfValues"
+                },
+                "columnLabels": {
+                    "label": "Column Labels",
+                    "source": "user",
+                    "type": "listOfValues"
+                },
+                "rowValues": {
+                    "label": "Row Values",
+                    "source": "user",
+                    "type": "listOfValues"
+                },
+                "rowLabels": {
+                    "label": "Row Labels",
+                    "source": "user",
+                    "type": "listOfValues"
+                }
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "questions",
+                        "id": "USEFQuestion"
+                    }
+                }
+            }
+        }
+    ]
+}
