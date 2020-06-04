@@ -47,7 +47,8 @@ patch_experiment_schema = {'type': type_schema('experiments'),
                                                      'status': {'type': 'string',
                                                                 'required': True,
                                                                 'allowed': ['development', 'live',
-                                                                            'paused', 'completed']}}},
+                                                                            'paused', 'completed']},
+                                                     '_stats': {'type': 'dict'}}},
                            'relationships': {'type': 'dict',
                                              'schema': {'first-page': relationship_schema('pages'),
                                                         'pages': relationship_schema('pages', many=True)}}}
@@ -57,5 +58,7 @@ patch_experiment_schema = {'type': type_schema('experiments'),
 @require_permission('Experiment:eid allow $current_user edit')
 def patch_item(request):
     body = validated_body(request, patch_experiment_schema)
+    if '_stats' in body['data']['attributes']:
+        del body['data']['attributes']['_stats']
     obj = store_object(request, body)
     return {'data': obj.as_jsonapi()}

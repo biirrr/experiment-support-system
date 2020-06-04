@@ -213,17 +213,17 @@ export default class QuestionEditor extends Vue {
             if (!this.localAttributes[attr[0]]) {
                 if ((attr[1] as QuestionTypeAttribute).source === 'user') {
                     if ((attr[1] as QuestionTypeAttribute).type === 'booleanValue') {
-                        this.localAttributes[attr[0]] = false;
+                        Vue.set(this.localAttributes, attr[0], false);
                     } else if ((attr[1] as QuestionTypeAttribute).type === 'listOfValues') {
-                        this.localAttributes[attr[0]] = [];
+                        Vue.set(this.localAttributes, attr[0], []);
                     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
                     // @ts-ignore
                     } else if ((attr[1] as QuestionTypeAttribute).allowed && (attr[1] as QuestionTypeAttribute).allowed.length > 0) {
                         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
                         // @ts-ignore
-                        this.localAttributes[attr[0]] = (attr[1] as QuestionTypeAttribute).allowed[0];
+                        Vue.set(this.localAttributes, attr[0], (attr[1] as QuestionTypeAttribute).allowed[0]);
                     } else {
-                        this.localAttributes[attr[0]] = '';
+                        Vue.set(this.localAttributes, attr[0], '');
                     }
                 }
             }
@@ -237,17 +237,17 @@ export default class QuestionEditor extends Vue {
             if (!this.localAttributes[attr[0]]) {
                 if ((attr[1] as QuestionTypeAttribute).source === 'user') {
                     if ((attr[1] as QuestionTypeAttribute).type === 'booleanValue') {
-                        this.localAttributes[attr[0]] = false;
+                        Vue.set(this.localAttributes, attr[0], false);
                     } else if ((attr[1] as QuestionTypeAttribute).type === 'listOfValues') {
-                        this.localAttributes[attr[0]] = [];
+                        Vue.set(this.localAttributes, attr[0], []);
                     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
                     // @ts-ignore
                     } else if ((attr[1] as QuestionTypeAttribute).allowed && (attr[1] as QuestionTypeAttribute).allowed.length > 0) {
                         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
                         // @ts-ignore
-                        this.localAttributes[attr[0]] = (attr[1] as QuestionTypeAttribute).allowed[0];
+                        Vue.set(this.localAttributes, attr[0], (attr[1] as QuestionTypeAttribute).allowed[0]);
                     } else {
-                        this.localAttributes[attr[0]] = '';
+                        Vue.set(this.localAttributes, attr[0], '');
                     }
                 }
             }

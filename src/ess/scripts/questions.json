@@ -8,7 +8,7 @@
             },
             "attributes": {
                 "version": "0.1.0",
-                "label": "Static Text"
+                "label": "Static Text Display"
             },
             "relationships": {
                 "parent": {
@@ -99,7 +99,7 @@
             },
             "attributes": {
                 "version": "0.1.0",
-                "label": "Multi-choice",
+                "label": "Multiple-choice",
                 "essName": {
                     "label": "Name",
                     "source": "user",
@@ -147,7 +147,7 @@
             },
             "attributes": {
                 "version": "0.1.0",
-                "label": "Multi-choice Grid",
+                "label": "Multiple-choice Grid",
                 "essName": {
                     "label": "Name",
                     "source": "user",
