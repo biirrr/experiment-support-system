@@ -130,7 +130,7 @@ def schema_for_page(page):
                                                                   question.attributes)}
         elif attributes['_core_type'] == 'USEFSingleChoiceGrid':
             row_schema = {}
-            for value in schema_value('row_values', attributes, question.attributes):
+            for value in schema_value('rowValues', attributes, question.attributes):
                 row_schema[value] = {'type': 'string',
                                      'required': schema_value('required',
                                                               attributes,
@@ -138,7 +138,7 @@ def schema_for_page(page):
                                      'empty': not schema_value('required',
                                                                attributes,
                                                                question.attributes),
-                                     'allowed': schema_value('column_values',
+                                     'allowed': schema_value('columnValues',
                                                              attributes,
                                                              question.attributes)}
             schema[str(question.id)] = {'type': 'dict',
@@ -151,7 +151,7 @@ def schema_for_page(page):
                                         'schema': row_schema}
         elif attributes['_core_type'] == 'USEFMultiChoiceGrid':
             row_schema = {}
-            for value in schema_value('row_values', attributes, question.attributes):
+            for value in schema_value('rowValues', attributes, question.attributes):
                 row_schema[value] = {'type': 'list',
                                      'required': schema_value('required',
                                                               attributes,
@@ -159,7 +159,7 @@ def schema_for_page(page):
                                      'empty': not schema_value('required',
                                                                attributes,
                                                                question.attributes),
-                                     'allowed': schema_value('column_values',
+                                     'allowed': schema_value('columnValues',
                                                              attributes,
                                                              question.attributes)}
             schema[str(question.id)] = {'type': 'dict',

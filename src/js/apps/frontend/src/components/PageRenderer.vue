@@ -58,10 +58,10 @@ export default class PageRenderer extends Vue {
                 return 'Validating...';
             }
         } else {
-            if (this.isFirstPage) {
-                return 'Start';
-            } else if (this.isLastPage) {
+            if (this.isLastPage) {
                 return 'Finish';
+            } else if (this.isFirstPage) {
+                return 'Start';
             } else {
                 return 'Next page';
             }
@@ -159,7 +159,7 @@ export default class PageRenderer extends Vue {
                     responses[question.id] = question.attributes.value;
                 } else if (questionType.attributes._core_type === 'USEFSingleChoiceGrid') {
                     responses[question.id] = {} as ResponsesDict;
-                    question.attributes.row_values.forEach((row: string) => {
+                    question.attributes.rowValues.forEach((row: string) => {
                         if (!storedValue || (storedValue as ResponsesDict)[row] === undefined) {
                             (responses[question.id] as ResponsesDict)[row] = null;
                         } else {
@@ -168,7 +168,7 @@ export default class PageRenderer extends Vue {
                     });
                 } else if (questionType.attributes._core_type === 'USEFMultiChoiceGrid') {
                     responses[question.id] = {} as ResponsesDict;
-                    question.attributes.row_values.forEach((row: string) => {
+                    question.attributes.rowValues.forEach((row: string) => {
                         if (!storedValue || (storedValue as ResponsesDict)[row] === undefined) {
                             (responses[question.id] as ResponsesDict)[row] = [];
                         } else {

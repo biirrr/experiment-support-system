@@ -104,17 +104,17 @@
             <table>
                 <thead>
                     <th></th>
-                    <th v-for="[col, col_label] in zip(attributes.column_values, attributes.column_labels)" :key="col" scope="col">{{ col_label }}</th>
+                    <th v-for="[col, col_label] in zip(attributes.columnValues, attributes.columnLabels)" :key="col" scope="col">{{ col_label }}</th>
                 </thead>
                 <tbody>
-                    <tr v-for="[row, row_label] in zip(attributes.row_values, attributes.row_labels)" :key="row" :class="(error && error[row]) ? 'has-error' : ''">
+                    <tr v-for="[row, row_label] in zip(attributes.rowValues, attributes.rowLabels)" :key="row" :class="(error && error[row]) ? 'has-error' : ''">
                         <th scope="row">
                             <svg v-if="error && error[row]" viewBox="0 0 24 24" class="mdi icon small alert">
                                 <path d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
                             </svg>
                             {{ row_label }}
                         </th>
-                        <td v-for="[col, col_label] in zip(attributes.column_values, attributes.column_labels)" :key="col"><label><span class="show-for-sr">{{ col_label }}</span><input :name="'question-' + question.id + '.' + row" type="radio" :value="col" v-model="value[row]"/></label></td>
+                        <td v-for="[col, col_label] in zip(attributes.columnValues, attributes.columnLabels)" :key="col"><label><span class="show-for-sr">{{ col_label }}</span><input :name="'question-' + question.id + '.' + row" type="radio" :value="col" v-model="value[row]"/></label></td>
                     </tr>
                 </tbody>
             </table>
@@ -131,17 +131,17 @@
             <table>
                 <thead>
                     <th></th>
-                    <th v-for="[col, col_label] in zip(attributes.column_values, attributes.column_labels)" :key="col" scope="col">{{ col_label }}</th>
+                    <th v-for="[col, col_label] in zip(attributes.columnValues, attributes.columnLabels)" :key="col" scope="col">{{ col_label }}</th>
                 </thead>
                 <tbody>
-                    <tr v-for="[row, row_label] in zip(attributes.row_values, attributes.row_labels)" :key="row" :class="(error && error[row]) ? 'has-error' : ''">
+                    <tr v-for="[row, row_label] in zip(attributes.rowValues, attributes.rowLabels)" :key="row" :class="(error && error[row]) ? 'has-error' : ''">
                         <th scope="row">
                             <svg v-if="error && error[row]" viewBox="0 0 24 24" class="mdi icon small alert">
                                 <path d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
                             </svg>
                             {{ row_label }}
                         </th>
-                        <td v-for="[col, col_label] in zip(attributes.column_values, attributes.column_labels)" :key="col"><label><span class="show-for-sr">{{ col_label }}</span><input :name="'question-' + question.id + '.' + row" type="checkbox" :value="col" v-model="value[row]"/></label></td>
+                        <td v-for="[col, col_label] in zip(attributes.columnValues, attributes.columnLabels)" :key="col"><label><span class="show-for-sr">{{ col_label }}</span><input :name="'question-' + question.id + '.' + row" type="checkbox" :value="col" v-model="value[row]"/></label></td>
                     </tr>
                 </tbody>
             </table>

@@ -255,11 +255,11 @@ export default new Vuex.Store({
             }
         },
 
-        async loadParticipant({ commit, state}) {
-            try {
-                commit('setBusy', true);
-                const participantId = sessionLoadValue(state.config.experiment.id + '.participant', null);
-                if (participantId === null) {
+        async loadParticipant({ commit, dispatch, state}) {
+            commit('setBusy', true);
+            const participantId = sessionLoadValue(state.config.experiment.id + '.participant', null);
+            if (participantId === null) {
+                try {
                     const response = await axios({
                         method: 'POST',
                         url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/participants',
@@ -270,7 +270,12 @@ export default new Vuex.Store({
                     commit('setParticipant', response.data.data);
                     commit('setBusy', false);
                     return Promise.resolve(response.data.data);
-                } else {
+                } catch (error) {
+                    commit('setBusy', false);
+                    return Promise.reject(error);
+                }
+            } else {
+                try {
                     const response = await axios({
                         method: 'GET',
                         url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/participants/' + participantId,
@@ -281,10 +286,11 @@ export default new Vuex.Store({
                     commit('setParticipant', response.data.data);
                     commit('setBusy', false);
                     return Promise.resolve(response.data.data);
+                } catch (error) {
+                    sessionDeleteValue(state.config.experiment.id);
+                    commit('setBusy', false);
+                    return dispatch('loadParticipant');
                 }
-            } catch (error) {
-                commit('setBusy', false);
-                return Promise.reject(error);
             }
         },
 
