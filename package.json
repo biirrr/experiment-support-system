@@ -10,10 +10,10 @@
     "gulp": "^4.0.2",
     "gulp-autoprefixer": "^7.0.1",
     "gulp-concat": "^2.6.1",
-    "gulp-sass": "^4.0.2",
+    "gulp-sass": "^4.1.0",
     "pump": "^3.0.0"
   },
   "devDependencies": {
-    "testcafe": "^1.8.4"
+    "testcafe": "^1.8.6"
   }
 }
