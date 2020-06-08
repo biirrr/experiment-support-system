@@ -90,8 +90,14 @@ def schema_for_page(page, responses):
     for question in page.questions:
         attributes = question.question_type.inherited_attributes()
         if 'essConditional' in attributes and 'essConditional' in question.attributes:
-            if question.attributes['essConditional']['question'] != '':
-                value = value_of_question_responses(question.attributes['essConditional']['question'], responses)
+            targetQuestion = question.attributes['essConditional']['question']
+            if targetQuestion != '':
+                if '.' in targetQuestion:
+                    value = value_of_question_responses(targetQuestion[0:targetQuestion.find('.')], responses)
+                    if value and targetQuestion[targetQuestion.find('.') + 1:] in value:
+                        value = value[targetQuestion[targetQuestion.find('.') + 1:]]
+                else:
+                    value = value_of_question_responses(targetQuestion, responses)
                 if question.attributes['essConditional']['operator'] == 'eq':
                     if value != question.attributes['essConditional']['value']:
                         continue

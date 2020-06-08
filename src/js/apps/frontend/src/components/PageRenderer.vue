@@ -18,6 +18,9 @@
 
 <script lang="ts">
 import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// @ts-ignore
+import deepcopy from 'deepcopy';
 
 import QuestionRenderer from '@/components/QuestionRenderer.vue';
 import { Page, ResponsesDict, ErrorsDict, Error } from '@/interfaces';
@@ -38,18 +41,28 @@ export default class PageRenderer extends Vue {
                 return this.$store.state.questions[questionRef.id];
             }).filter((question) => {
                 if (question.attributes.essConditional && question.attributes.essConditional.question !== '') {
-                    if (this.responses && this.responses[question.attributes.essConditional.question]) {
-                        if (question.attributes.essConditional.operator === 'eq') {
-                            return this.responses[question.attributes.essConditional.question] === question.attributes.essConditional.value;
-                        } else {
-                            return this.responses[question.attributes.essConditional.question] !== question.attributes.essConditional.value;
-                        }
-
+                    const responses = {} as ResponsesDict;
+                    (Object.values(this.$store.state.progress.responses) as ResponsesDict[]).forEach((pageResponses) => {
+                        Object.entries(pageResponses).forEach(([questionId, response]) => {
+                            responses[questionId] = deepcopy(response);
+                        });
+                    });
+                    if (this.responses) {
+                        Object.entries(this.responses as ResponsesDict).forEach(([questionId, response]) => {
+                            responses[questionId] = deepcopy(response);
+                        });
                     }
-                    const pageKeys = Object.keys(this.$store.state.progress.responses);
-                    for (let idx = 0; idx < pageKeys.length; idx++) {
-                        const responses = this.$store.state.progress.responses[pageKeys[idx]];
-                        if (responses && responses[question.attributes.essConditional.question]) {
+                    if (question.attributes.essConditional.question.indexOf('.') >= 0) {
+                        const path = question.attributes.essConditional.question.split('.');
+                        if (path.length === 2 && responses[path[0]] && (responses[path[0]] as ResponsesDict)[path[1]]) {
+                            if (question.attributes.essConditional.operator === 'eq') {
+                                return (responses[path[0]] as ResponsesDict)[path[1]] === question.attributes.essConditional.value;
+                            } else {
+                                return (responses[path[0]] as ResponsesDict)[path[1]] !== question.attributes.essConditional.value;
+                            }
+                        }
+                    } else {
+                        if (responses[question.attributes.essConditional.question]) {
                             if (question.attributes.essConditional.operator === 'eq') {
                                 return responses[question.attributes.essConditional.question] === question.attributes.essConditional.value;
                             } else {

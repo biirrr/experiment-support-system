@@ -41,7 +41,7 @@ def get_item(request):
             elif core_type in ['USEFSingleChoiceGrid', 'USEFMultiChoiceGrid']:
                 responses[str(question.id)] = {}
                 # TODO: This needs to be fixed to handle fixed question type values
-                for row_value in question.attributes['row_values']:
+                for row_value in question.attributes['rowValues']:
                     results = []
                     for participant in participants:
                         if page_id in participant.responses:

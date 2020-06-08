@@ -76,7 +76,12 @@
                         <div class="cell auto">
                             <select v-model="localAttributes[attribute[0]].question">
                                 <option value="">--- Always display ---</option>
-                                <option v-for="[page, question] in listOfConditionalQuestions(question.id)" :key="question.id" :value="question.id">{{ page.attributes.name }} - {{ question.attributes.essName }}</option>
+                                <template v-for="[page, question, questionType] in listOfConditionalQuestions(question.id)">
+                                    <template v-if="questionType.attributes._core_type === 'USEFSingleChoiceGrid' || questionType.attributes._core_type === 'USEFSingleChoiceGrid'">
+                                        <option v-for="row in question.attributes['rowValues']" :key="question.id + '.' + row" :value="question.id + '.' + row">{{ page.attributes.name }} - {{ question.attributes.essName }} - {{ row }}</option>
+                                    </template>
+                                    <option v-else :key="question.id" :value="question.id">{{ page.attributes.name }} - {{ question.attributes.essName }}</option>
+                                </template>
                             </select>
                         </div>
                         <template v-if="localAttributes[attribute[0]].question !== ''">
