@@ -1,11 +1,14 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import deepcopy from 'deepcopy';
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios';
 
-import { Config, State, Experiment, Page, QuestionTypeGroup, QuestionType, Question, Transition,
+import { Experiment } from '@/models/experiment';
+import { Page, PageAttributes, PageRelationships } from '@/models/page';
+
+import { Config, State, QuestionTypeGroup, QuestionType, Question, Transition,
     PageResponses, Participant, NestedStorage} from '@/interfaces';
 import { sessionStoreValue, sessionLoadValue, sessionDeleteValue, localLoadValue, localStoreValue, localDeleteValue } from '@/storage';
 
@@ -37,6 +40,10 @@ export default new Vuex.Store({
             responses: {},
         },
         participant: null,
+        data: {
+            experiment: null,
+            pages: {},
+        },
         ui: {
             loaded: false,
             busy: false,
@@ -82,7 +89,7 @@ export default new Vuex.Store({
         },
 
         setPage(state, payload: Page) {
-            Vue.set(state.pages, payload.id, payload);
+            Vue.set(state.data.pages, payload.id, payload);
         },
 
         setTransition(state, payload: Transition) {
@@ -131,20 +138,22 @@ export default new Vuex.Store({
         },
     },
     actions: {
-        async init({ commit, dispatch }, payload: Config) {
+        async init({ commit, dispatch, state }, payload: Config) {
             commit('setConfig', payload);
             commit('setBusy', true);
             try {
                 await Promise.all([
                     dispatch('loadQuestionTypes'),
-                    dispatch('loadExperiment'),
-                    dispatch('loadParticipant'),
+                    dispatch('loadExperiment', state.config.experiment.id),
+                    //dispatch('loadParticipant'),
                 ]);
-                dispatch('resetExperiment');
+                //dispatch('resetExperiment');
                 commit('setLoaded', true);
                 commit('setBusy', false);
+                return Promise.resolve()
             } catch(error) {
                 commit('setBusy', false);
+                return Promise.reject(error);
             }
         },
 
@@ -176,18 +185,23 @@ export default new Vuex.Store({
             }
         },
 
-        async loadExperiment({ commit, dispatch, state }) {
+        async loadExperiment({ commit, dispatch, state }, payload: string): Promise<Experiment> {
             commit('setBusy', true);
             try {
-                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id);
-                const experiment = response.data.data as Experiment;
-                const promises = [];
-                commit('setExperiment', experiment);
-                for (let idx = 0; idx < experiment.relationships.pages.data.length; idx++) {
+                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + payload);
+                const experiment = new Experiment(payload,
+                                                  response.data.data.attributes,
+                                                  response.data.data.relationships,
+                                                  state.data,
+                                                  dispatch);
+                /*const promises = [];
+                for (let idx = 0; idx < experiment.pages.data.length; idx++) {
                     promises.push(dispatch('loadPage', experiment.relationships.pages.data[idx].id));
                 }
+                await Promise.all(promises);*/
+                commit('setExperiment', experiment);
                 commit('setBusy', false);
-                return Promise.all(promises);
+                return Promise.resolve(experiment);
             } catch (error) {
                 return Promise.reject(error);
             }
@@ -196,8 +210,15 @@ export default new Vuex.Store({
         async loadPage({ commit, dispatch, state }, payload: string) {
             commit('setBusy', true);
             try {
+                console.log('Loading page');
                 const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload);
-                let existingQuestions = null;
+                const page = new Page(payload,
+                                      response.data.data.attributes as PageAttributes,
+                                      response.data.data.relationships as PageRelationships,
+                                      state.data,
+                                      dispatch);
+                commit('setPage', page);
+                /*let existingQuestions = null;
                 if (state.pages[payload]) {
                     existingQuestions = state.pages[payload].relationships.questions.data.map((questionRef) => {
                         return questionRef.id
@@ -222,8 +243,8 @@ export default new Vuex.Store({
                         }
                     });
                 }
+                await Promise.all(promises);*/
                 commit('setBusy', false);
-                await Promise.all(promises);
                 return Promise.resolve(page);
             } catch (error) {
                 commit('setBusy', false);
@@ -351,12 +372,12 @@ export default new Vuex.Store({
                 if (completed) {
                     commit('setCompleted', true);
                 } else {
-                    if (state.experiment.relationships['first-page'] && state.pages[state.experiment.relationships['first-page'].data.id]) {
-                        const currentPageId = sessionLoadValue(state.experiment.id + '.progress.currentPage', state.experiment.relationships['first-page'].data.id) as string;
+                    if (state.experiment.relationships['firstPage'] && state.pages[state.experiment.relationships['firstPage'].data.id]) {
+                        const currentPageId = sessionLoadValue(state.experiment.id + '.progress.currentPage', state.experiment.relationships['firstPage'].data.id) as string;
                         if (state.pages[currentPageId]) {
                             commit('setCurrentPage', state.pages[currentPageId]);
-                        } else if (state.pages[state.experiment.relationships['first-page'].data.id]) {
-                            commit('setCurrentPage', state.pages[state.experiment.relationships['first-page'].data.id]);
+                        } else if (state.pages[state.experiment.relationships['firstPage'].data.id]) {
+                            commit('setCurrentPage', state.pages[state.experiment.relationships['firstPage'].data.id]);
                         }
                         const responses = sessionLoadValue(state.experiment.id + '.responses', null);
                         if (responses) {

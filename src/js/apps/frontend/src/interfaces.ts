@@ -1,3 +1,6 @@
+import { PagesDict } from '@/models/page';
+import { Experiment } from './models/experiment';
+
 export interface StringKeyValueDict {
     [x: string]: string;
 }
@@ -19,7 +22,7 @@ export interface ExperimentConfig {
     id: string;
 }
 
-export interface State {
+export interface State { // Needs clean
     config: Config;
     experiment: Experiment | null;
     pages: PageDict;
@@ -29,6 +32,7 @@ export interface State {
     questions: QuestionsDict;
     progress: ExperimentProgress;
     participant: Participant | null;
+    data: DataState;
     ui: UIState;
 }
 
@@ -45,34 +49,28 @@ export interface UIState {
     busyMaxCounter: number;
 }
 
+export interface DataState {
+    experiment: Experiment | null;
+    pages: PagesDict;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export interface QuestionTypeDict {
     [x: string]: QuestionType;
-}
-
-export interface Experiment {
-    type: 'experiments';
-    id: string;
-    attributes: ExperimentAttributes;
-    relationships: ExperimentRelationships;
-}
-
-export interface ExperimentAttributes {
-    title: string;
-    description: string;
-    status: string;
-}
-
-export interface ExperimentRelationships {
-    pages: ExperimentPagesRelationship;
-    'first-page'?: ExperimentFirstPageReference;
-}
-
-export interface ExperimentPagesRelationship {
-    data: PageReference[];
-}
-
-export interface ExperimentFirstPageReference {
-    data: PageReference;
 }
 
 export interface PageReference {
@@ -123,12 +121,8 @@ export interface PageDict {
 export interface Transition {
     type: 'transitions';
     id?: string;
-    attributes: TransitionAttributes;
+    attributes: StringKeyValueDict;
     relationships: TransitionRelationships;
-}
-
-export interface TransitionAttributes {
-
 }
 
 export interface TransitionReference {
@@ -182,11 +176,8 @@ export interface QuestionTypeGroupQuestionTypeRelationship {
 export interface Question {
     type: 'questions';
     id: string;
-    attributes: QuestionAttributes;
+    attributes: StringKeyValueDict;
     relationships: QuestionRelationships;
-}
-
-export interface QuestionAttributes {
 }
 
 export interface QuestionRelationships {
@@ -270,7 +261,7 @@ export interface NestedStorage {
 export interface Participant {
     type: 'participants';
     id: string;
-    attributes: {};
+    attributes: StringKeyValueDict;
     relationships: ParticipantRelationships;
 }
 

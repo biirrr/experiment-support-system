@@ -63,7 +63,7 @@ class Experiment(Base):
             }
         }
         if self.first_page:
-            data['relationships']['first-page'] = {
+            data['relationships']['firstPage'] = {
                 'data': {
                     'type': 'pages',
                     'id': str(self.first_page.id),
