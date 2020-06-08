@@ -129,11 +129,11 @@
 
 <script lang="ts">
 import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import { Question, StringKeyValueDict, Error, QuestionReference, QuestionTypeAttribute } from '@/interfaces';
+import { Question, StringKeyValueDict, Error, QuestionReference, QuestionTypeAttributes, QuestionTypeAttribute, QuestionType } from '@/interfaces';
 import AriaMenubar from '@/components/AriaMenubar.vue';
 import InputField from '@/components/InputField.vue';
 
@@ -149,21 +149,21 @@ export default class QuestionEditor extends Vue {
     public errors: StringKeyValueDict = {};
 
 
-    public get questionType() {
+    public get questionType() : QuestionType {
         return this.$store.state.questionTypes[this.$props.question.relationships['question-type'].data.id];
     }
 
-    public get editableAttributes() {
+    public get editableAttributes() : [string, string | QuestionTypeAttribute][] {
         return Object.entries(this.questionType.attributes).filter((value) => {
             return value[1] && (value[1] as QuestionTypeAttribute).source === 'user';
         });
     }
 
-    public get attributes() {
-        return { ...this.questionType.attributes, ...this.$props.question.attributes };
+    public get attributes() : QuestionTypeAttributes {
+        return deepcopy({ ...this.questionType.attributes, ...this.$props.question.attributes });
     }
 
-    public get hasChanges() {
+    public get hasChanges() : boolean {
         let changes = false;
         this.editableAttributes.forEach(([key, questionType]) => {
             if ((questionType as QuestionTypeAttribute).source === 'user') {
@@ -187,7 +187,7 @@ export default class QuestionEditor extends Vue {
         return changes;
     }
 
-    public get canMoveUp() {
+    public get canMoveUp() : boolean {
         const page = this.$store.state.pages[this.$props.question.relationships.page.data.id];
         if (page.relationships.questions.data[0].id === this.$props.question.id) {
             return false;
@@ -195,7 +195,7 @@ export default class QuestionEditor extends Vue {
         return true;
     }
 
-    public get canMoveDown() {
+    public get canMoveDown() : boolean {
         const page = this.$store.state.pages[this.$props.question.relationships.page.data.id];
         if (page.relationships.questions.data[page.relationships.questions.data.length - 1].id === this.$props.question.id) {
             return false;
@@ -203,11 +203,7 @@ export default class QuestionEditor extends Vue {
         return true;
     }
 
-    public label(label: string) {
-        return label.substring(0, 1).toUpperCase() + label.substring(1);
-    }
-
-    public mounted() {
+    public mounted() : void {
         this.localAttributes = deepcopy(this.$props.question.attributes);
         this.editableAttributes.forEach((attr) => {
             if (!this.localAttributes[attr[0]]) {
@@ -216,10 +212,10 @@ export default class QuestionEditor extends Vue {
                         Vue.set(this.localAttributes, attr[0], false);
                     } else if ((attr[1] as QuestionTypeAttribute).type === 'listOfValues') {
                         Vue.set(this.localAttributes, attr[0], []);
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     } else if ((attr[1] as QuestionTypeAttribute).allowed && (attr[1] as QuestionTypeAttribute).allowed.length > 0) {
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         Vue.set(this.localAttributes, attr[0], (attr[1] as QuestionTypeAttribute).allowed[0]);
                     } else {
@@ -231,7 +227,7 @@ export default class QuestionEditor extends Vue {
     }
 
     @Watch('question')
-    public updateQuestion() {
+    public updateQuestion() : void {
         this.localAttributes = deepcopy(this.$props.question.attributes);
         this.editableAttributes.forEach((attr) => {
             if (!this.localAttributes[attr[0]]) {
@@ -240,10 +236,10 @@ export default class QuestionEditor extends Vue {
                         Vue.set(this.localAttributes, attr[0], false);
                     } else if ((attr[1] as QuestionTypeAttribute).type === 'listOfValues') {
                         Vue.set(this.localAttributes, attr[0], []);
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     } else if ((attr[1] as QuestionTypeAttribute).allowed && (attr[1] as QuestionTypeAttribute).allowed.length > 0) {
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         Vue.set(this.localAttributes, attr[0], (attr[1] as QuestionTypeAttribute).allowed[0]);
                     } else {
@@ -254,7 +250,7 @@ export default class QuestionEditor extends Vue {
         });
     }
 
-    public async save() {
+    public async save() : Promise<void> {
         const question = deepcopy(this.$props.question);
         question.attributes = this.localAttributes;
         try {
@@ -270,7 +266,7 @@ export default class QuestionEditor extends Vue {
         }
     }
 
-    public close() {
+    public close() : void {
         if (this.hasChanges) {
             if (confirm('This will cause any changes to this question to be lost. Continue?')) {
                 this.$emit('close');
@@ -280,7 +276,7 @@ export default class QuestionEditor extends Vue {
         }
     }
 
-    public moveQuestion(direction: number) {
+    public moveQuestion(direction: number) : void {
         const page = deepcopy(this.$store.state.pages[this.$props.question.relationships.page.data.id]);
         let questionIdx = -1;
         page.relationships.questions.data.forEach((questionRef: QuestionReference, idx: number) => {
@@ -299,21 +295,21 @@ export default class QuestionEditor extends Vue {
         }
     }
 
-    public deleteQuestion() {
+    public deleteQuestion() : void {
         if (confirm('Please confirm that you wish to delete this question?')) {
             this.$store.dispatch('deleteQuestion', this.$props.question);
         }
     }
 
-    public addListOfValuesValue(attribute: string) {
+    public addListOfValuesValue(attribute: string) : void {
         (this.localAttributes[attribute] as string[]).push('');
     }
 
-    public setListOfValuesValue(attribute: string, idx: number, value: string) {
+    public setListOfValuesValue(attribute: string, idx: number, value: string) : void {
         Vue.set((this.localAttributes[attribute] as string[]), idx, value);
     }
 
-    public removeListOfValuesValue(attribute: string, idx: number) {
+    public removeListOfValuesValue(attribute: string, idx: number) : void{
         (this.localAttributes[attribute] as string[]).splice(idx, 1);
     }
 }

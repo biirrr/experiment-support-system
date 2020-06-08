@@ -57,15 +57,15 @@ export default class PagesCreate extends Vue {
         return Object.values(this.$store.state.pages);
     }
 
-    public get hasPages() {
+    public get hasPages() : boolean {
         return this.pages && this.pages.length > 0;
     }
 
-    public get showPageSelect() {
+    public get showPageSelect() : boolean {
         return this.hasPages && this.addMode === 'after';
     }
 
-    public mounted() {
+    public mounted() : void {
         if (this.hasPages) {
             this.addMode = 'after';
             this.parentPageId = this.pages[0].id;
@@ -79,7 +79,7 @@ export default class PagesCreate extends Vue {
     }
 
     @Watch('pages')
-    public updateAddMode() {
+    public updateAddMode() : void {
         if (this.hasPages) {
             this.addMode = 'after';
             this.parentPageId = this.pages[0].id;
@@ -94,7 +94,7 @@ export default class PagesCreate extends Vue {
         }
     }
 
-    public cancelDialog(allowParent: boolean, ev: Event) {
+    public cancelDialog(allowParent: boolean, ev: Event) : void {
         const target = ev.target as HTMLElement;
         if (!allowParent && (target.localName === 'a' || target.localName === 'button')) {
             this.$router.push('/pages');
@@ -103,7 +103,7 @@ export default class PagesCreate extends Vue {
         }
     }
 
-    public async createPage() {
+    public async createPage() : Promise<void> {
         try {
             const newPage = {
                 mode: this.addMode,

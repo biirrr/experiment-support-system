@@ -39,11 +39,11 @@ export default class QuestionBlock extends Vue {
     @Prop() question!: Question;
     public editing = false;
 
-    public startEditing() {
+    public startEditing() : void {
         this.editing = true;
     }
 
-    public endEditing() {
+    public endEditing() : void {
         this.editing = false;
     }
 }

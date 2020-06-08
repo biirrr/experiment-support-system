@@ -15,9 +15,11 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 
+import { QuestionTypeGroup } from '@/interfaces';
+
 @Component({})
 export default class Index extends Vue {
-    public get questionTypeGroups() {
+    public get questionTypeGroups() : {[x:string] : QuestionTypeGroup} {
         return this.$store.state.questionTypeGroups;
     }
 }

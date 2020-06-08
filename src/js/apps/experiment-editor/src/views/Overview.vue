@@ -19,9 +19,11 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 
+import { Experiment } from '@/interfaces';
+
 @Component
 export default class Overview extends Vue {
-    public get experiment() {
+    public get experiment() : Experiment {
         return this.$store.state.experiment;
     }
 }

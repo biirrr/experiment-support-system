@@ -61,7 +61,7 @@
 import { Component, Vue } from 'vue-property-decorator';
 
 import AriaMenubar from '@/components/AriaMenubar.vue';
-import { Page, TransitionReference } from '@/interfaces';
+import { Page, TransitionReference, Experiment } from '@/interfaces';
 
 @Component({
     components: {
@@ -69,11 +69,11 @@ import { Page, TransitionReference } from '@/interfaces';
     },
 })
 export default class Pages extends Vue {
-    public get experiment() {
+    public get experiment() : Experiment {
         return this.$store.state.experiment;
     }
 
-    public get firstPage() {
+    public get firstPage() : Page | null {
         if (this.experiment && this.experiment.relationships['first-page']) {
             return this.$store.state.pages[this.experiment.relationships['first-page'].data.id];
         } else {
@@ -81,7 +81,7 @@ export default class Pages extends Vue {
         }
     }
 
-    public get pages() {
+    public get pages() : Page[] {
         if (this.firstPage) {
             const pages = this.flattenPages(this.firstPage);
             (Object.values(this.$store.state.pages) as Page[]).forEach((page: Page) => {
@@ -95,17 +95,17 @@ export default class Pages extends Vue {
                     pages.push(page);
                 }
             });
-            return pages;
+            return pages as Page[];
         } else {
             return Object.values(this.$store.state.pages);
         }
     }
 
-    public get isCurrentRoute() {
+    public get isCurrentRoute() : boolean {
         return this.$route.name === 'pages';
     }
 
-    public pageForTransitionId(id: string) {
+    public pageForTransitionId(id: string) : Page | null {
         const transition = this.$store.state.transitions[id];
         if (transition) {
             return this.$store.state.pages[transition.relationships.target.data.id];
@@ -113,13 +113,13 @@ export default class Pages extends Vue {
         return null;
     }
 
-    public async deletePage(page: Page) {
+    public async deletePage(page: Page) : Promise<void> {
         if (confirm('Please confirm that you wish to delete the page "' + page.attributes.name + '"?')) {
             await this.$store.dispatch('deletePage', page);
         }
     }
 
-    private flattenPages(page: Page) {
+    private flattenPages(page: Page) : Page[] {
         let pages = [page];
         if (page.relationships.next) {
             page.relationships.next.data.forEach((transRef: TransitionReference) => {

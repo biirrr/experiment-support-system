@@ -81,6 +81,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 
+import { Experiment } from '@/interfaces';
 import AriaMenubar from '@/components/AriaMenubar.vue';
 
 @Component({
@@ -90,11 +91,11 @@ import AriaMenubar from '@/components/AriaMenubar.vue';
 })
 export default class App extends Vue {
 
-    public get experiment() {
+    public get experiment() : Experiment {
         return this.$store.state.experiment;
     }
 
-    public get progress() {
+    public get progress() : number {
         if (this.$store.state.ui.busyMaxCounter > 0) {
             return 100 / this.$store.state.ui.busyMaxCounter * (this.$store.state.ui.busyMaxCounter - this.$store.state.ui.busyCounter);
         } else {
@@ -102,7 +103,7 @@ export default class App extends Vue {
         }
     }
 
-    public mounted() {
+    public mounted() : void {
         const configElement = document.getElementById('ExperimentEditorConfig');
         if (configElement) {
             const config = JSON.parse(configElement.innerHTML);
@@ -112,7 +113,7 @@ export default class App extends Vue {
         }
     }
 
-    public changeStatus(ev: Event) {
+    public changeStatus(ev: Event) : void {
         if (ev && ev.target) {
             this.$store.dispatch('updateExperimentAttribute', {
                 attribute: 'status',

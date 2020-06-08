@@ -16,11 +16,11 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from 'vue-property-decorator';
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import { StringKeyValueDict, Error } from '@/interfaces';
+import { StringKeyValueDict, Error, Page } from '@/interfaces';
 import InputField from '@/components/InputField.vue';
 
 @Component({
@@ -33,20 +33,20 @@ export default class PageSettings extends Vue {
     public title = '';
     public errors: StringKeyValueDict = {};
 
-    public get page() {
+    public get page() : Page {
         return deepcopy(this.$store.state.pages[this.$route.params.pid]);
     }
 
-    public mounted() {
+    public mounted() : void {
         this.errors = {};
     }
 
     @Watch('page')
-    public watchPage() {
+    public watchPage() : void {
         this.errors = {};
     }
 
-    public async updatePage() {
+    public async updatePage() : Promise<void> {
         if (this.page) {
             try {
                 this.errors = {}

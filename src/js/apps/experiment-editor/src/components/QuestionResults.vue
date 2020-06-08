@@ -43,18 +43,18 @@
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
 
-import { Question, QuestionTypeAttribute, Result } from '@/interfaces';
+import { Question, QuestionType, QuestionTypeAttribute, Result } from '@/interfaces';
 
 @Component
 export default class QuestionResults extends Vue {
     @Prop() question!: Question;
     @Prop() results!: Result;
 
-    public get questionType() {
+    public get questionType() : QuestionType {
         return this.$store.state.questionTypes[this.$props.question.relationships['question-type'].data.id];
     }
 
-    public get attributes() {
+    public get attributes() : {[x: string]: string | boolean | string[] | null} {
         const attributes = {} as {[x: string]: string | boolean | string[] | null};
         if (this.questionType) {
             Object.entries(this.questionType.attributes).forEach((attr) => {
@@ -64,10 +64,10 @@ export default class QuestionResults extends Vue {
                             attributes[attr[0]] = false;
                         } else if ((attr[1] as QuestionTypeAttribute).type === 'listOfValues') {
                             attributes[attr[0]] = [];
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         } else if ((attr[1] as QuestionTypeAttribute).allowed && (attr[1] as QuestionTypeAttribute).allowed.length > 0) {
-                            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                             // @ts-ignore
                             attributes[attr[0]] = (attr[1] as QuestionTypeAttribute).allowed[0];
                         } else {
@@ -84,19 +84,15 @@ export default class QuestionResults extends Vue {
         return attributes;
     }
 
-    public get renderType() {
-        if (this.questionType && this.questionType.attributes._core_type.indexOf('USEF') === 0) {
-            return this.questionType.attributes._core_type;
+    public get renderType() : string {
+        if (this.questionType && (this.questionType.attributes._core_type as string).indexOf('USEF') === 0) {
+            return (this.questionType.attributes._core_type as string);
         } else {
             return 'USEFInvalid'
         }
     }
 
-    public label(label: string) {
-        return label.substring(0, 1).toUpperCase() + label.substring(1);
-    }
-
-    public zip(valuesA: string[], valuesB: string[]) {
+    public zip(valuesA: string[], valuesB: string[]) : [string, string][] {
         return valuesA.map((value, idx) => {
             if (idx < valuesB.length) {
                 return [value, valuesB[idx]];

@@ -62,7 +62,7 @@ import { Component, Vue } from 'vue-property-decorator';
 import AriaMenubar from '@/components/AriaMenubar.vue';
 import AddQuestion from '@/components/AddQuestion.vue';
 import QuestionBlock from '@/components/QuestionBlock.vue';
-import { QuestionReference, Question } from '@/interfaces';
+import { QuestionReference, Question, Page, QuestionTypeGroup } from '@/interfaces';
 
 @Component({
     components: {
@@ -75,15 +75,15 @@ export default class PageEdit extends Vue {
     public insertIdx = -1;
     public insertPosition = '';
 
-    public get page() {
+    public get page() : Page {
         return this.$store.state.pages[this.$route.params.pid];
     }
 
-    public get isCurrentRoute() {
+    public get isCurrentRoute() : boolean {
         return this.$route.name === 'page.edit';
     }
 
-    public get questions() {
+    public get questions() : Question[] {
         if (this.page.relationships) {
             return this.page.relationships.questions.data.map((question: QuestionReference) => {
                 return this.$store.state.questions[question.id];
@@ -92,11 +92,11 @@ export default class PageEdit extends Vue {
         return [];
     }
 
-    public get questionTypeGroups() {
+    public get questionTypeGroups() : QuestionTypeGroup[] {
         return this.$store.state.questionTypeGroups;
     }
 
-    public insertQuestion(idx: number, position: string) {
+    public insertQuestion(idx: number, position: string) : void {
         this.insertIdx = idx;
         this.insertPosition = position;
     }

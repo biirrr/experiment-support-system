@@ -34,11 +34,11 @@
 
 <script lang="ts">
 import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import { Transition, StringKeyValueDict, Error } from '@/interfaces';
+import { Page, Transition, StringKeyValueDict, Error } from '@/interfaces';
 import AriaMenubar from '@/components/AriaMenubar.vue';
 import InputField from '@/components/InputField.vue';
 
@@ -53,27 +53,27 @@ export default class TransitionEditor extends Vue {
     public localTransition: Transition | null = null;
     public errors: StringKeyValueDict = {};
 
-    public get pages() {
+    public get pages() : Page[] {
         return Object.values(this.$store.state.pages);
     }
 
-    public get hasChanges() {
+    public get hasChanges() : boolean {
         if (this.$props.transition && this.localTransition) {
             return this.$props.transition.relationships.target.data.id != this.localTransition.relationships.target.data.id;
         }
         return false;
     }
 
-    public mounted() {
+    public mounted() : void {
         this.localTransition = deepcopy(this.$props.transition);
     }
 
     @Watch('transition')
-    public updateTransition() {
+    public updateTransition() : void {
         this.localTransition = deepcopy(this.$props.transition);
     }
 
-    public save() {
+    public save() : void {
         if (this.localTransition) {
             try {
                 this.errors = {};
@@ -94,7 +94,7 @@ export default class TransitionEditor extends Vue {
         }
     }
 
-    public deleteTransition() {
+    public deleteTransition() : void {
         if (this.localTransition) {
             if (!this.localTransition.id) {
                 this.$emit('created');

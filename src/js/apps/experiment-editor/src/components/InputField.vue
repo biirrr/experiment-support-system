@@ -21,21 +21,21 @@ export default class InputField extends Vue {
 
     localValue = '';
 
-    public get labelBefore() {
+    public get labelBefore() : boolean {
         return this.$props.type != 'radio' && this.$props.type != 'checkbox';
     }
 
-    public mounted() {
+    public mounted() : void {
         this.localValue = this.$props.value;
     }
 
     @Watch('value')
-    public updatedValue(newValue: string) {
+    public updatedValue(newValue: string) : void {
         this.localValue = newValue;
     }
 
     @Watch('localValue')
-    public updateLocalValue(newValue: string) {
+    public updateLocalValue(newValue: string) : void {
         if (newValue !== this.$props.value) {
             this.$emit('input', newValue);
         }

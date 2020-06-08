@@ -23,7 +23,7 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from 'vue-property-decorator';
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
@@ -40,7 +40,7 @@ export default class Settings extends Vue {
     public localFirstPage: PageReference | null = null;
     public errors: StringKeyValueDict = {};
 
-    public get pages() {
+    public get pages() : Page[] {
         if (this.localExperiment) {
             return this.localExperiment.relationships.pages.data.map((pageRef: PageReference) => {
                 if (this.$store.state.pages[pageRef.id]) {
@@ -54,7 +54,7 @@ export default class Settings extends Vue {
         }
     }
 
-    public mounted() {
+    public mounted() : void {
         if (this.$store.state.experiment) {
             this.localExperiment = deepcopy(this.$store.state.experiment);
             if (this.localExperiment && this.localExperiment.relationships['first-page']) {
@@ -72,7 +72,7 @@ export default class Settings extends Vue {
     }
 
     @Watch('experiment')
-    public watchExperiment() {
+    public watchExperiment() : void {
         if (this.$store.state.experiment) {
             this.localExperiment = deepcopy(this.$store.state.experiment);
             if (this.localExperiment && this.localExperiment.relationships['first-page']) {
@@ -89,7 +89,7 @@ export default class Settings extends Vue {
         }
     }
 
-    public async updateExperiment() {
+    public async updateExperiment() : Promise<void> {
         if (this.localExperiment) {
             try {
                 this.errors = {};

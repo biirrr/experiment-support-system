@@ -1,11 +1,12 @@
 <script lang="ts">
+import { VNode } from 'vue';
 import { Component, Vue } from 'vue-property-decorator';
 
 
 @Component({
 })
 export default class AriaMenubar extends Vue {
-    public render() {
+    public render() : void | VNode[] {
         if (this.$scopedSlots.default) {
             return this.$scopedSlots.default({
                 keyboardNav: this.keyboardNavigation,
@@ -14,7 +15,7 @@ export default class AriaMenubar extends Vue {
         }
     }
 
-    public keyboardNavigation(ev: KeyboardEvent) {
+    public keyboardNavigation(ev: KeyboardEvent) : void {
         const target = ev.target as HTMLElement;
         if (target) {
             if (ev.keyCode === 39) {
@@ -64,7 +65,7 @@ export default class AriaMenubar extends Vue {
         }
     }
 
-    public mouseClickNavigation(ev: MouseEvent) {
+    public mouseClickNavigation(ev: MouseEvent) : void {
         const target = ev.target as HTMLElement;
         if (target && target.parentElement && target.parentElement.children) {
             for (const element of target.parentElement.children) {
@@ -96,7 +97,7 @@ export default class AriaMenubar extends Vue {
         }
     }
 
-    protected findNextMenuitem(root: HTMLElement | null, start: HTMLElement | null, direction: string) {
+    protected findNextMenuitem(root: HTMLElement | null, start: HTMLElement | null, direction: string) : HTMLElement | null {
         if (!root) {
             return null;
         }
@@ -137,37 +138,3 @@ export default class AriaMenubar extends Vue {
     }
 }
 </script>
-
-<style module lang="scss">
-  ul[role='menubar'] {
-    margin: 0;
-    padding: 0;
-    position: relative;
-    display: flex;
-    flex-direction: row;
-
-    li {
-      flex: 0 0 auto;
-      vertical-align: top;
-
-      a {
-        cursor: pointer;
-      }
-    }
-
-    *[aria-hidden='true'] {
-      display: none;
-    }
-
-    ul[role='menu'] {
-        margin: 0;
-        padding: 0;
-
-        &[aria-hidden='false'] {
-          display: flex;
-          flex-direction: column;
-          position: absolute;
-        }
-    }
-  }
-</style>

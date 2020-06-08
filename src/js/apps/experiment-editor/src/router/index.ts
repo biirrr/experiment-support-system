@@ -7,8 +7,6 @@ import PagesCreate from '@/views/PagesCreate.vue'
 import PageEdit from '@/views/PageEdit.vue';
 import PageTransitions from '@/views/PageTransitions.vue';
 import PageSettings from '@/views/PageSettings.vue';
-import Data from '@/views/Data.vue';
-import LatinSquares from '@/views/LatinSquares.vue';
 import Results from '@/views/Results.vue';
 import Settings from '@/views/Settings.vue';
 

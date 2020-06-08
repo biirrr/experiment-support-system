@@ -1,6 +1,6 @@
 import { NestedStorage } from '@/interfaces';
 
-function storeValue(storage: Storage, path: string, value: null | string | number | boolean | NestedStorage) {
+function storeValue(storage: Storage, path: string, value: null | string | number | boolean | NestedStorage | string[]) : void {
     let obj = {} as NestedStorage;
     const data = storage.getItem('ess:storage');
     if (data) {
@@ -22,7 +22,7 @@ function storeValue(storage: Storage, path: string, value: null | string | numbe
     storage.setItem('ess:storage', JSON.stringify(obj));
 }
 
-function loadValue(storage: Storage, path: string, defaultValue: null | string | number | boolean) {
+function loadValue(storage: Storage, path: string, defaultValue: null | string | number | boolean | NestedStorage | string[]) : null | string | number | boolean | NestedStorage | string[] {
     const data = storage.getItem('ess:storage');
     if (data) {
         const obj = JSON.parse(data) as NestedStorage;
@@ -44,12 +44,11 @@ function loadValue(storage: Storage, path: string, defaultValue: null | string |
                 }
             }
         }
-    } else {
-        return defaultValue;
     }
+    return defaultValue;
 }
 
-function deleteValue(storage: Storage, path: string) {
+function deleteValue(storage: Storage, path: string) : void {
     let obj = {} as NestedStorage;
     const data = storage.getItem('ess:storage');
     if (data) {
@@ -71,26 +70,26 @@ function deleteValue(storage: Storage, path: string) {
     storage.setItem('ess:storage', JSON.stringify(obj));
 }
 
-export function sessionStoreValue(path: string, value: null | string | number | boolean | NestedStorage) {
+export function sessionStoreValue(path: string, value: null | string | number | boolean | NestedStorage | string[]) : void {
     storeValue(sessionStorage, path, value);
 }
 
-export function sessionLoadValue(path: string, defaultValue: null | string | number | boolean) {
+export function sessionLoadValue(path: string, defaultValue: null | string | number | boolean | NestedStorage | string[]) : null | string | number | boolean | NestedStorage | string[] {
     return loadValue(sessionStorage, path, defaultValue);
 }
 
-export function sessionDeleteValue(path: string) {
+export function sessionDeleteValue(path: string) : void {
     return deleteValue(sessionStorage, path);
 }
 
-export function localStoreValue(path: string, value: null | string | number | boolean | NestedStorage) {
+export function localStoreValue(path: string, value: null | string | number | boolean | NestedStorage | string[]) : void {
     storeValue(localStorage, path, value);
 }
 
-export function localLoadValue(path: string, defaultValue: null | string | number | boolean) {
+export function localLoadValue(path: string, defaultValue: null | string | number | boolean | NestedStorage | string[]) : null | string | number | boolean | NestedStorage | string[] {
     return loadValue(localStorage, path, defaultValue);
 }
 
-export function localDeleteValue(path: string) {
+export function localDeleteValue(path: string) : void {
     return deleteValue(localStorage, path);
 }

@@ -13,7 +13,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 
-import { StringKeyValueDict, Transition, TransitionReference } from '@/interfaces';
+import { StringKeyValueDict, Transition, TransitionReference, Page } from '@/interfaces';
 import TransitionEditor from '@/components/TransitionEditor.vue';
 
 @Component({
@@ -27,11 +27,11 @@ export default class PageTransitions extends Vue {
     public errors: StringKeyValueDict = {};
     public newTransition: Transition | null = null;
 
-    public get page() {
+    public get page() : Page {
         return this.$store.state.pages[this.$route.params.pid];
     }
 
-    public get transitions() {
+    public get transitions() : Transition[] {
         if (this.page && this.page.relationships && this.page.relationships.next) {
             return this.page.relationships.next.data.map((transitionRef: TransitionReference) => {
                 return this.$store.state.transitions[transitionRef.id];
@@ -41,7 +41,7 @@ export default class PageTransitions extends Vue {
         }
     }
 
-    public addTransition() {
+    public addTransition() : void {
         this.newTransition = {
             type: 'transitions',
             attributes: {},
@@ -62,7 +62,7 @@ export default class PageTransitions extends Vue {
         };
     }
 
-    public newTransitionCreated() {
+    public newTransitionCreated() : void {
         this.newTransition = null;
     }
 }

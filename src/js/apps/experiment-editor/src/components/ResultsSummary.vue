@@ -10,7 +10,7 @@
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
 
-import { Page } from '@/interfaces';
+import { Page, Question, Result } from '@/interfaces';
 import QuestionResults from '@/components/QuestionResults.vue';
 
 @Component({
@@ -21,7 +21,7 @@ import QuestionResults from '@/components/QuestionResults.vue';
 export default class ResultsSummary extends Vue {
     @Prop() page!: Page;
 
-    public get questionResults() {
+    public get questionResults() : [Question, Result][] | null {
         if (this.page) {
             const questions = this.page.relationships.questions.data.map((qref) => {
                 if (this.$store.state.questions[qref.id]) {
@@ -40,7 +40,7 @@ export default class ResultsSummary extends Vue {
                 } else {
                     return null;
                 }
-            }).filter((question) => { return question; });
+            }).filter((question) => { return question; }) as [Question, Result][];
             if (questions.length > 0) {
                 return questions;
             } else {

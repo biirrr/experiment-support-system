@@ -104,12 +104,12 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
 import AriaMenubar from '@/components/AriaMenubar.vue';
-import { QuestionType, QuestionTypeReference } from '@/interfaces';
+import { QuestionTypeGroup as IQuestionTypeGroup, QuestionType, QuestionTypeReference } from '@/interfaces';
 
 @Component({
     components: {
@@ -119,11 +119,11 @@ import { QuestionType, QuestionTypeReference } from '@/interfaces';
 export default class QuestionTypeGroup extends Vue {
     public editing = [] as number[];
 
-    public get questionTypeGroup() {
+    public get questionTypeGroup() : IQuestionTypeGroup {
         return this.$store.state.questionTypeGroups[this.$route.params["qtgid"]];
     }
 
-    public get questionTypes() {
+    public get questionTypes() : QuestionType[] {
         if (this.questionTypeGroup) {
             return this.questionTypeGroup.relationships['question-types'].data.map((qtr: QuestionTypeReference) => {
                 if (this.$store.state.questionTypes[qtr.id]) {
@@ -137,7 +137,7 @@ export default class QuestionTypeGroup extends Vue {
         }
     }
 
-    public async moveQuestionType(questionType: QuestionType, direction: number) {
+    public async moveQuestionType(questionType: QuestionType, direction: number) : Promise<void> {
         const questionTypeGroup = deepcopy(this.$store.state.questionTypeGroups[questionType.relationships['question-type-group'].data.id]);
         let questionTypeIdx = -1;
         questionTypeGroup.relationships['question-types'].data.forEach((questionTypeRef: QuestionTypeReference, idx: number) => {
@@ -156,11 +156,11 @@ export default class QuestionTypeGroup extends Vue {
         }
     }
 
-    public async updateQuestionType(questionType: QuestionType) {
+    public async updateQuestionType(questionType: QuestionType) : Promise<void> {
         await this.$store.dispatch('updateQuestionType', questionType);
     }
 
-    public toggleEditing(idx: number) {
+    public toggleEditing(idx: number) : void {
         if (this.editing.indexOf(idx) < 0) {
             this.editing.push(idx);
         } else {
@@ -168,11 +168,11 @@ export default class QuestionTypeGroup extends Vue {
         }
     }
 
-    public resetQuestionType(questionType: QuestionType) {
+    public resetQuestionType(questionType: QuestionType) : void {
         questionType.attributes._title = this.$store.state.questionTypes[questionType.id].attributes._title;
     }
 
-    public async deleteQuestionType(questionType: QuestionType) {
+    public async deleteQuestionType(questionType: QuestionType) : Promise<void> {
         try {
             await this.$store.dispatch('deleteQuestionType', questionType);
         } catch(error) {

@@ -28,7 +28,7 @@ import { Component, Vue } from 'vue-property-decorator';
 @Component({
 })
 export default class App extends Vue {
-    public mounted() {
+    public mounted() : void {
         const configElement = document.getElementById('QuestionsAdminConfig');
         if (configElement) {
             const config = JSON.parse(configElement.innerHTML);

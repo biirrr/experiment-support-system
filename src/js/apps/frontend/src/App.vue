@@ -29,6 +29,7 @@ import { Component, Vue } from 'vue-property-decorator';
 
 import PageRenderer from '@/components/PageRenderer.vue';
 import StudyCompleted from '@/components/StudyCompleted.vue';
+import { Experiment, Page } from '@/interfaces';
 
 @Component({
     components: {
@@ -37,11 +38,11 @@ import StudyCompleted from '@/components/StudyCompleted.vue';
     },
 })
 export default class App extends Vue {
-    public get experiment() {
+    public get experiment() : Experiment {
         return this.$store.state.experiment;
     }
 
-    public get progress() {
+    public get progress() : number {
         if (this.$store.state.ui.busyMaxCounter > 0) {
             return (this.$store.state.ui.busyMaxCounter - this.$store.state.ui.busyCounter) / this.$store.state.ui.busyMaxCounter;
         } else {
@@ -49,11 +50,11 @@ export default class App extends Vue {
         }
     }
 
-    public get currentPage() {
+    public get currentPage() : Page {
         return this.$store.state.progress.current;
     }
 
-    public mounted() {
+    public mounted() : void {
         const configElement = document.getElementById('ExperimentFrontendConfig');
         if (configElement) {
             const config = JSON.parse(configElement.innerHTML);
@@ -63,7 +64,7 @@ export default class App extends Vue {
         }
     }
 
-    public resetExperiment() {
+    public resetExperiment() : void {
         this.$store.dispatch('developmentResetExperiment');
     }
 }

@@ -281,3 +281,9 @@ export interface Result {
     type: 'results';
     id: string;
 }
+
+export interface AddQuestionMenuStructure {
+    id: number;
+    title: string;
+    questionTypes: QuestionType[];
+}

@@ -21,7 +21,7 @@
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
 
-import { Page, QuestionTypeGroup, QuestionType } from '@/interfaces';
+import { Page, QuestionTypeGroup, QuestionType, AddQuestionMenuStructure } from '@/interfaces';
 
 @Component
 export default class AddQuestion extends Vue {
@@ -31,7 +31,7 @@ export default class AddQuestion extends Vue {
 
     public activeGroup = -1;
 
-    public get menuStructure() {
+    public get menuStructure() : AddQuestionMenuStructure[] {
         return this.$store.state.questionTypeGroups
             .filter((questionTypeGroup: QuestionTypeGroup) => { return questionTypeGroup.attributes['enabled']})
             .map((questionTypeGroup: QuestionTypeGroup) => {
@@ -45,13 +45,13 @@ export default class AddQuestion extends Vue {
             });
     }
 
-    public mounted() {
+    public mounted() : void {
         if (this.menuStructure.length === 1) {
             this.activeGroup = this.menuStructure[0].id;
         }
     }
 
-    public setActiveGroup(questionTypeGroupId: number) {
+    public setActiveGroup(questionTypeGroupId: number) : void {
         if (this.activeGroup === questionTypeGroupId) {
             this.activeGroup = -1;
         } else {
@@ -59,7 +59,7 @@ export default class AddQuestion extends Vue {
         }
     }
 
-    public async addQuestion(questionType: QuestionType) {
+    public async addQuestion(questionType: QuestionType) : Promise<void> {
         try {
             await this.$store.dispatch('addQuestion', {
                 questionType: questionType,
