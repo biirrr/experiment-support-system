@@ -8,7 +8,12 @@
             },
             "attributes": {
                 "version": "0.1.0",
-                "label": "Static Text Display"
+                "label": "Static Text Display",
+                "essConditional": {
+                    "label": "Conditionally Display",
+                    "source": "user",
+                    "type": "essQuestionCondition"
+                }
             },
             "relationships": {
                 "parent": {
@@ -32,6 +37,11 @@
                     "label": "Name",
                     "source": "user",
                     "type": "singleValue"
+                },
+                "essConditional": {
+                    "label": "Conditionally Display",
+                    "source": "user",
+                    "type": "essQuestionCondition"
                 }
             },
             "relationships": {
@@ -56,6 +66,11 @@
                     "label": "Name",
                     "source": "user",
                     "type": "singleValue"
+                },
+                "essConditional": {
+                    "label": "Conditionally Display",
+                    "source": "user",
+                    "type": "essQuestionCondition"
                 }
             },
             "relationships": {
@@ -80,6 +95,11 @@
                     "label": "Name",
                     "source": "user",
                     "type": "singleValue"
+                },
+                "essConditional": {
+                    "label": "Conditionally Display",
+                    "source": "user",
+                    "type": "essQuestionCondition"
                 }
             },
             "relationships": {
@@ -104,6 +124,11 @@
                     "label": "Name",
                     "source": "user",
                     "type": "singleValue"
+                },
+                "essConditional": {
+                    "label": "Conditionally Display",
+                    "source": "user",
+                    "type": "essQuestionCondition"
                 }
             },
             "relationships": {
@@ -128,6 +153,11 @@
                     "label": "Name",
                     "source": "user",
                     "type": "singleValue"
+                },
+                "essConditional": {
+                    "label": "Conditionally Display",
+                    "source": "user",
+                    "type": "essQuestionCondition"
                 }
             },
             "relationships": {
@@ -152,6 +182,11 @@
                     "label": "Name",
                     "source": "user",
                     "type": "singleValue"
+                },
+                "essConditional": {
+                    "label": "Conditionally Display",
+                    "source": "user",
+                    "type": "essQuestionCondition"
                 }
             },
             "relationships": {
@@ -176,6 +211,11 @@
                     "label": "Name",
                     "source": "user",
                     "type": "singleValue"
+                },
+                "essConditional": {
+                    "label": "Conditionally Display",
+                    "source": "user",
+                    "type": "essQuestionCondition"
                 }
             },
             "relationships": {

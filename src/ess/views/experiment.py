@@ -78,10 +78,26 @@ def schema_value(attr, question_type, question):
         return definition
 
 
-def schema_for_page(page):
+def value_of_question_responses(question_id, responses):
+    for value in responses.values():
+        if question_id in value:
+            return value[question_id]
+    return None
+
+
+def schema_for_page(page, responses):
     schema = {}
     for question in page.questions:
         attributes = question.question_type.inherited_attributes()
+        if 'essConditional' in attributes and 'essConditional' in question.attributes:
+            if question.attributes['essConditional']['question'] != '':
+                value = value_of_question_responses(question.attributes['essConditional']['question'], responses)
+                if question.attributes['essConditional']['operator'] == 'eq':
+                    if value != question.attributes['essConditional']['value']:
+                        continue
+                elif question.attributes['essConditional']['operator'] == 'neq':
+                    if value == question.attributes['essConditional']['value']:
+                        continue
         if attributes['_core_type'] == 'USEFSingleLineInput':
             schema[str(question.id)] = {'type': 'string',
                                         'required': schema_value('required',
@@ -183,9 +199,9 @@ def validate(request):
                 page = request.dbsession.query(Page).filter(and_(Page.id == body['page'],
                                                                  Page.experiment_id == experiment.id)).\
                     first()
-                if page:
-                    validator = Validator(schema_for_page(page))
-                    if validator.validate(body['responses']):
+                if page and body['page'] in body['responses']:
+                    validator = Validator(schema_for_page(page, body['responses']))
+                    if validator.validate(body['responses'][body['page']]):
                         return HTTPNoContent()
                     else:
                         raise HTTPBadRequest(body=json.dumps({'errors': flatten_errors(validator.errors)}))
@@ -199,12 +215,12 @@ def validate(request):
         raise HTTPNotFound()
 
 
-def schema_for_experiment(page, schema):
+def schema_for_experiment(page, schema, responses):
     if page.id not in schema:
-        schema[str(page.id)] = {'type': 'dict', 'required': True, 'schema': schema_for_page(page)}
+        schema[str(page.id)] = {'type': 'dict', 'required': True, 'schema': schema_for_page(page, responses)}
         for transition in page.next:
             if transition.target:
-                schema = schema_for_experiment(transition.target, schema)
+                schema = schema_for_experiment(transition.target, schema, responses)
     return schema
 
 
@@ -214,28 +230,33 @@ def submit(request):
     if experiment and experiment.first_page:
         try:
             body = json.loads(request.body)
-            schema = {'participant': {'type': 'string',
-                                      'required': True,
-                                      'empty': False},
-                      'responses': {'type': 'dict',
-                                    'required': True,
-                                    'empty': False,
-                                    'schema': schema_for_experiment(experiment.first_page, {})}}
-            validator = Validator(schema)
-            if validator.validate(body):
-                participant = request.dbsession.query(Participant).\
-                    filter(and_(Participant.external_id == body['participant'],
-                                Participant.experiment_id == experiment.id)).\
-                    first()
-                if participant:
-                    participant.responses = body['responses']
-                    participant.completed = True
-                    request.dbsession.add(participant)
-                    return HTTPNoContent()
+            if 'responses' in body:
+                schema = {'participant': {'type': 'string',
+                                          'required': True,
+                                          'empty': False},
+                          'responses': {'type': 'dict',
+                                        'required': True,
+                                        'empty': False,
+                                        'schema': schema_for_experiment(experiment.first_page,
+                                                                        {},
+                                                                        body['responses'])}}
+                validator = Validator(schema)
+                if validator.validate(body):
+                    participant = request.dbsession.query(Participant)\
+                        .filter(and_(Participant.external_id == body['participant'],
+                                     Participant.experiment_id == experiment.id))\
+                        .first()
+                    if participant:
+                        participant.responses = body['responses']
+                        participant.completed = True
+                        request.dbsession.add(participant)
+                        return HTTPNoContent()
+                    else:
+                        raise HTTPNotFound()
                 else:
-                    raise HTTPNotFound()
+                    raise HTTPBadRequest(body=json.dumps({'errors': flatten_errors(validator.errors)}))
             else:
-                raise HTTPBadRequest(body=json.dumps({'errors': flatten_errors(validator.errors)}))
+                raise HTTPBadRequest(body=json.dumps({'errors': [{'title': 'Invalid JSON body'}]}))
         except json.JSONDecodeError:
             raise HTTPBadRequest(body=json.dumps({'errors': [{'title': 'Invalid JSON body'}]}))
     else:

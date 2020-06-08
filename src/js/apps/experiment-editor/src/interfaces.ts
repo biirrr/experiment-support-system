@@ -235,7 +235,7 @@ export interface QuestionTypeAttributes {
 export interface QuestionTypeAttribute {
     label: string;
     source: 'user';
-    type: 'singleValue' | 'multiLineTextValue' | 'booleanValue' | 'listOfValues';
+    type: 'singleValue' | 'multiLineTextValue' | 'booleanValue' | 'listOfValues' | 'essQuestionCondition';
     allowed?: string[];
 }
 

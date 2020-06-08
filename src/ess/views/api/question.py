@@ -102,6 +102,13 @@ def patch_item(request):
                 elif value['type'] == 'listOfValues':
                     schema['attributes']['schema'][key] = {'type': 'list',
                                                            'schema': {'type': 'string'}}
+                elif value['type'] == 'essQuestionCondition':
+                    schema['attributes']['schema'][key] = {'type': 'dict',
+                                                           'schema': {'question': {'type': 'string',
+                                                                                   'required': True},
+                                                                      'operator': {'type': 'string',
+                                                                                   'allowed': ['eq', 'neq']},
+                                                                      'value': {'type': 'string'}}}
         body = validated_body(request, schema)
         obj = store_object(request, body)
         return {'data': obj.as_jsonapi()}

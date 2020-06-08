@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// @ts-ignore
+import deepcopy from 'deepcopy';
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios';
@@ -297,10 +300,13 @@ export default new Vuex.Store({
         async validateSubmission({ commit, state }, payload: PageResponses) {
             try {
                 commit('setBusy', true);
+                const responses = deepcopy(state.progress.responses);
+                responses[payload.page] = payload.responses;
                 await axios({
                     method: 'POST',
                     url: state.config.api.validationUrl,
-                    data: payload,
+                    data: {page: payload.page,
+                           responses: responses},
                     headers: {
                         'X-CSRF-TOKEN': state.config.api.csrfToken,
                     },

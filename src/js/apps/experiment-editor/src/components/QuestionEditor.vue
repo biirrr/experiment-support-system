@@ -70,6 +70,28 @@
                 <input-field v-else-if="attribute[1].type === 'singleValue'" type="text" v-model="localAttributes[attribute[0]]" :label="attribute[1].label"/>
                 <input-field v-else-if="attribute[1].type === 'booleanValue'" type="checkbox" v-model="localAttributes[attribute[0]]" :label="attribute[1].label"/>
                 <input-field v-else-if="attribute[1].type === 'multiLineTextValue'" type="textarea" v-model="localAttributes[attribute[0]]" :label="attribute[1].label"/>
+                <template v-else-if="attribute[1].type === 'essQuestionCondition' && localAttributes[attribute[0]]">
+                    <label>{{ attribute[1].label }}</label>
+                    <div class="grid-x">
+                        <div class="cell auto">
+                            <select v-model="localAttributes[attribute[0]].question">
+                                <option value="">--- Always display ---</option>
+                                <option v-for="[page, question] in listOfConditionalQuestions(question.id)" :key="question.id" :value="question.id">{{ page.attributes.name }} - {{ question.attributes.essName }}</option>
+                            </select>
+                        </div>
+                        <template v-if="localAttributes[attribute[0]].question !== ''">
+                            <div class="cell shrink">
+                                <select v-model="localAttributes[attribute[0]].operator">
+                                    <option value="eq">Equals</option>
+                                    <option value="neq">Not equals</option>
+                                </select>
+                            </div>
+                            <div class="cell auto">
+                                <input type="text" v-model="localAttributes[attribute[0]].value"/>
+                            </div>
+                        </template>
+                    </div>
+                </template>
                 <div v-else>{{ attribute[1] }}</div>
             </div>
         </div>
@@ -132,6 +154,9 @@ import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import deepcopy from 'deepcopy';
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// @ts-ignore
+import deepequal from 'deep-equal';
 
 import { Question, StringKeyValueDict, Error, QuestionReference, QuestionTypeAttributes, QuestionTypeAttribute, QuestionType } from '@/interfaces';
 import AriaMenubar from '@/components/AriaMenubar.vue';

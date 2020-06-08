@@ -36,7 +36,31 @@ export default class PageRenderer extends Vue {
         if (this.page) {
             return this.page.relationships.questions.data.map((questionRef) => {
                 return this.$store.state.questions[questionRef.id];
-            }).filter((question) => { return question; });
+            }).filter((question) => {
+                if (question.attributes.essConditional && question.attributes.essConditional.question !== '') {
+                    if (this.responses && this.responses[question.attributes.essConditional.question]) {
+                        if (question.attributes.essConditional.operator === 'eq') {
+                            return this.responses[question.attributes.essConditional.question] === question.attributes.essConditional.value;
+                        } else {
+                            return this.responses[question.attributes.essConditional.question] !== question.attributes.essConditional.value;
+                        }
+
+                    }
+                    const pageKeys = Object.keys(this.$store.state.progress.responses);
+                    for (let idx = 0; idx < pageKeys.length; idx++) {
+                        const responses = this.$store.state.progress.responses[pageKeys[idx]];
+                        if (responses && responses[question.attributes.essConditional.question]) {
+                            if (question.attributes.essConditional.operator === 'eq') {
+                                return responses[question.attributes.essConditional.question] === question.attributes.essConditional.value;
+                            } else {
+                                return responses[question.attributes.essConditional.question] !== question.attributes.essConditional.value;
+                            }
+                        }
+                    }
+                    return false;
+                }
+                return question;
+            });
         } else {
             return [];
         }
