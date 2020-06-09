@@ -50,7 +50,7 @@ def includeme(config):
                      request_method='GET')
     config.add_route('experiment.run.api.transition.item.get', '/run/api/experiments/:eid/transitions/:tid',
                      request_method='GET')
-    config.add_route('experiment.run.api.question.item.get', '/run/api/experiments/:eid/pages/:pid/questions/:qid',
+    config.add_route('experiment.run.api.question.item.get', '/run/api/experiments/:eid/questions/:qid',
                      request_method='GET')
     config.add_route('experiment.run.validate', '/run/:eid/validate')
     config.add_route('experiment.run.submit', '/run/:eid/submit')

@@ -57,7 +57,7 @@ export interface DataState {
 }
 
 export interface NetworkState {
-    [x: string]: Promise<AxiosResponse>;
+    [x: string]: {[x: string]: Promise<AxiosResponse> | null};
 }
 
 

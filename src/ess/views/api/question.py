@@ -38,10 +38,9 @@ def get_item(request):
     """Handles fetching a single :class:`~ess.models.question.Question`."""
     if request.matched_route.name == 'experiment.run.api.question.item.get':
         item = request.dbsession.query(Question)\
-            .join(Page)\
+            .join(Question.page)\
             .join(Page.experiment)\
             .filter(and_(Question.id == request.matchdict['qid'],
-                         Page.id == request.matchdict['pid'],
                          Experiment.external_id == request.matchdict['eid'])).first()
         if item is not None:
             if permitted('question allow current_user participate', {'question': item,

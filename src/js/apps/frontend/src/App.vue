@@ -1,10 +1,18 @@
 <template>
     <div id="app" class="frontend">
-        <template v-if="experiment">
-            {{experiment.title}}
-        </template>
         <template v-if="$store.state.ui.loaded">
-            <template v-if="experiment.firstPage">{{ experiment.firstPage.name }} </template>
+<template v-if="experiment">
+    <h1>{{experiment.title}}</h1>
+    <ul>
+        <template v-for="page in experiment.pages">
+            <li :key="page.id">{{ page.title }}</li>
+        </template>
+    </ul>
+    <div v-if="experiment.firstPage">
+        {{ experiment.firstPage.title }}
+    </div>
+</template>
+<template v-else>
             <page-renderer v-if="currentPage" :page="currentPage"/>
             <study-completed v-else-if="$store.state.progress.completed"/>
             <div v-if="$store.state.ui.busy" class="busy-overlay"></div>
@@ -15,6 +23,7 @@
                     </svg>
                 </button>
             </div>
+</template>
         </template>
         <div v-else class="busy-overlay">
             <div class="loading">

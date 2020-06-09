@@ -8,16 +8,20 @@ import axios, { AxiosResponse } from 'axios';
 import { Experiment } from '@/models/experiment';
 import { Page } from '@/models/page';
 
-import { Config, State, QuestionTypeGroup, QuestionType, Question, Transition,
+import { Config, State, QuestionTypeGroup, QuestionType,
     PageResponses, Participant, NestedStorage} from '@/interfaces';
 import { sessionStoreValue, sessionLoadValue, sessionDeleteValue, localLoadValue, localStoreValue, localDeleteValue } from '@/storage';
 import { Reference, JSONAPIModel } from '@/models/base';
+import { Question } from '@/models/question';
+import { Transition } from '@/models/transition';
 
 Vue.use(Vuex)
 
 const typeMappings = {
     experiments: Experiment,
     pages: Page,
+    questions: Question,
+    transitions: Transition,
 } as {[key: string]: typeof JSONAPIModel};
 
 export default new Vuex.Store({
@@ -77,7 +81,9 @@ export default new Vuex.Store({
         },
 
         setLoaded(state, payload: boolean) {
-            state.ui.loaded = payload;
+            setTimeout(() => {
+                state.ui.loaded = payload;
+            }, 400);
         },
 
         setQuestionTypeGroups(state, payload: QuestionTypeGroup[]) {
@@ -142,20 +148,17 @@ export default new Vuex.Store({
         },
 
         setModelData(state, payload: JSONAPIModel) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            const typeName = payload.constructor.type;
-            if (!state.data[typeName]) {
-                Vue.set(state.data, typeName, {});
+            if (!state.data[payload.type]) {
+                Vue.set(state.data, payload.type, {});
             }
-            Vue.set(state.data[typeName], payload.id, payload);
+            Vue.set(state.data[payload.type], payload.id, payload);
         },
 
-        setNetworkInFlight(state, payload: {id: string; promise: Promise<AxiosResponse> | null}) {
-            if (payload.promise) {
-                Vue.set(state.network, payload.id, payload.promise);
-            } else if (state.network[payload.id]) {
-                Vue.delete(state.network, payload.id)
+        setNetworkInFlight(state, payload: {reference: Reference, promise: Promise<AxiosResponse>}) {
+            if (state.network[payload.reference.type]) {
+                Vue.set(state.network[payload.reference.type], payload.reference.id, payload.promise);
+            } else {
+                Vue.set(state.network, payload.reference.type, {[payload.reference.id]: payload.promise});
             }
         },
     },
@@ -164,13 +167,24 @@ export default new Vuex.Store({
             commit('setConfig', payload);
             commit('setBusy', true);
             try {
-                await Promise.all([
-                    dispatch('loadQuestionTypes'),
-                    dispatch('loadExperiment', state.config.experiment.id),
-                    dispatch('fetchObject', {type: 'experiments', id: state.config.experiment.id}),
-                    //dispatch('loadParticipant'),
-                ]);
-                //dispatch('resetExperiment');
+                await dispatch('fetchObject', {type: 'experiments', id: state.config.experiment.id});
+                const promises = (state.data.experiments[state.config.experiment.id]._relationships.pages?.data as Reference[]).map((ref: Reference) => {
+                    return new Promise<Page>((resolve) => {
+                        dispatch('fetchObject', ref).then((page) => {
+                            const promises = [] as any[];
+                            (page._relationships.questions?.data as Reference[]).forEach((ref: Reference) => {
+                                promises.push(dispatch('fetchObject', ref));
+                            });
+                            (page._relationships.next?.data as Reference[]).forEach((ref: Reference) => {
+                                promises.push(dispatch('fetchObject', ref));
+                            });
+                            Promise.all(promises).then(() => {
+                                resolve(page);
+                            });
+                        });
+                    });
+                });
+                await Promise.all(promises);
                 commit('setLoaded', true);
                 commit('setBusy', false);
                 return Promise.resolve()
@@ -180,155 +194,32 @@ export default new Vuex.Store({
             }
         },
 
-        async fetchUri({ commit, state }, payload: string) {
-            let response = null as AxiosResponse | null;
-            if (state.network[payload]) {
-                return await state.network[payload];
-            } else {
-                const promise = axios.get(payload);
-                commit('setBusy', true);
-                commit('setNetworkInFlight', {id: payload, promise: promise});
-                response = await promise;
-                commit('setNetworkInFlight', {id: payload, promise: null});
-                commit('setBusy', false);
-                return response;
-            }
-        },
-
         async fetchObject({ commit, dispatch, state }, payload: Reference) {
             if (typeMappings[payload.type]) {
-                let url = state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/' + payload.type + '/' + payload.id;
-                if (payload.type === 'experiments') {
-                    url = state.config.api.baseUrl + '/experiments/' + payload.id;
+                if (state.network[payload.type] && state.network[payload.type][payload.id]) {
+                    const response = await state.network[payload.type][payload.id];
+                    if (response) {
+                        return new typeMappings[payload.type](payload.id, response.data.data.attributes, response.data.data.relationships, state.data, dispatch);
+                    } else {
+                        throw 'Null response';
+                    }
+                } else {
+                    let url = state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/' + payload.type + '/' + payload.id;
+                    if (payload.type === 'experiments') {
+                        url = state.config.api.baseUrl + '/experiments/' + payload.id;
+                    }
+                    const promise = axios.get(url);
+                    commit('setNetworkInFlight', {reference: payload, promise: promise});
+                    commit('setBusy', true);
+                    const response = await promise;
+                    const obj = new typeMappings[payload.type](payload.id, response.data.data.attributes, response.data.data.relationships, state.data, dispatch);
+                    commit('setModelData', obj);
+                    commit('setNetworkInFlight', {reference: payload, promise: null});
+                    commit('setBusy', false);
+                    return obj;
                 }
-                const response = await dispatch('fetchUri', url);
-                const obj = new typeMappings[payload.type](payload.id, response.data.data.attributes, response.data.data.relationships, state.data, dispatch);
-                commit('setModelData', obj);
-                return obj;
             } else {
                 throw 'Unknown object class to fetch: ' + payload.type;
-            }
-        },
-
-        async loadQuestionTypes({ commit, state }) {
-            try {
-                commit('setBusy', true);
-                let response = await axios.get(state.config.api.extraUrl + '/question_type_groups');
-                const questionTypeGroups = response.data.data;
-                commit('setQuestionTypeGroups', questionTypeGroups);
-                for (let idx = 0; idx < questionTypeGroups.length; idx++) {
-                    const questionTypeGroup = questionTypeGroups[idx];
-                    try {
-                        commit('setBusy', true);
-                        for (let idx2 = 0; idx2 < questionTypeGroup.relationships['question-types'].data.length; idx2++) {
-                            const questionType = questionTypeGroup.relationships['question-types'].data[idx2];
-                            response = await axios.get(state.config.api.extraUrl + '/question_types/' + questionType.id);
-                            commit('setQuestionType', response.data.data);
-                        }
-                        commit('setBusy', false);
-                    } catch(error) {
-                        commit('setBusy', false);
-                    }
-                }
-                commit('setBusy', false);
-                return Promise.resolve()
-            } catch(error) {
-                commit('setBusy', false);
-                return Promise.reject()
-            }
-        },
-
-        async loadExperiment({ commit, dispatch, state }, payload: string): Promise<Experiment> {
-            commit('setBusy', true);
-            try {
-                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + payload);
-                const experiment = new Experiment(payload,
-                                                  response.data.data.attributes,
-                                                  response.data.data.relationships,
-                                                  state.data,
-                                                  dispatch);
-                /*const promises = [];
-                for (let idx = 0; idx < experiment.pages.data.length; idx++) {
-                    promises.push(dispatch('loadPage', experiment.relationships.pages.data[idx].id));
-                }
-                await Promise.all(promises);*/
-                commit('setExperiment', experiment);
-                commit('setBusy', false);
-                return Promise.resolve(experiment);
-            } catch (error) {
-                return Promise.reject(error);
-            }
-        },
-
-        async loadPage({ commit, dispatch, state }, payload: string) {
-            //commit('setBusy', true);
-            try {
-                console.log('Loading page');
-                const response = await dispatch('fetchUri', state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload);
-                const page = new Page(payload,
-                                      response.data.data.attributes,
-                                      response.data.data.relationships,
-                                      state.data,
-                                      dispatch);
-                commit('setPage', page);
-                /*let existingQuestions = null;
-                if (state.pages[payload]) {
-                    existingQuestions = state.pages[payload].relationships.questions.data.map((questionRef) => {
-                        return questionRef.id
-                    });
-                }
-                const page = response.data.data as Page;
-                commit('setPage', page);
-                const promises = [];
-                for (let idx = 0; idx < page.relationships.next.data.length; idx++) {
-                    promises.push(dispatch('loadTransition', page.relationships.next.data[idx].id));
-                }
-                const newQuestionIds = [] as string[];
-                for (let idx = 0; idx < page.relationships.questions.data.length; idx++) {
-                    newQuestionIds.push(page.relationships.questions.data[idx].id);
-                    promises.push(dispatch('loadQuestion', [payload, page.relationships.questions.data[idx].id]));
-                }
-                // Clear out any deleted questions from the state
-                if (existingQuestions) {
-                    existingQuestions.forEach((qid) => {
-                        if (newQuestionIds.indexOf(qid) < 0) {
-                            commit('deleteQuestion', state.questions[qid]);
-                        }
-                    });
-                }
-                await Promise.all(promises);*/
-                //commit('setBusy', false);
-                return Promise.resolve(page);
-            } catch (error) {
-                //commit('setBusy', false);
-                return Promise.reject(error);
-            }
-        },
-
-        async loadTransition({ commit, state}, payload: string) {
-            try {
-                commit('setBusy', true);
-                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions/' + payload);
-                commit('setTransition', response.data.data);
-                commit('setBusy', false);
-                return Promise.resolve(response.data.data);
-            } catch (error) {
-                commit('setBusy', false);
-                return Promise.reject(error);
-            }
-        },
-
-
-        async loadQuestion({ commit, state }, payload: string[]) {
-            try {
-                commit('setBusy', true);
-                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload[0] + '/questions/' + payload[1]);
-                commit('setQuestion', response.data.data);
-                commit('setBusy', false);
-                return Promise.resolve(response.data.data);
-            } catch (error) {
-                commit('setBusy', false);
-                return Promise.reject(error);
             }
         },
 

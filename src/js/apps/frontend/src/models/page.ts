@@ -1,8 +1,7 @@
-import { Dispatch } from 'vuex';
-
-import { ExperimentReference } from '@/models/experiment';
-import { DataState } from '@/interfaces';
-import { JSONAPIModel } from './base';
+import { JSONAPIModel, attribute, singleRelationship, multiRelationship } from './base';
+import { ExperimentReference } from './experiment';
+import { Question } from './question';
+import { Transition } from './transition';
 
 export interface PagesDict {
     [x: string]: Page;
@@ -23,5 +22,11 @@ export interface PageRelationships {
 }
 
 export class Page extends JSONAPIModel {
-    public static type = 'pages';
+    public type = 'pages';
+
+    @attribute name!: string;
+    @attribute title!: string;
+
+    @multiRelationship questions!: Question[];
+    @multiRelationship next!: Transition[];
 }

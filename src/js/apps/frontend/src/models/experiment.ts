@@ -1,8 +1,5 @@
-import { Dispatch } from 'vuex';
-
-import { DataState } from '@/interfaces';
 import { Page, PageReference } from './page';
-import { JSONAPIModel, Reference, Attributes } from './base';
+import { JSONAPIModel, Reference, Attributes, attribute, singleRelationship, multiRelationship } from './base';
 
 export interface ExperimentReference {
     type: 'experiments';
@@ -20,25 +17,13 @@ export interface ExperimentRelationships {
     pages: { data: PageReference[] };
 }
 
-function attribute(target: JSONAPIModel, key: string): any {
-    return {
-        get: function() { return this._attributes[key]; },
-        set: function(newValue: any) { this._attributes[key] = newValue },
-        enumerable: true,
-        configurable: true,
-    };
-}
-
 export class Experiment extends JSONAPIModel {
-    public static type = 'experiments';
+    public type = 'experiments';
 
     @attribute title!: string;
+    @attribute description!: string;
+    @attribute status!: string;
 
-    /*public get firstPage(): Page | null {
-        if (this._relationships.firstPage) {
-            return this.fetchSingle(this._relationships.firstPage.data as Reference) as Page | null;
-        } else {
-            return null;
-        }
-    }*/
+    @singleRelationship firstPage!: Page | null;
+    @multiRelationship pages!: Page[];
 }
