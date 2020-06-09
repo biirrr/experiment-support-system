@@ -3,16 +3,22 @@
 import deepcopy from 'deepcopy';
 import Vue from 'vue'
 import Vuex from 'vuex'
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
 import { Experiment } from '@/models/experiment';
-import { Page, PageAttributes, PageRelationships } from '@/models/page';
+import { Page } from '@/models/page';
 
 import { Config, State, QuestionTypeGroup, QuestionType, Question, Transition,
     PageResponses, Participant, NestedStorage} from '@/interfaces';
 import { sessionStoreValue, sessionLoadValue, sessionDeleteValue, localLoadValue, localStoreValue, localDeleteValue } from '@/storage';
+import { Reference, JSONAPIModel } from '@/models/base';
 
 Vue.use(Vuex)
+
+const typeMappings = {
+    experiments: Experiment,
+    pages: Page,
+} as {[key: string]: typeof JSONAPIModel};
 
 export default new Vuex.Store({
     state: {
@@ -40,10 +46,8 @@ export default new Vuex.Store({
             responses: {},
         },
         participant: null,
-        data: {
-            experiment: null,
-            pages: {},
-        },
+        data: {},
+        network: {},
         ui: {
             loaded: false,
             busy: false,
@@ -136,6 +140,24 @@ export default new Vuex.Store({
             Vue.set(state, 'participant', payload);
             sessionStoreValue(payload.relationships.experiment.data.id + '.participant', payload.id);
         },
+
+        setModelData(state, payload: JSONAPIModel) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const typeName = payload.constructor.type;
+            if (!state.data[typeName]) {
+                Vue.set(state.data, typeName, {});
+            }
+            Vue.set(state.data[typeName], payload.id, payload);
+        },
+
+        setNetworkInFlight(state, payload: {id: string; promise: Promise<AxiosResponse> | null}) {
+            if (payload.promise) {
+                Vue.set(state.network, payload.id, payload.promise);
+            } else if (state.network[payload.id]) {
+                Vue.delete(state.network, payload.id)
+            }
+        },
     },
     actions: {
         async init({ commit, dispatch, state }, payload: Config) {
@@ -145,6 +167,7 @@ export default new Vuex.Store({
                 await Promise.all([
                     dispatch('loadQuestionTypes'),
                     dispatch('loadExperiment', state.config.experiment.id),
+                    dispatch('fetchObject', {type: 'experiments', id: state.config.experiment.id}),
                     //dispatch('loadParticipant'),
                 ]);
                 //dispatch('resetExperiment');
@@ -154,6 +177,36 @@ export default new Vuex.Store({
             } catch(error) {
                 commit('setBusy', false);
                 return Promise.reject(error);
+            }
+        },
+
+        async fetchUri({ commit, state }, payload: string) {
+            let response = null as AxiosResponse | null;
+            if (state.network[payload]) {
+                return await state.network[payload];
+            } else {
+                const promise = axios.get(payload);
+                commit('setBusy', true);
+                commit('setNetworkInFlight', {id: payload, promise: promise});
+                response = await promise;
+                commit('setNetworkInFlight', {id: payload, promise: null});
+                commit('setBusy', false);
+                return response;
+            }
+        },
+
+        async fetchObject({ commit, dispatch, state }, payload: Reference) {
+            if (typeMappings[payload.type]) {
+                let url = state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/' + payload.type + '/' + payload.id;
+                if (payload.type === 'experiments') {
+                    url = state.config.api.baseUrl + '/experiments/' + payload.id;
+                }
+                const response = await dispatch('fetchUri', url);
+                const obj = new typeMappings[payload.type](payload.id, response.data.data.attributes, response.data.data.relationships, state.data, dispatch);
+                commit('setModelData', obj);
+                return obj;
+            } else {
+                throw 'Unknown object class to fetch: ' + payload.type;
             }
         },
 
@@ -208,13 +261,13 @@ export default new Vuex.Store({
         },
 
         async loadPage({ commit, dispatch, state }, payload: string) {
-            commit('setBusy', true);
+            //commit('setBusy', true);
             try {
                 console.log('Loading page');
-                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload);
+                const response = await dispatch('fetchUri', state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload);
                 const page = new Page(payload,
-                                      response.data.data.attributes as PageAttributes,
-                                      response.data.data.relationships as PageRelationships,
+                                      response.data.data.attributes,
+                                      response.data.data.relationships,
                                       state.data,
                                       dispatch);
                 commit('setPage', page);
@@ -244,10 +297,10 @@ export default new Vuex.Store({
                     });
                 }
                 await Promise.all(promises);*/
-                commit('setBusy', false);
+                //commit('setBusy', false);
                 return Promise.resolve(page);
             } catch (error) {
-                commit('setBusy', false);
+                //commit('setBusy', false);
                 return Promise.reject(error);
             }
         },
@@ -367,7 +420,8 @@ export default new Vuex.Store({
         },
 
         resetExperiment({ commit, state}) {
-            if (state.experiment) {
+            console.log('FIXTHIS');
+            /*if (state.experiment) {
                 const completed = localLoadValue(state.experiment.id + '.completed', false);
                 if (completed) {
                     commit('setCompleted', true);
@@ -385,18 +439,19 @@ export default new Vuex.Store({
                         }
                     }
                 }
-            }
+            }*/
         },
 
         async developmentResetExperiment({ dispatch, commit, state}) {
-            if (state.experiment && state.experiment.attributes.status === 'development') {
+            console.log('FIXTHIS');
+            /*if (state.experiment && state.experiment.attributes.status === 'development') {
                 sessionDeleteValue(state.experiment.id);
                 localDeleteValue(state.experiment.id);
                 commit('setCompleted', false);
                 commit('setResponses', {});
                 await dispatch('loadParticipant');
                 dispatch('resetExperiment');
-            }
+            }*/
         },
     },
     modules: {

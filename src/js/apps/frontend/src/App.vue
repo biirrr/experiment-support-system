@@ -1,7 +1,10 @@
 <template>
     <div id="app" class="frontend">
+        <template v-if="experiment">
+            {{experiment.title}}
+        </template>
         <template v-if="$store.state.ui.loaded">
-            <template v-if="experiment.firstPage">{{ experiment.firstPage.id }} </template>
+            <template v-if="experiment.firstPage">{{ experiment.firstPage.name }} </template>
             <page-renderer v-if="currentPage" :page="currentPage"/>
             <study-completed v-else-if="$store.state.progress.completed"/>
             <div v-if="$store.state.ui.busy" class="busy-overlay"></div>
@@ -40,8 +43,12 @@ import { Page } from './models/page';
     },
 })
 export default class App extends Vue {
-    public get experiment(): Experiment {
-        return this.$store.state.experiment;
+    public get experiment(): Experiment | null {
+        if (this.$store.state.data.experiments) {
+            return this.$store.state.data.experiments[this.$store.state.config.experiment.id];
+        } else {
+            return null;
+        }
     }
 
     public get progress(): number {

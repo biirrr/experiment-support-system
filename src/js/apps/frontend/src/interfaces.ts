@@ -1,5 +1,7 @@
 import { PagesDict } from '@/models/page';
 import { Experiment } from './models/experiment';
+import { AxiosResponse } from 'axios';
+import { JSONAPIModel } from './models/base';
 
 export interface StringKeyValueDict {
     [x: string]: string;
@@ -33,6 +35,7 @@ export interface State { // Needs clean
     progress: ExperimentProgress;
     participant: Participant | null;
     data: DataState;
+    network: NetworkState;
     ui: UIState;
 }
 
@@ -50,10 +53,12 @@ export interface UIState {
 }
 
 export interface DataState {
-    experiment: Experiment | null;
-    pages: PagesDict;
+    [x: string]: {[x: string]: JSONAPIModel};
 }
 
+export interface NetworkState {
+    [x: string]: Promise<AxiosResponse>;
+}
 
 
 
