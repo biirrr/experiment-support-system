@@ -46,6 +46,12 @@ export default {
     },
 
     actions: {
+        async fetchAll({ rootState }: any, payload: string) {
+            const response = await axios.get(rootState.config.api.baseUrl + '/' + payload);
+            console.log('Fetchall');
+            console.log(response);
+        },
+
         async fetchObject({ commit, dispatch, state, rootState }: any, payload: Reference) {
             if (typeMappings[payload.type]) {
                 if (state.network[payload.type] && state.network[payload.type][payload.id]) {

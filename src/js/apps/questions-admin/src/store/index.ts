@@ -2,6 +2,8 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios';
 
+import { vuexAPI } from 'ess-shared';
+
 import { Config, State, QuestionTypeGroup, QuestionType, QuestionTypeReference } from '@/interfaces';
 
 Vue.use(Vuex)
@@ -51,6 +53,7 @@ export default new Vuex.Store({
         async init({ commit, dispatch }, payload: Config) {
             commit('setConfig', payload);
             dispatch('loadQuestionTypes');
+            dispatch('fetchAll', 'question-type-groups');
         },
 
         async loadQuestionTypes({ commit, state }) {
@@ -143,5 +146,6 @@ export default new Vuex.Store({
         },
     },
     modules: {
+        vuexAPI,
     }
 })
