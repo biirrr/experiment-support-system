@@ -5,15 +5,15 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import axios, { AxiosResponse } from 'axios';
 
-import { Experiment } from '@/models/experiment';
-import { Page } from '@/models/page';
-
-import { Config, State, QuestionTypeGroup, QuestionType,
+import { Config, State,
     PageResponses, Participant, NestedStorage} from '@/interfaces';
 import { sessionStoreValue, sessionLoadValue, sessionDeleteValue, localLoadValue, localStoreValue, localDeleteValue } from '@/storage';
-import { Reference, JSONAPIModel } from '@/models/base';
-import { Question } from '@/models/question';
-import { Transition } from '@/models/transition';
+import { Experiment } from '../models/experiment';
+import { Page } from '../models/page';
+import { Reference, JSONAPIModel } from '../models/base';
+import { Question } from '../models/question';
+import { Transition } from '../models/transition';
+import { QuestionType } from '../models/questionType';
 
 Vue.use(Vuex)
 
@@ -22,6 +22,7 @@ const typeMappings = {
     pages: Page,
     questions: Question,
     transitions: Transition,
+    'question-types': QuestionType,
 } as {[key: string]: typeof JSONAPIModel};
 
 export default new Vuex.Store({
@@ -74,7 +75,7 @@ export default new Vuex.Store({
                 if (state.ui.busyCounter === 0) {
                     setTimeout(() => {
                         state.ui.busyMaxCounter = 0;
-                    }, 400);
+                    }, 100);
                 }
             }
             state.ui.busy = state.ui.busyCounter > 0;
@@ -83,58 +84,30 @@ export default new Vuex.Store({
         setLoaded(state, payload: boolean) {
             setTimeout(() => {
                 state.ui.loaded = payload;
-            }, 400);
-        },
-
-        setQuestionTypeGroups(state, payload: QuestionTypeGroup[]) {
-            Vue.set(state, 'questionTypeGroups', payload);
-        },
-
-        setQuestionType(state, payload: QuestionType) {
-            Vue.set(state.questionTypes, payload.id, payload);
-        },
-
-        setExperiment(state, payload: Experiment) {
-            Vue.set(state, 'experiment', payload);
-        },
-
-        setPage(state, payload: Page) {
-            Vue.set(state.data.pages, payload.id, payload);
-        },
-
-        setTransition(state, payload: Transition) {
-            if (payload.id) {
-                Vue.set(state.transitions, payload.id, payload);
-            }
-        },
-
-        setQuestion(state, payload: Question) {
-            Vue.set(state.questions, payload.id, payload);
+            }, 100);
         },
 
         setCurrentPage(state, payload: Page | null) {
             Vue.set(state.progress, 'current', payload);
-            if (state.experiment) {
-                if (payload) {
-                    sessionStoreValue(state.experiment.id + '.progress.currentPage', payload.id)
-                } else {
-                    sessionStoreValue(state.experiment.id + '.progress.currentPage', null)
-                }
+            if (payload) {
+                sessionStoreValue(state.config.experiment.id + '.progress.currentPage', payload.id)
+            } else {
+                sessionStoreValue(state.config.experiment.id + '.progress.currentPage', null)
             }
         },
 
         setCompleted(state, payload: boolean) {
             Vue.set(state.progress, 'completed', payload);
-            if (state.experiment && payload) {
-                sessionDeleteValue(state.experiment.id);
-                localStoreValue(state.experiment.id + '.completed', true);
+            if (payload) {
+                sessionDeleteValue(state.config.experiment.id);
+                localStoreValue(state.config.experiment.id + '.completed', true);
             }
         },
 
         setPageResponses(state, payload: PageResponses) {
             Vue.set(state.progress.responses, payload.page, payload.responses);
-            if (state.experiment) {
-                sessionStoreValue(state.experiment.id + '.responses.' + payload.page, payload.responses as NestedStorage);
+            if (state.config.experiment) {
+                sessionStoreValue(state.config.experiment.id + '.responses.' + payload.page, payload.responses as NestedStorage);
             }
         },
 
@@ -167,8 +140,8 @@ export default new Vuex.Store({
             commit('setConfig', payload);
             commit('setBusy', true);
             try {
-                await dispatch('fetchObject', {type: 'experiments', id: state.config.experiment.id});
-                const promises = (state.data.experiments[state.config.experiment.id]._relationships.pages?.data as Reference[]).map((ref: Reference) => {
+                const experiment = await dispatch('fetchObject', {type: 'experiments', id: state.config.experiment.id});
+                let promises = (state.data.experiments[state.config.experiment.id]._relationships.pages?.data as Reference[]).map((ref: Reference) => {
                     return new Promise<Page>((resolve) => {
                         dispatch('fetchObject', ref).then((page) => {
                             const promises = [] as any[];
@@ -185,9 +158,30 @@ export default new Vuex.Store({
                     });
                 });
                 await Promise.all(promises);
+                if (state.data.questions) {
+                    promises = [];
+                    (Object.values(state.data.questions) as Question[]).forEach((question: Question) => {
+                        promises.push(dispatch('fetchObject', question._relationships.questionType?.data));
+                    });
+                    await Promise.all(promises);
+                    let loadedCount = -1;
+                    while (loadedCount !== Object.values(state.data['question-types']).length) {
+                        promises = [];
+                        (Object.values(state.data['question-types']) as QuestionType[]).forEach((questionType) => {
+                            if (questionType._relationships.parent) {
+                                if (!state.data['question-types'][(questionType._relationships.parent.data as Reference).id]) {
+                                    promises.push(dispatch('fetchObject', questionType._relationships.parent.data));
+                                }
+                            }
+                        });
+                        await Promise.all(promises);
+                        loadedCount = Object.values(state.data['question-types']).length;
+                    }
+                }
                 commit('setLoaded', true);
                 commit('setBusy', false);
-                return Promise.resolve()
+                dispatch('resetExperiment');
+                return Promise.resolve();
             } catch(error) {
                 commit('setBusy', false);
                 return Promise.reject(error);
@@ -207,6 +201,8 @@ export default new Vuex.Store({
                     let url = state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/' + payload.type + '/' + payload.id;
                     if (payload.type === 'experiments') {
                         url = state.config.api.baseUrl + '/experiments/' + payload.id;
+                    } else if (payload.type === 'question-types') {
+                        url = state.config.api.extraUrl + '/question_types/' + payload.id;
                     }
                     const promise = axios.get(url);
                     commit('setNetworkInFlight', {reference: payload, promise: promise});
@@ -310,27 +306,27 @@ export default new Vuex.Store({
             }
         },
 
-        resetExperiment({ commit, state}) {
-            console.log('FIXTHIS');
-            /*if (state.experiment) {
-                const completed = localLoadValue(state.experiment.id + '.completed', false);
+        resetExperiment({ commit, getters, state}) {
+            const experiment = getters.experiment;
+            if (experiment && state.data.pages) {
+                const completed = localLoadValue(experiment.id + '.completed', false);
                 if (completed) {
                     commit('setCompleted', true);
                 } else {
-                    if (state.experiment.relationships['firstPage'] && state.pages[state.experiment.relationships['firstPage'].data.id]) {
-                        const currentPageId = sessionLoadValue(state.experiment.id + '.progress.currentPage', state.experiment.relationships['firstPage'].data.id) as string;
-                        if (state.pages[currentPageId]) {
-                            commit('setCurrentPage', state.pages[currentPageId]);
-                        } else if (state.pages[state.experiment.relationships['firstPage'].data.id]) {
-                            commit('setCurrentPage', state.pages[state.experiment.relationships['firstPage'].data.id]);
+                    if (experiment.firstPage) {
+                        const currentPageId = sessionLoadValue(experiment.id + '.progress.currentPage', experiment.firstPage.id) as string;
+                        if (state.data.pages[currentPageId]) {
+                            commit('setCurrentPage', state.data.pages[currentPageId]);
+                        } else {
+                            commit('setCurrentPage', experiment.firstPage);
                         }
-                        const responses = sessionLoadValue(state.experiment.id + '.responses', null);
+                        const responses = sessionLoadValue(experiment.id + '.responses', null);
                         if (responses) {
                             commit('setResponses', responses);
                         }
                     }
                 }
-            }*/
+            }
         },
 
         async developmentResetExperiment({ dispatch, commit, state}) {
@@ -344,6 +340,14 @@ export default new Vuex.Store({
                 dispatch('resetExperiment');
             }*/
         },
+    },
+    getters: {
+        experiment(state): Experiment | null {
+            if (state.data.experiments && state.data.experiments[state.config.experiment.id]) {
+                return state.data.experiments[state.config.experiment.id] as Experiment;
+            }
+            return null;
+        }
     },
     modules: {
     }

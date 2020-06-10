@@ -1,5 +1,5 @@
 import { Page, PageReference } from './page';
-import { JSONAPIModel, Reference, Attributes, attribute, singleRelationship, multiRelationship } from './base';
+import { JSONAPIModel, attribute, singleRelationship, multiRelationship } from './base';
 
 export interface ExperimentReference {
     type: 'experiments';

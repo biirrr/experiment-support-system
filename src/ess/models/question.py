@@ -35,7 +35,7 @@ class Question(Base):
             'id': str(self.id),
             'attributes': self.attributes,
             'relationships': {
-                'question-type': {
+                'questionType': {
                     'data': {'type': 'question-types',
                              'id': str(self.question_type.id)}
                 },

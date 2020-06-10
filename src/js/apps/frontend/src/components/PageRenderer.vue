@@ -2,7 +2,7 @@
     <section class="grid-container">
         <div class="grid-x grid-padding-x">
             <form v-if="questions && responses" class="cell" @submit="submitForm">
-                <h1>{{ page.attributes.title }}</h1>
+                <h1>{{ page.title }}</h1>
                 <question-renderer v-for="question in questions" :key="question.id" :question="question" v-model="responses[question.id]" :error="errors[question.id]"/>
                 <div class="buttons">
                     <ul class="menu">
@@ -23,7 +23,9 @@ import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
 import deepcopy from 'deepcopy';
 
 import QuestionRenderer from '@/components/QuestionRenderer.vue';
-import { Page, ResponsesDict, ErrorsDict, Error } from '@/interfaces';
+import { ResponsesDict, ErrorsDict, Error } from '@/interfaces';
+import { Page } from '../models/page';
+import { Question } from '../models/question';
 
 @Component({
     components: {
@@ -35,12 +37,10 @@ export default class PageRenderer extends Vue {
     public responses = null as ResponsesDict | null;
     public errors = {} as ErrorsDict;
 
-    public get questions() {
+    public get questions(): Question[] {
         if (this.page) {
-            return this.page.relationships.questions.data.map((questionRef) => {
-                return this.$store.state.questions[questionRef.id];
-            }).filter((question) => {
-                if (question.attributes.essConditional && question.attributes.essConditional.question !== '') {
+            return this.page.questions.filter((question) => {
+                /*if (question.attributes.essConditional && question.attributes.essConditional.question !== '') {
                     const responses = {} as ResponsesDict;
                     (Object.values(this.$store.state.progress.responses) as ResponsesDict[]).forEach((pageResponses) => {
                         Object.entries(pageResponses).forEach(([questionId, response]) => {
@@ -72,22 +72,23 @@ export default class PageRenderer extends Vue {
                     }
                     return false;
                 }
-                return question;
+                return question;*/
+                return true;
             });
         } else {
             return [];
         }
     }
 
-    public get isFirstPage() {
-        return this.$store.state.experiment && this.$store.state.experiment.relationships['first-page'] && this.page.id === this.$store.state.experiment.relationships['first-page'].data.id;
+    public get isFirstPage(): boolean {
+        return this.$store.getters.experiment.firstPage === this.page;
     }
 
-    public get isLastPage() {
-        return this.page.relationships.next.data.length === 0;
+    public get isLastPage(): boolean {
+        return this.page.next.length === 0;
     }
 
-    public get nextButtonLabel() {
+    public get nextButtonLabel(): string {
         if (this.$store.state.ui.busy) {
             if (this.isLastPage) {
                 return 'Saving...';
@@ -105,18 +106,18 @@ export default class PageRenderer extends Vue {
         }
     }
 
-    public mounted() {
+    public mounted(): void {
         this.responses = this.createResponseSet();
         this.errors = {};
     }
 
     @Watch('page')
-    public updatePage() {
+    public updatePage(): void {
         this.responses = this.createResponseSet();
         this.errors = {};
     }
 
-    public async submitForm(ev: Event) {
+    public async submitForm(ev: Event): Promise<void> {
         ev.preventDefault();
         if (this.responses) {
             try {
@@ -125,14 +126,14 @@ export default class PageRenderer extends Vue {
                     await this.$store.dispatch('submitResponses');
                 } else {
                     this.errors = {};
-                    await this.$store.dispatch('validateSubmission', {'page': this.page.id, 'responses': this.validatableResponses(this.responses)});
+                    /*await this.$store.dispatch('validateSubmission', {'page': this.page.id, 'responses': this.validatableResponses(this.responses)});
                     const transition = this.$store.state.transitions[this.page.relationships.next.data[0].id];
                     if (transition) {
                         const page = this.$store.state.pages[transition.relationships.target.data.id];
                         if (page) {
                             this.$store.commit('setCurrentPage', page);
                         }
-                    }
+                    }*/
                 }
             } catch(error) {
                 const errors = {} as ErrorsDict;
@@ -157,10 +158,11 @@ export default class PageRenderer extends Vue {
         }
     }
 
-    private createResponseSet() {
+    private createResponseSet(): ResponsesDict {
         const responses = {} as ResponsesDict;
         this.questions.forEach((question) => {
-            const questionType = this.$store.state.questionTypes[question.relationships['question-type'].data.id];
+            console.log(question);
+            /*const questionType = this.$store.state.questionTypes[question.relationships['question-type'].data.id];
             if (questionType) {
                 let storedValue = undefined as undefined | null | string | string[] | ResponsesDict;
                 if (this.$store.state.progress.responses[this.page.id] && this.$store.state.progress.responses[this.page.id][question.id]) {
@@ -213,7 +215,7 @@ export default class PageRenderer extends Vue {
                         }
                     });
                 }
-            }
+            }*/
         });
         return responses;
     }
@@ -221,7 +223,7 @@ export default class PageRenderer extends Vue {
     /**
      * Filter out undefined responses (which are USEFDisplay questions)
      */
-    private validatableResponses(responses: ResponsesDict) {
+    private validatableResponses(responses: ResponsesDict): ResponsesDict {
         const result = {} as ResponsesDict
         Object.entries(responses).forEach(([key, value]: [string, undefined | null | string | string[] | ResponsesDict]) => {
             if (value !== undefined) {

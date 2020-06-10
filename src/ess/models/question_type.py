@@ -61,7 +61,7 @@ class QuestionType(Base):
             'id': str(self.id),
             'attributes': self.inherited_attributes(),
             'relationships': {
-                'question-type-group': {
+                'questionTypeGoup': {
                     'data': {
                         'type': 'question-type-groups',
                         'id': str(self.question_type_group_id),

@@ -1,5 +1,8 @@
 import { Dispatch } from 'vuex';
-import { DataState } from '@/interfaces';
+
+export interface DataState {
+    [x: string]: {[x: string]: JSONAPIModel};
+}
 
 export interface Reference {
     type: string;
@@ -49,7 +52,7 @@ export function singleRelationship(target: JSONAPIModel, key: string): any {
             return null;
         },
         set: function(newValue: any) {
-            console.log('Test');
+            console.log('FIXME');
         },
         enumerable: true,
         configurable: true,
@@ -74,7 +77,7 @@ export function multiRelationship(target: JSONAPIModel, key: string): any {
             return [];
         },
         set: function(newValue: any) {
-            console.log('Test');
+            console.log('FIXME');
         },
         enumerable: true,
         configurable: true,
@@ -95,13 +98,6 @@ export class JSONAPIModel {
         this._relationships = relationships;
         this.state = state;
         this.dispatch = dispatch;
-
-        /*this.attributes().forEach((attrName) => {
-            Object.defineProperty(this, attrName, {
-                get: () => { return this._attributes[attrName]; },
-                set: (newValue: string | boolean | string[] | number | Attributes) => { this._attributes[attrName] = newValue; }
-            });
-        });*/
     }
 
     public fetchSingle(ref: Reference): JSONAPIModel | null {

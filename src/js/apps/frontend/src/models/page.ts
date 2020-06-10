@@ -29,4 +29,5 @@ export class Page extends JSONAPIModel {
 
     @multiRelationship questions!: Question[];
     @multiRelationship next!: Transition[];
+    @multiRelationship prev!: Transition[];
 }

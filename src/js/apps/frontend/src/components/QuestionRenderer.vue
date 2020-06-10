@@ -1,5 +1,5 @@
 <template>
-    <section v-if="questionType" :id="'question-' + question.id" :class="'question question-type-' + questionType.attributes['_name'] + (error ? ' has-error' : '')">
+    <section v-if="question && question.questionType" :id="'question-' + question.id" :class="'question question-type-' + question.questionType['_core_type'] + (error ? ' has-error' : '')">
         <h2 v-if="attributes.title" :class="attributes.required ? 'required' : ''">
             <svg v-if="error" viewBox="0 0 24 24" class="mdi icon alert">
                 <path d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
@@ -164,7 +164,9 @@ import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import { Question, QuestionTypeAttribute, ResponsesDict, QuestionType } from '@/interfaces';
+import { ResponsesDict } from '@/interfaces';
+import { Question } from '../models/question';
+import { Attributes } from '../models/base';
 
 @Component
 export default class QuestionRenderer extends Vue {
@@ -173,26 +175,18 @@ export default class QuestionRenderer extends Vue {
     @Prop() error!: null | string;
     localValue: null | string | string[] | ResponsesDict = null;
 
-    public get questionType() : QuestionType {
-        return this.$store.state.questionTypes[this.$props.question.relationships['question-type'].data.id];
-    }
-
-    public get attributes() : {[x: string]: string | boolean | string[] | null} {
+    public get attributes(): {[x: string]: string | boolean | string[] | null} {
         const attributes = {} as {[x: string]: string | boolean | string[] | null};
-        if (this.questionType) {
-            Object.entries(this.questionType.attributes).forEach((attr) => {
-                if (!this.$props.question.attributes[attr[0]]) {
-                    if (attr[1] && (attr[1] as QuestionTypeAttribute).source === 'user') {
-                        if ((attr[1] as QuestionTypeAttribute).type === 'booleanValue') {
+        if (this.question.questionType) {
+            Object.entries(this.question.questionType._attributes).forEach((attr) => {
+                if (!this.$props.question._attributes[attr[0]]) {
+                    if (attr[1] && (attr[1] as Attributes).source === 'user') {
+                        if ((attr[1] as Attributes).type === 'booleanValue') {
                             attributes[attr[0]] = false;
-                        } else if ((attr[1] as QuestionTypeAttribute).type === 'listOfValues') {
+                        } else if ((attr[1] as Attributes).type === 'listOfValues') {
                             attributes[attr[0]] = [];
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        } else if ((attr[1] as QuestionTypeAttribute).allowed && (attr[1] as QuestionTypeAttribute).allowed.length > 0) {
-                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                            // @ts-ignore
-                            attributes[attr[0]] = (attr[1] as QuestionTypeAttribute).allowed[0];
+                        } else if ((attr[1] as Attributes).allowed && ((attr[1] as Attributes).allowed as string[]).length > 0) {
+                            attributes[attr[0]] = ((attr[1] as Attributes).allowed as string[])[0];
                         } else {
                             attributes[attr[0]] = '';
                         }
@@ -200,31 +194,32 @@ export default class QuestionRenderer extends Vue {
                         attributes[attr[0]] = null;
                     }
                 } else {
-                    attributes[attr[0]] = this.$props.question.attributes[attr[0]];
+                    attributes[attr[0]] = this.$props.question._attributes[attr[0]];
                 }
             });
         }
         return attributes;
     }
 
-    public get renderType() : string {
-        if (this.questionType && (this.questionType.attributes._name as string).indexOf('USEF') === 0) {
-            return (this.questionType.attributes._name as string);
+    public get renderType(): string {
+        console.log(this.question.questionType);
+        if (this.question.questionType && (this.question.questionType._attributes._core_type as string).indexOf('USEF') === 0) {
+            return (this.question.questionType._attributes._core_type as string);
         } else {
             return 'USEFInvalid'
         }
     }
 
-    public mounted() : void {
+    public mounted(): void {
         this.localValue = deepcopy(this.$props.value);
     }
 
     @Watch('localValue')
-    public valueChange() : void {
+    public valueChange(): void {
         this.$emit('input', this.localValue);
     }
 
-    public zip(valuesA: string[], valuesB: string[]) : [string, string][] {
+    public zip(valuesA: string[], valuesB: string[]): [string, string][] {
         return valuesA.map((value, idx) => {
             if (idx < valuesB.length) {
                 return [value, valuesB[idx]];
