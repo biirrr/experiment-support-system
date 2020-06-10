@@ -8,6 +8,7 @@ import { Question } from "./models/question";
 import { Transition } from "./models/transition";
 import { QuestionType } from "./models/questionType";
 import { JSONAPIModel, Reference, DataState } from "./models/base";
+import { QuestionTypeGroup, QuestionTypeGroupsDict } from './models/questionTypeGroup';
 
 const typeMappings = {
     experiments: Experiment,
@@ -15,6 +16,7 @@ const typeMappings = {
     questions: Question,
     transitions: Transition,
     'question-types': QuestionType,
+    'question-type-groups': QuestionTypeGroup,
 } as {[key: string]: typeof JSONAPIModel};
 
 export interface VuexState {
@@ -46,10 +48,14 @@ export default {
     },
 
     actions: {
-        async fetchAll({ rootState }: any, payload: string) {
+        async fetchAll({ state, dispatch, commit, rootState }: any, payload: string) {
+            commit('setBusy', true);
             const response = await axios.get(rootState.config.api.baseUrl + '/' + payload);
-            console.log('Fetchall');
-            console.log(response);
+            response.data.data.forEach((data: any) => {
+                const obj = new typeMappings[data.type](data.id, data.attributes, data.relationships, state.data, dispatch);
+                commit('setModelData', obj);
+            });
+            commit('setBusy', false);
         },
 
         async fetchObject({ commit, dispatch, state, rootState }: any, payload: Reference) {
@@ -86,7 +92,7 @@ export default {
     getters: {
         // @ts-ignore
         experiment(state: VuexState, getters: any, rootState: any): Experiment | null {
-            if (getters.experiments[rootState.config.experiment.id]) {
+            if (rootState.config && rootState.config.experiment && getters.experiments[rootState.config.experiment.id]) {
                 return getters.experiments[rootState.config.experiment.id] as Experiment;
             }
             return null;
@@ -107,5 +113,13 @@ export default {
                 return {}
             }
         },
+
+        questionTypeGroups(state: VuexState): QuestionTypeGroupsDict {
+            if (state.data['question-type-groups']) {
+                return state.data['question-type-groups'] as QuestionTypeGroupsDict;
+            } else {
+                return {}
+            }
+        }
     }
 }
