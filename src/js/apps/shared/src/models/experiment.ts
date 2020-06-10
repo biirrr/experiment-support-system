@@ -1,6 +1,10 @@
 import { Page, PageReference } from './page';
 import { JSONAPIModel, attribute, singleRelationship, multiRelationship } from './base';
 
+export interface ExperimentsDict {
+    [x: string]: Experiment;
+}
+
 export interface ExperimentReference {
     type: 'experiments';
     id: string;

@@ -29,8 +29,7 @@ import { Component, Vue } from 'vue-property-decorator';
 
 import PageRenderer from '@/components/PageRenderer.vue';
 import StudyCompleted from '@/components/StudyCompleted.vue';
-import { Experiment } from './models/experiment';
-import { Page } from './models/page';
+import { Experiment, Page } from 'ess-shared';
 
 @Component({
     components: {
@@ -40,11 +39,7 @@ import { Page } from './models/page';
 })
 export default class App extends Vue {
     public get experiment(): Experiment | null {
-        if (this.$store.state.data.experiments) {
-            return this.$store.state.data.experiments[this.$store.state.config.experiment.id];
-        } else {
-            return null;
-        }
+        return this.$store.getters.experiment;
     }
 
     public get progress(): number {

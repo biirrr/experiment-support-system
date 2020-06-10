@@ -1,4 +1,4 @@
-import { JSONAPIModel, attribute, singleRelationship, multiRelationship } from './base';
+import { JSONAPIModel, attribute, multiRelationship } from './base';
 import { ExperimentReference } from './experiment';
 import { Question } from './question';
 import { Transition } from './transition';

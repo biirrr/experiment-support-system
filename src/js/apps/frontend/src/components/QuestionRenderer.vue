@@ -165,8 +165,7 @@ import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
 import deepcopy from 'deepcopy';
 
 import { ResponsesDict } from '@/interfaces';
-import { Question } from '../models/question';
-import { Attributes } from '../models/base';
+import { Question, Attributes } from 'ess-shared';
 
 @Component
 export default class QuestionRenderer extends Vue {

@@ -25,6 +25,7 @@ export interface ManyRelationship {
     data: Reference[];
 }
 
+// @ts-ignore: TS6133
 export function attribute(target: JSONAPIModel, key: string): any {
     return {
         get: function() {
@@ -38,6 +39,7 @@ export function attribute(target: JSONAPIModel, key: string): any {
     };
 }
 
+// @ts-ignore: TS6133
 export function singleRelationship(target: JSONAPIModel, key: string): any {
     return {
         get: function() {
@@ -52,13 +54,14 @@ export function singleRelationship(target: JSONAPIModel, key: string): any {
             return null;
         },
         set: function(newValue: any) {
-            console.log('FIXME');
+            console.log(newValue);
         },
         enumerable: true,
         configurable: true,
     }
 }
 
+// @ts-ignore: TS6133
 export function multiRelationship(target: JSONAPIModel, key: string): any {
     return {
         get: function() {
@@ -77,7 +80,7 @@ export function multiRelationship(target: JSONAPIModel, key: string): any {
             return [];
         },
         set: function(newValue: any) {
-            console.log('FIXME');
+            console.log(newValue);
         },
         enumerable: true,
         configurable: true,

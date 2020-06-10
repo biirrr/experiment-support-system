@@ -1,4 +1,4 @@
-import { JSONAPIModel, attribute, singleRelationship } from './base';
+import { JSONAPIModel, singleRelationship } from './base';
 
 export interface QuestionTypeAttribute {
     label: string;

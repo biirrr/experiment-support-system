@@ -8,12 +8,8 @@ import axios, { AxiosResponse } from 'axios';
 import { Config, State,
     PageResponses, Participant, NestedStorage} from '@/interfaces';
 import { sessionStoreValue, sessionLoadValue, sessionDeleteValue, localLoadValue, localStoreValue, localDeleteValue } from '@/storage';
-import { Experiment } from '../models/experiment';
-import { Page } from '../models/page';
-import { Reference, JSONAPIModel } from '../models/base';
-import { Question } from '../models/question';
-import { Transition } from '../models/transition';
-import { QuestionType } from '../models/questionType';
+import { JSONAPIModel, Experiment, Page, Question, Transition, QuestionType, Reference, vuexAPI } from 'ess-shared';
+
 
 Vue.use(Vuex)
 
@@ -39,20 +35,12 @@ export default new Vuex.Store({
                 id: '',
             },
         },
-        experiment: null,
-        pages: {},
-        transitions: {},
-        questionTypeGroups: [],
-        questionTypes: {},
-        questions: {},
         progress: {
             current: null,
             completed: true,
             responses: {},
         },
         participant: null,
-        data: {},
-        network: {},
         ui: {
             loaded: false,
             busy: false,
@@ -119,31 +107,17 @@ export default new Vuex.Store({
             Vue.set(state, 'participant', payload);
             sessionStoreValue(payload.relationships.experiment.data.id + '.participant', payload.id);
         },
-
-        setModelData(state, payload: JSONAPIModel) {
-            if (!state.data[payload.type]) {
-                Vue.set(state.data, payload.type, {});
-            }
-            Vue.set(state.data[payload.type], payload.id, payload);
-        },
-
-        setNetworkInFlight(state, payload: {reference: Reference, promise: Promise<AxiosResponse>}) {
-            if (state.network[payload.reference.type]) {
-                Vue.set(state.network[payload.reference.type], payload.reference.id, payload.promise);
-            } else {
-                Vue.set(state.network, payload.reference.type, {[payload.reference.id]: payload.promise});
-            }
-        },
     },
     actions: {
-        async init({ commit, dispatch, state }, payload: Config) {
+        async init({ commit, dispatch, getters, state }, payload: Config) {
             commit('setConfig', payload);
             commit('setBusy', true);
             try {
-                const experiment = await dispatch('fetchObject', {type: 'experiments', id: state.config.experiment.id});
-                let promises = (state.data.experiments[state.config.experiment.id]._relationships.pages?.data as Reference[]).map((ref: Reference) => {
+                await dispatch('fetchObject', {type: 'experiments', id: state.config.experiment.id});
+                let promises = (state.vuexAPI.data.experiments[state.config.experiment.id]._relationships.pages?.data as Reference[]).map((ref: Reference) => {
                     return new Promise<Page>((resolve) => {
                         dispatch('fetchObject', ref).then((page) => {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             const promises = [] as any[];
                             (page._relationships.questions?.data as Reference[]).forEach((ref: Reference) => {
                                 promises.push(dispatch('fetchObject', ref));
@@ -158,26 +132,27 @@ export default new Vuex.Store({
                     });
                 });
                 await Promise.all(promises);
-                if (state.data.questions) {
+                if (state.vuexAPI.data.questions) {
                     promises = [];
-                    (Object.values(state.data.questions) as Question[]).forEach((question: Question) => {
+                    (Object.values(state.vuexAPI.data.questions) as unknown as Question[]).forEach((question: Question) => {
                         promises.push(dispatch('fetchObject', question._relationships.questionType?.data));
                     });
                     await Promise.all(promises);
                     let loadedCount = -1;
-                    while (loadedCount !== Object.values(state.data['question-types']).length) {
+                    while (loadedCount !== Object.values(state.vuexAPI.data['question-types']).length) {
                         promises = [];
-                        (Object.values(state.data['question-types']) as QuestionType[]).forEach((questionType) => {
+                        (Object.values(state.vuexAPI.data['question-types']) as unknown as QuestionType[]).forEach((questionType) => {
                             if (questionType._relationships.parent) {
-                                if (!state.data['question-types'][(questionType._relationships.parent.data as Reference).id]) {
+                                if (!state.vuexAPI.data['question-types'][(questionType._relationships.parent.data as Reference).id]) {
                                     promises.push(dispatch('fetchObject', questionType._relationships.parent.data));
                                 }
                             }
                         });
                         await Promise.all(promises);
-                        loadedCount = Object.values(state.data['question-types']).length;
+                        loadedCount = Object.values(state.vuexAPI.data['question-types']).length;
                     }
                 }
+                console.log(getters.experiment);
                 commit('setLoaded', true);
                 commit('setBusy', false);
                 dispatch('resetExperiment');
@@ -185,37 +160,6 @@ export default new Vuex.Store({
             } catch(error) {
                 commit('setBusy', false);
                 return Promise.reject(error);
-            }
-        },
-
-        async fetchObject({ commit, dispatch, state }, payload: Reference) {
-            if (typeMappings[payload.type]) {
-                if (state.network[payload.type] && state.network[payload.type][payload.id]) {
-                    const response = await state.network[payload.type][payload.id];
-                    if (response) {
-                        return new typeMappings[payload.type](payload.id, response.data.data.attributes, response.data.data.relationships, state.data, dispatch);
-                    } else {
-                        throw 'Null response';
-                    }
-                } else {
-                    let url = state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/' + payload.type + '/' + payload.id;
-                    if (payload.type === 'experiments') {
-                        url = state.config.api.baseUrl + '/experiments/' + payload.id;
-                    } else if (payload.type === 'question-types') {
-                        url = state.config.api.extraUrl + '/question_types/' + payload.id;
-                    }
-                    const promise = axios.get(url);
-                    commit('setNetworkInFlight', {reference: payload, promise: promise});
-                    commit('setBusy', true);
-                    const response = await promise;
-                    const obj = new typeMappings[payload.type](payload.id, response.data.data.attributes, response.data.data.relationships, state.data, dispatch);
-                    commit('setModelData', obj);
-                    commit('setNetworkInFlight', {reference: payload, promise: null});
-                    commit('setBusy', false);
-                    return obj;
-                }
-            } else {
-                throw 'Unknown object class to fetch: ' + payload.type;
             }
         },
 
@@ -308,15 +252,15 @@ export default new Vuex.Store({
 
         resetExperiment({ commit, getters, state}) {
             const experiment = getters.experiment;
-            if (experiment && state.data.pages) {
+            if (experiment && state.vuexAPI.data.pages) {
                 const completed = localLoadValue(experiment.id + '.completed', false);
                 if (completed) {
                     commit('setCompleted', true);
                 } else {
                     if (experiment.firstPage) {
                         const currentPageId = sessionLoadValue(experiment.id + '.progress.currentPage', experiment.firstPage.id) as string;
-                        if (state.data.pages[currentPageId]) {
-                            commit('setCurrentPage', state.data.pages[currentPageId]);
+                        if (state.vuexAPI.data.pages[currentPageId]) {
+                            commit('setCurrentPage', state.vuexAPI.data.pages[currentPageId]);
                         } else {
                             commit('setCurrentPage', experiment.firstPage);
                         }
@@ -341,14 +285,7 @@ export default new Vuex.Store({
             }*/
         },
     },
-    getters: {
-        experiment(state): Experiment | null {
-            if (state.data.experiments && state.data.experiments[state.config.experiment.id]) {
-                return state.data.experiments[state.config.experiment.id] as Experiment;
-            }
-            return null;
-        }
-    },
     modules: {
-    }
+        vuexAPI
+    },
 })

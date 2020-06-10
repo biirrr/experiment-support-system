@@ -24,8 +24,7 @@ import deepcopy from 'deepcopy';
 
 import QuestionRenderer from '@/components/QuestionRenderer.vue';
 import { ResponsesDict, ErrorsDict, Error } from '@/interfaces';
-import { Page } from '../models/page';
-import { Question } from '../models/question';
+import { Page, Question } from 'ess-shared';
 
 @Component({
     components: {

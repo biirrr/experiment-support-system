@@ -1,4 +1,4 @@
-import { JSONAPIModel, attribute, singleRelationship } from './base';
+import { JSONAPIModel, singleRelationship } from './base';
 import { QuestionType } from './questionType';
 
 export class Question extends JSONAPIModel {

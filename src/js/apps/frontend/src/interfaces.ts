@@ -1,6 +1,5 @@
 import { AxiosResponse } from 'axios';
-import { DataState } from './models/base';
-import { Page } from './models/page';
+import { Page, VuexState } from 'ess-shared';
 
 export interface StringKeyValueDict {
     [x: string]: string;
@@ -27,9 +26,8 @@ export interface State {
     config: Config;
     progress: ExperimentProgress;
     participant: Participant | null;
-    data: DataState;
-    network: NetworkState;
     ui: UIState;
+    vuexAPI: VuexState;
 }
 
 export interface ExperimentProgress {
