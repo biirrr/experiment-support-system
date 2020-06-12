@@ -1,20 +1,25 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 
-import { vuexAPI } from 'ess-shared';
-import { Config } from '@/interfaces';
+import { Config, State } from '@/interfaces';
+import { dataStoreModule, JSONAPIObject } from 'data-store';
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
     state: {
         config: {
-            api: {
-                baseUrl: '',
+            dataStore: {
+                apiBaseUrl: '',
                 csrfToken: '',
             },
         },
-    },
+        ui: {
+            busy: false,
+            busyCounter: 0,
+            busyMaxCounter: 0,
+        },
+    } as State,
 
     mutations: {
         setConfig(state, payload: Config) {
@@ -22,7 +27,24 @@ export default new Vuex.Store({
         },
 
         setBusy(state, payload: boolean) {
-            console.log(payload);
+            state.ui.busy = payload;
+            if (payload) {
+                state.ui.busyCounter = state.ui.busyCounter + 1;
+                state.ui.busyMaxCounter = state.ui.busyMaxCounter + 1;
+            } else {
+                state.ui.busyCounter = state.ui.busyCounter - 1;
+            }
+            if (state.ui.busyCounter === 0) {
+                state.ui.busyMaxCounter = 0;
+            }
+        },
+
+        setObject(state: State, payload: JSONAPIObject) {
+            if (!state.dataStore.data[payload.type]) {
+                Vue.set(state.dataStore.data, payload.type, {[payload.id]: payload});
+            } else {
+                Vue.set(state.dataStore.data[payload.type], payload.id, payload);
+            }
         },
     },
 
@@ -34,6 +56,6 @@ export default new Vuex.Store({
     },
 
     modules: {
-        vuexAPI,
+        dataStore: dataStoreModule,
     }
 })

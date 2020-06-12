@@ -14,7 +14,7 @@ def includeme(config):
     config.add_route('experiment.edit', '/experiments/:eid/edit')
     config.add_route('experiment.results.download', '/experiments/:eid/results/download')
 
-    config.add_route('api', '/api')
+    config.add_route('api.internal', '/api/internal')
     config.add_route('api.experiment.item.get', '/api/experiments/:eid', request_method='GET')
     config.add_route('api.experiment.item.patch', '/api/experiments/:eid', request_method='PATCH')
     config.add_route('api.experiment.item.delete', '/api/experiments/:eid', request_method='DELETE')
@@ -34,11 +34,19 @@ def includeme(config):
     config.add_route('api.question.item.delete', '/api/experiments/:eid/pages/:pid/questions/:qid',
                      request_method='DELETE')
     config.add_route('api.result.item.get', '/api/experiments/:eid/results/:pid', request_method='GET')
-    config.add_route('api.question_type_group.collection.get', '/api/question-type-groups', request_method='GET')
-    config.add_route('api.question_type_group.item.patch', '/api/question_type_groups/:qtgid', request_method='PATCH')
-    config.add_route('api.question_type.item.get', '/api/question_types/:qtid', request_method='GET')
-    config.add_route('api.question_type.item.patch', '/api/question_types/:qtid', request_method='PATCH')
-    config.add_route('api.question_type.item.delete', '/api/question_types/:qtid', request_method='DELETE')
+
+    config.add_route('api.internal.question_type_group.collection.get',
+                     '/api/internal/question-type-groups',
+                     request_method='GET')
+    config.add_route('api.internal.question_type_group.item.patch',
+                     '/api/internal/question-type-groups/:qtgid',
+                     request_method='PATCH')
+    config.add_route('api.internal.question_type.item.get',
+                     '/api/internal/question-types/:qtid',
+                     request_method='GET')
+    config.add_route('api.internal.question_type.item.patch',
+                     '/api/internal/question-types/:qtid',
+                     request_method='PATCH')
 
     config.add_route('experiment.run', '/run/:eid')
     config.add_route('experiment.run.api', '/run/api')

@@ -8,7 +8,7 @@ from pwh_permissions.pyramid import require_permission
 from . import type_schema, id_schema, relationship_schema, validated_body, store_object
 
 
-@view_config(route_name='api.question_type_group.collection.get', renderer='json')
+@view_config(route_name='api.internal.question_type_group.collection.get', renderer='json')
 def get_collection(request):
     """Handles fetching all :class:`~ess.models.question_type_group.QuestionTypeGroup`."""
     return {'data': [qtg.as_jsonapi()
@@ -30,7 +30,7 @@ patch_question_type_group_schema = {'type': type_schema('question-type-groups'),
                                                                                      many=True)}}}
 
 
-@view_config(route_name='api.question_type_group.item.patch', renderer='json')
+@view_config(route_name='api.internal.question_type_group.item.patch', renderer='json')
 @require_permission('$current_user has_permission admin.question_types')
 def patch_item(request):
     """Handles updating a single :class:`~ess.models.question_type_group.QuestionTypeGroup`."""

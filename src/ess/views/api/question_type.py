@@ -1,10 +1,10 @@
 from collections import OrderedDict
 from copy import deepcopy
 from pwh_permissions.pyramid import require_permission
-from pyramid.httpexceptions import HTTPNotFound, HTTPNoContent, HTTPClientError
+from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config
 
-from ess.models import QuestionType, Question
+from ess.models import QuestionType
 from ess.util import Validator
 
 from . import type_schema, id_schema, relationship_schema, links_schema, validated_body, store_object
@@ -82,7 +82,7 @@ def import_question_type(data, dbsession, remap=True):
                                                                              for question in data['data']])).all()
 
 
-@view_config(route_name='api.question_type.item.get', renderer='json')
+@view_config(route_name='api.internal.question_type.item.get', renderer='json')
 def get_item(request):
     """Handles fetching a single :class:`~ess.models.question_type.QuestionType`."""
     item = request.dbsession.query(QuestionType).filter(QuestionType.id == request.matchdict['qtid']).first()
@@ -95,7 +95,7 @@ def get_item(request):
 patch_question_type_schema = {'type': type_schema('question-types'),
                               'attributes': {'type': 'dict',
                                              'required': True,
-                                             'keysrules': {'type': 'string', 'regex': '[_\\-a-z]+'}},
+                                             'keysrules': {'type': 'string', 'regex': '[a-zA-Z0-9]+'}},
                               'relationships': {'type': 'dict',
                                                 'required': True,
                                                 'schema': {'question-type-group':
@@ -105,7 +105,7 @@ patch_question_type_schema = {'type': type_schema('question-types'),
                                                            relationship_schema('question-types')}}}
 
 
-@view_config(route_name='api.question_type.item.patch', renderer='json')
+@view_config(route_name='api.internal.question_type.item.patch', renderer='json')
 @require_permission('$current_user has_permission admin.question_types')
 def patch_item(request):
     """Handles updating a single :class:`~ess.models.question_type.QuestionType`."""
@@ -115,11 +115,13 @@ def patch_item(request):
         schema['id'] = id_schema(fixed_value=request.matchdict['qtid'])
         body = validated_body(request, schema)
         enabled = True
-        if '_enabled' in body['data']['attributes']:
-            enabled = body['data']['attributes']['_enabled']
-            del body['data']['attributes']['_enabled']
-        if '_position' in body['data']['attributes']:
-            del body['data']['attributes']['_position']
+        if 'essEnabled' in body['data']['attributes']:
+            enabled = body['data']['attributes']['essEnabled']
+            del body['data']['attributes']['essEnabled']
+        if 'essPosition' in body['data']['attributes']:
+            del body['data']['attributes']['essPosition']
+        if 'essCoreType' in body['data']['attributes']:
+            del body['data']['attributes']['essCoreType']
         obj = store_object(request, body, overrides={'enabled': enabled})
         return {'data': obj.as_jsonapi()}
     else:
@@ -132,19 +134,3 @@ def get_subtree_ids(questionType):
     for child in questionType.children:
         result.extend(get_subtree_ids(child))
     return result
-
-
-@view_config(route_name='api.question_type.item.delete', renderer='json')
-@require_permission('$current_user has_permission admin.question_types')
-def delete_item(request):
-    """Handles deleting a single :class:`~ess.models.question_type.QuestionType`."""
-    item = request.dbsession.query(QuestionType).filter(QuestionType.id == request.matchdict['qtid']).first()
-    if item is not None:
-        id_list = get_subtree_ids(item)
-        if request.dbsession.query(Question).filter(Question.question_type_id.in_(id_list)).count() > 0:
-            raise HTTPClientError()
-        else:
-            request.dbsession.delete(item)
-            return HTTPNoContent()
-    else:
-        raise HTTPNotFound()

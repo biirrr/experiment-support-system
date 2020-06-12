@@ -1,15 +1,17 @@
-import { VuexState } from 'ess-shared';
+import { DataStoreState, DataStoreConfig } from 'data-store';
 
 export interface State {
     config: Config;
-    vuexAPI: VuexState;
+    dataStore: DataStoreState;
+    ui: UIState;
 }
 
 export interface Config {
-    api: APIConfig;
+    dataStore: DataStoreConfig;
 }
 
-export interface APIConfig {
-    baseUrl: string;
-    csrfToken: string;
+export interface UIState {
+    busy: boolean;
+    busyCounter: number;
+    busyMaxCounter: number;
 }
