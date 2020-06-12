@@ -38,14 +38,6 @@ export default new Vuex.Store({
                 state.ui.busyMaxCounter = 0;
             }
         },
-
-        setObject(state: State, payload: JSONAPIObject) {
-            if (!state.dataStore.data[payload.type]) {
-                Vue.set(state.dataStore.data, payload.type, {[payload.id]: payload});
-            } else {
-                Vue.set(state.dataStore.data[payload.type], payload.id, payload);
-            }
-        },
     },
 
     actions: {

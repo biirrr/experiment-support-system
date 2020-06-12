@@ -1,5 +1,4 @@
-//import Vue from 'vue';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { Dispatch } from 'vuex';
 
 export interface JSONAPIObject {
@@ -24,6 +23,7 @@ export interface Reference {
 
 export interface DataStoreState {
     data: {[x: string]: {[x: string]: JSONAPIObject}};
+    inFlight: {[x: string]: {[x: string]: Promise<AxiosResponse> | null}};
 }
 
 export interface DataStoreConfig {
@@ -53,16 +53,25 @@ export function getAll(dispatch: Dispatch, state: DataStoreState, refs: Referenc
 export default {
     state: {
         data: {},
-    } as DataStoreState,
+        inFlight: {},
+    },
 
     mutations: {
-/*        setObject(state: DataStoreState, payload: JSONAPIObject) {
-            if (!state.data[payload.type]) {
-                Vue.set(state.data, payload.type, {[payload.id]: payload});
+        setObject(state: DataStoreState, payload: JSONAPIObject) {
+            if (state.data[payload.type]) {
+                state.data[payload.type] = { ...state.data[payload.type], [payload.id]: payload };
             } else {
-                Vue.set(state.data[payload.type], payload.id, payload);
+                state.data = { ...state.data, [payload.type]: { [payload.id]: payload } };
             }
-        },*/
+        },
+
+        toggleInFlight(state: DataStoreState, payload: {ref: Reference, promise: Promise<AxiosResponse> | null }) {
+            if (state.inFlight[payload.ref.type]) {
+                state.inFlight[payload.ref.type] = { ...state.inFlight[payload.ref.type], [payload.ref.id]: payload.promise };
+            } else {
+                state.inFlight = { ...state.inFlight, [payload.ref.type]: { [payload.ref.id]: payload.promise }};
+            }
+        },
     },
 
     actions: {
@@ -75,11 +84,20 @@ export default {
             commit('setBusy', false);
         },
 
-        async fetchSingle({ commit, rootState }: any, payload: Reference) {
-            commit('setBusy', true);
-            const response = await axios.get(rootState.config.dataStore.apiBaseUrl + '/' + payload.type + '/' + payload.id);
-            commit('setObject', response.data.data);
-            commit('setBusy', false);
+        async fetchSingle({ state, commit, rootState }: any, payload: Reference) {
+            if (state.inFlight[payload.type] && state.inFlight[payload.type][payload.id]) {
+                const response = await state.inFlight[payload.type][payload.id];
+                return response.data.data;
+            } else {
+                const request = axios.get(rootState.config.dataStore.apiBaseUrl + '/' + payload.type + '/' + payload.id);
+                commit('toggleInFlight', {ref: payload, promise: request});
+                commit('setBusy', true);
+                const response = await request;
+                commit('setObject', response.data.data);
+                commit('setBusy', false);
+                commit('toggleInFlight', {ref: payload, promise: null});
+                return response.data.data;
+            }
         },
 
         async saveSingle({ commit, rootState }: any, payload: JSONAPIObject) {
