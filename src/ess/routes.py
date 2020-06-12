@@ -1,3 +1,21 @@
+def generate_api_routes(config, base_type, data_type):
+    config.add_route(f'api.{base_type}.{data_type.replace("-", "_")[:-1]}.collection.get',
+                     f'/api/{base_type}/{data_type}',
+                     request_method='GET')
+    config.add_route(f'api.{base_type}.{data_type.replace("-", "_")[:-1]}.collection.post',
+                     f'/api/{base_type}/{data_type}',
+                     request_method='POST')
+    config.add_route(f'api.{base_type}.{data_type.replace("-", "_")[:-1]}.item.get',
+                     f'/api/{base_type}/{data_type}/:iid',
+                     request_method='GET')
+    config.add_route(f'api.{base_type}.{data_type.replace("-", "_")[:-1]}.item.patch',
+                     f'/api/{base_type}/{data_type}/:iid',
+                     request_method='PATCH')
+    config.add_route(f'api.{base_type}.{data_type.replace("-", "_")[:-1]}.item.delete',
+                     f'/api/{base_type}/{data_type}/:iid',
+                     request_method='DELETE')
+
+
 def includeme(config):
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('root', '/')
@@ -35,18 +53,8 @@ def includeme(config):
                      request_method='DELETE')
     config.add_route('api.result.item.get', '/api/experiments/:eid/results/:pid', request_method='GET')
 
-    config.add_route('api.internal.question_type_group.collection.get',
-                     '/api/internal/question-type-groups',
-                     request_method='GET')
-    config.add_route('api.internal.question_type_group.item.patch',
-                     '/api/internal/question-type-groups/:qtgid',
-                     request_method='PATCH')
-    config.add_route('api.internal.question_type.item.get',
-                     '/api/internal/question-types/:qtid',
-                     request_method='GET')
-    config.add_route('api.internal.question_type.item.patch',
-                     '/api/internal/question-types/:qtid',
-                     request_method='PATCH')
+    generate_api_routes(config, 'internal', 'question-types')
+    generate_api_routes(config, 'internal', 'question-type-groups')
 
     config.add_route('experiment.run', '/run/:eid')
     config.add_route('experiment.run.api', '/run/api')

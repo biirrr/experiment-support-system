@@ -85,7 +85,7 @@ def import_question_type(data, dbsession, remap=True):
 @view_config(route_name='api.internal.question_type.item.get', renderer='json')
 def get_item(request):
     """Handles fetching a single :class:`~ess.models.question_type.QuestionType`."""
-    item = request.dbsession.query(QuestionType).filter(QuestionType.id == request.matchdict['qtid']).first()
+    item = request.dbsession.query(QuestionType).filter(QuestionType.id == request.matchdict['iid']).first()
     if item is not None:
         return {'data': item.as_jsonapi()}
     else:
@@ -109,10 +109,10 @@ patch_question_type_schema = {'type': type_schema('question-types'),
 @require_permission('$current_user has_permission admin.question_types')
 def patch_item(request):
     """Handles updating a single :class:`~ess.models.question_type.QuestionType`."""
-    item = request.dbsession.query(QuestionType).filter(QuestionType.id == request.matchdict['qtid']).first()
+    item = request.dbsession.query(QuestionType).filter(QuestionType.id == request.matchdict['iid']).first()
     if item is not None:
         schema = deepcopy(patch_question_type_schema)
-        schema['id'] = id_schema(fixed_value=request.matchdict['qtid'])
+        schema['id'] = id_schema(fixed_value=request.matchdict['iid'])
         body = validated_body(request, schema)
         enabled = True
         if 'essEnabled' in body['data']['attributes']:
