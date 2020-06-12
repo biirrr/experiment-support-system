@@ -1,9 +1,11 @@
+import { DataStoreConfig, DataStoreState } from 'data-store';
+
 export interface StringKeyValueDict {
     [x: string]: string;
 }
 
 export interface Config {
-    api: ApiConfig;
+    dataStore: DataStoreConfig;
     experiment: ExperimentConfig;
 }
 
@@ -20,14 +22,8 @@ export interface ExperimentConfig {
 
 export interface State {
     config: Config;
-    experiment: Experiment | null;
-    pages: PageDict;
-    transitions: TransitionDict;
-    questionTypeGroups: QuestionTypeGroup[];
-    questionTypes: QuestionTypeDict;
-    questions: QuestionsDict;
-    results: ResultsDict;
     ui: UIState;
+    dataStore: DataStoreState;
 }
 
 export interface UIState {

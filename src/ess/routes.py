@@ -33,9 +33,10 @@ def includeme(config):
     config.add_route('experiment.results.download', '/experiments/:eid/results/download')
 
     config.add_route('api.internal', '/api/internal')
-    config.add_route('api.experiment.item.get', '/api/experiments/:eid', request_method='GET')
-    config.add_route('api.experiment.item.patch', '/api/experiments/:eid', request_method='PATCH')
-    config.add_route('api.experiment.item.delete', '/api/experiments/:eid', request_method='DELETE')
+    generate_api_routes(config, 'internal', 'question-types')
+    generate_api_routes(config, 'internal', 'question-type-groups')
+    generate_api_routes(config, 'internal', 'experiments')
+
     config.add_route('api.page.collection.post', '/api/experiments/:eid/pages', request_method='POST')
     config.add_route('api.page.item.get', '/api/experiments/:eid/pages/:pid', request_method='GET')
     config.add_route('api.page.item.patch', '/api/experiments/:eid/pages/:pid', request_method='PATCH')
@@ -52,9 +53,6 @@ def includeme(config):
     config.add_route('api.question.item.delete', '/api/experiments/:eid/pages/:pid/questions/:qid',
                      request_method='DELETE')
     config.add_route('api.result.item.get', '/api/experiments/:eid/results/:pid', request_method='GET')
-
-    generate_api_routes(config, 'internal', 'question-types')
-    generate_api_routes(config, 'internal', 'question-type-groups')
 
     config.add_route('experiment.run', '/run/:eid')
     config.add_route('experiment.run.api', '/run/api')

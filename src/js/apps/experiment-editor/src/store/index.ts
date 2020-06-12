@@ -4,6 +4,7 @@ import axios from 'axios';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import deepcopy from 'deepcopy';
+import { dataStoreModule, Reference, JSONAPIObject } from 'data-store';
 
 import { Config, State, Experiment, Page, CreatePageAction, QuestionTypeGroup, QuestionType,
     AddQuestionAction, Question, LoadQuestionAction, Transition, Result } from '@/interfaces';
@@ -13,8 +14,8 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         config: {
-            api: {
-                baseUrl: '',
+            dataStore: {
+                apiBaseUrl: '',
                 csrfToken: '',
             },
             experiment: {
@@ -23,13 +24,6 @@ export default new Vuex.Store({
                 downloadResultsUrl: '',
             }
         },
-        experiment: null,
-        pages: {},
-        transitions: {},
-        questionTypeGroups: [],
-        questionTypes: {},
-        questions: {},
-        results: {},
         ui: {
             busy: false,
             busyCounter: 0,
@@ -56,140 +50,36 @@ export default new Vuex.Store({
             }
             state.ui.busy = state.ui.busyCounter > 0;
         },
-
-        setQuestionTypeGroups(state, payload: QuestionTypeGroup[]) {
-            Vue.set(state, 'questionTypeGroups', payload);
-        },
-
-        setQuestionType(state, payload: QuestionType) {
-            Vue.set(state.questionTypes, payload.id, payload);
-        },
-
-        setExperiment(state, payload: Experiment) {
-            Vue.set(state, 'experiment', payload);
-        },
-
-        setPage(state, payload: Page) {
-            Vue.set(state.pages, payload.id, payload);
-            if (state.experiment) {
-                if (!state.experiment.relationships) {
-                    state.experiment.relationships = {pages: {data: []}};
-                }
-                if (!state.experiment.relationships.pages) {
-                    state.experiment.relationships.pages = {data: []};
-                }
-                let found = false;
-                for (let idx = 0; idx < state.experiment.relationships.pages.data.length; idx++) {
-                    const page = state.experiment.relationships.pages.data[idx];
-                    if (page.id === payload.id) {
-                        found = true;
-                        state.experiment.relationships.pages.data[idx] = {
-                            type: payload.type,
-                            id: payload.id,
-                        };
-                        break;
-                    }
-                }
-                if (!found) {
-                    state.experiment.relationships.pages.data.push({
-                        type: payload.type,
-                        id: payload.id,
-                    });
-                }
-            }
-        },
-
-        deletePage(state, payload: Page) {
-            Vue.delete(state.pages, payload.id);
-        },
-
-        setTransition(state, payload: Transition) {
-            if (payload.id) {
-                Vue.set(state.transitions, payload.id, payload);
-            }
-        },
-
-        setQuestion(state, payload: Question) {
-            Vue.set(state.questions, payload.id, payload);
-        },
-
-        deleteQuestion(state, payload: Question) {
-            Vue.delete(state.questions, payload.id);
-        },
-
-        setResult(state, payload: Result) {
-            Vue.set(state.results, payload.id, payload);
-        },
     },
 
     actions: {
         async init({ commit, dispatch }, payload: Config) {
             commit('setConfig', payload);
-            try {
-                commit('setBusy', true);
-                await Promise.all([dispatch('loadQuestionTypes'), dispatch('loadExperiment')]);
-                commit('setBusy', false);
-                return Promise.resolve()
-            } catch(error) {
-                commit('setBusy', false);
-                return Promise.reject(error);
-            }
+            await Promise.all([dispatch('loadQuestionTypes'), dispatch('loadExperiment')]);
         },
 
         async loadQuestionTypes({ dispatch, commit, state }) {
-            try {
-                commit('setBusy', true);
-                const response = await axios.get(state.config.api.baseUrl + '/question_type_groups');
-                const questionTypeGroups = response.data.data;
-                commit('setQuestionTypeGroups', questionTypeGroups);
-                const promises = [];
-                for (let idx = 0; idx < questionTypeGroups.length; idx++) {
-                    const questionTypeGroup = questionTypeGroups[idx];
-                    for (let idx2 = 0; idx2 < questionTypeGroup.relationships['question-types'].data.length; idx2++) {
-                        promises.push(dispatch('loadQuestionType', questionTypeGroup.relationships['question-types'].data[idx2].id));
-                    }
-                }
-                await Promise.all(promises);
-                commit('setBusy', false);
-                return Promise.resolve();
-            } catch(error) {
-                commit('setBusy', false);
-                return Promise.reject(error);
-            }
+            const questionTypeGroups = await dispatch('fetchAll', 'question-type-groups');
+            const promises = [] as any[];
+            questionTypeGroups.forEach((questionTypeGroup: JSONAPIObject) => {
+                (questionTypeGroup.relationships['question-types'].data as Reference[]).forEach((ref: Reference) => {
+                    promises.push(dispatch('fetchSingle', ref));
+                });
+            })
+            await Promise.all(promises);
+            return questionTypeGroups;
         },
 
-        async loadQuestionType({ commit, state}, payload: string) {
-            try {
-                commit('setBusy', true);
-                const response = await axios.get(state.config.api.baseUrl + '/question_types/' + payload);
-                commit('setQuestionType', response.data.data);
-                commit('setBusy', false);
-                return Promise.resolve(response.data.data);
-            } catch(error) {
-                commit('setBusy', true);
-                return Promise.reject(error);
-            }
+        async loadExperiment({ dispatch, state }) {
+            const experiment = await dispatch('fetchSingle', { type: 'experiments', id: state.config.experiment.id })
+            return experiment;
         },
 
-        async loadExperiment({ commit, dispatch, state }) {
-            commit('setBusy', true);
-            try {
-                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id);
-                const experiment = response.data.data as Experiment;
-                commit('setExperiment', experiment);
-                const promises = [];
-                for (let idx = 0; idx < experiment.relationships.pages.data.length; idx++) {
-                    promises.push(dispatch('loadPage', experiment.relationships.pages.data[idx].id));
-                }
-                await Promise.all(promises);
-                commit('setBusy', false);
-                return Promise.resolve(experiment);
-            } catch (error) {
-                commit('setBusy', false);
-                return Promise.reject(error);
-            }
+        async updateExperiment({ dispatch, state }, payload: JSONAPIObject) {
+            const experiment = await dispatch('saveSingle', payload);
         },
 
+/*
         async loadPage({ commit, dispatch, state }, payload: string) {
             commit('setBusy', true);
             try {
@@ -583,8 +473,20 @@ export default new Vuex.Store({
                 commit('setBusy', false);
                 return Promise.reject(error.response.data.errors);
             }
+        }*/
+    },
+
+    getters: {
+        experiment(state) {
+            if (state.dataStore.data.experiments && state.dataStore.data.experiments[state.config.experiment.id]) {
+                return state.dataStore.data.experiments[state.config.experiment.id];
+            } else {
+                return null;
+            }
         }
     },
+
     modules: {
+        dataStore: dataStoreModule,
     }
 })

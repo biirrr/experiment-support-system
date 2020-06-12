@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosResponse, AxiosError } from 'axios';
 import { Dispatch } from 'vuex';
 
 export interface JSONAPIObject {
@@ -31,6 +31,20 @@ export interface DataStoreConfig {
     csrfToken: string;
 }
 
+export interface ErrorDict {
+    [x: string]: string;
+}
+
+export interface JSONAPIError {
+    title: string;
+    source: JSONAPIErrorSource;
+}
+
+export interface JSONAPIErrorSource {
+    pointer: string;
+}
+
+
 export function getSingle(dispatch: Dispatch, state: DataStoreState, ref: Reference): JSONAPIObject | null {
     if (state.data[ref.type] && state.data[ref.type][ref.id]) {
         return state.data[ref.type][ref.id];
@@ -48,6 +62,18 @@ export function getAll(dispatch: Dispatch, state: DataStoreState, refs: Referenc
     }).filter((obj) => {
         return obj !== null;
     }) as JSONAPIObject[];
+}
+
+export function errorsToDict(errors: AxiosError): ErrorDict {
+    if (errors.response) {
+        return errors.response.data.errors.reduce((obj: ErrorDict, error: JSONAPIError) => {
+            const pointer = error.source.pointer.split('/');
+            obj[pointer[pointer.length - 1]] = error.title;
+            return obj;
+        }, {});
+    } else {
+        return {};
+    }
 }
 
 export default {
@@ -77,11 +103,17 @@ export default {
     actions: {
         async fetchAll({ commit, rootState }: any, payload: string) {
             commit('setBusy', true);
-            const response = await axios.get(rootState.config.dataStore.apiBaseUrl + '/' + payload);
-            response.data.data.forEach((item: JSONAPIObject) => {
-                commit('setObject', item);
-            });
-            commit('setBusy', false);
+            try {
+                const response = await axios.get(rootState.config.dataStore.apiBaseUrl + '/' + payload);
+                response.data.data.forEach((item: JSONAPIObject) => {
+                    commit('setObject', item);
+                });
+                commit('setBusy', false);
+                return response.data.data;
+            } catch(error) {
+                commit('setBusy', false);
+                return Promise.reject(error);
+            }
         },
 
         async fetchSingle({ state, commit, rootState }: any, payload: Reference) {
@@ -89,31 +121,43 @@ export default {
                 const response = await state.inFlight[payload.type][payload.id];
                 return response.data.data;
             } else {
-                const request = axios.get(rootState.config.dataStore.apiBaseUrl + '/' + payload.type + '/' + payload.id);
-                commit('toggleInFlight', {ref: payload, promise: request});
-                commit('setBusy', true);
-                const response = await request;
-                commit('setObject', response.data.data);
-                commit('setBusy', false);
-                commit('toggleInFlight', {ref: payload, promise: null});
-                return response.data.data;
+                try {
+                    const request = axios.get(rootState.config.dataStore.apiBaseUrl + '/' + payload.type + '/' + payload.id);
+                    commit('toggleInFlight', {ref: payload, promise: request});
+                    commit('setBusy', true);
+                    const response = await request;
+                    commit('setObject', response.data.data);
+                    commit('setBusy', false);
+                    commit('toggleInFlight', {ref: payload, promise: null});
+                    return response.data.data;
+                } catch(error) {
+                    commit('setBusy', false);
+                    commit('toggleInFlight', {ref: payload, promise: null});
+                    return Promise.reject(error);
+                }
             }
         },
 
         async saveSingle({ commit, rootState }: any, payload: JSONAPIObject) {
             commit('setBusy', true);
-            const response = await axios({
-                method: 'patch',
-                url: rootState.config.dataStore.apiBaseUrl + '/' + payload.type + '/' + payload.id,
-                data: {
-                    data: payload
-                },
-                headers: {
-                    'X-CSRF-TOKEN': rootState.config.dataStore.csrfToken,
-                }
-            });
-            commit('setObject', response.data.data);
-            commit('setBusy', false);
+            try {
+                const response = await axios({
+                    method: 'patch',
+                    url: rootState.config.dataStore.apiBaseUrl + '/' + payload.type + '/' + payload.id,
+                    data: {
+                        data: payload
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': rootState.config.dataStore.csrfToken,
+                    }
+                });
+                commit('setObject', response.data.data);
+                commit('setBusy', false);
+                return response.data.data;
+            } catch(error) {
+                commit('setBusy', false);
+                return Promise.reject(error);
+            }
         },
     },
 };
