@@ -151,14 +151,6 @@ export interface UpdateAttribute {
     value: string;
 }
 
-export interface CreatePageAction {
-    mode: 'first' | 'after';
-    name: string;
-    title: string;
-    parentPageId: string | null;
-}
-
-
 export interface Error {
     title: string;
     source: ErrorSource;
@@ -197,14 +189,20 @@ export interface Question {
 }
 
 export interface QuestionAttributes {
+    [x: string]: string | string[] | QuestionAttributes;
 }
 
 export interface QuestionRelationships {
     page: QuestionPageRelationship;
+    'question-type': QuestionQuestionTypeRelationship;
 }
 
 export interface QuestionPageRelationship {
     data: PageReference;
+}
+
+export interface QuestionQuestionTypeRelationship {
+    data: QuestionTypeReference;
 }
 
 export interface QuestionReference {
@@ -253,20 +251,8 @@ export interface QuestionTypeGroupReference {
     id: string;
 }
 
-export interface AddQuestionAction {
-    questionType: QuestionType;
-    page: Page;
-    idx: number;
-    errors?: (errors: Error[]) => {};
-}
-
 export interface QuestionsDict {
     [x: string]: Question;
-}
-
-export interface LoadQuestionAction {
-    pageId: number;
-    questionId: number;
 }
 
 export interface ResultsDict {
@@ -279,7 +265,7 @@ export interface Result {
 }
 
 export interface AddQuestionMenuStructure {
-    id: number;
+    id: string;
     title: string;
     questionTypes: QuestionType[];
 }

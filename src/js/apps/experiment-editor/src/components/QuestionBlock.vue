@@ -1,5 +1,5 @@
 <template>
-    <question-editor v-if="editing" :question="question" @close="endEditing"/>
+    <question-editor v-if="editing" :page="page" :question="question" @close="endEditing"/>
     <section v-else class="grid-x">
         <div class="cell large-auto">
             <question-renderer :question="question"/>
@@ -23,7 +23,7 @@
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
 
-import { Question } from '@/interfaces';
+import { Page, Question } from '@/interfaces';
 import AriaMenubar from '@/components/AriaMenubar.vue';
 import QuestionRenderer from '@/components/QuestionRenderer.vue';
 import QuestionEditor from '@/components/QuestionEditor.vue';
@@ -36,6 +36,7 @@ import QuestionEditor from '@/components/QuestionEditor.vue';
     },
 })
 export default class QuestionBlock extends Vue {
+    @Prop() page!: Page;
     @Prop() question!: Question;
     public editing = false;
 

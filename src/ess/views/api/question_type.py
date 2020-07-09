@@ -82,7 +82,8 @@ def import_question_type(data, dbsession, remap=True):
                                                                              for question in data['data']])).all()
 
 
-@view_config(route_name='api.internal.question_type.item.get', renderer='json')
+@view_config(route_name='api.admin.question_type.item.get', renderer='json')
+@view_config(route_name='api.backend.question_type.item.get', renderer='json')
 def get_item(request):
     """Handles fetching a single :class:`~ess.models.question_type.QuestionType`."""
     item = request.dbsession.query(QuestionType).filter(QuestionType.id == request.matchdict['iid']).first()
@@ -105,7 +106,7 @@ patch_question_type_schema = {'type': type_schema('question-types'),
                                                            relationship_schema('question-types')}}}
 
 
-@view_config(route_name='api.internal.question_type.item.patch', renderer='json')
+@view_config(route_name='api.admin.question_type.item.patch', renderer='json')
 @require_permission('$current_user has_permission admin.question_types')
 def patch_item(request):
     """Handles updating a single :class:`~ess.models.question_type.QuestionType`."""

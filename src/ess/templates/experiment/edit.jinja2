@@ -14,7 +14,7 @@
 <script id="ExperimentEditorConfig" type="application/json">
 {
   "dataStore": {
-    "apiBaseUrl": "{{ 'api.internal'|route_url }}",
+    "apiBaseUrl": "{{ 'api.backend'|route_url(eid=experiment.id) }}",
     "csrfToken": "{{ get_csrf_token() }}"
   },
   "experiment": {

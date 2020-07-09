@@ -91,6 +91,14 @@ export default {
             }
         },
 
+        deleteObject(state: DataStoreState, payload: JSONAPIObject | Reference) {
+            if (state.data[payload.type]) {
+                state.data[payload.type] = Object.fromEntries(Object.entries(state.data[payload.type]).filter((entry) => {
+                    return entry[1].id !== payload.id;
+                }));
+            }
+        },
+
         toggleInFlight(state: DataStoreState, payload: {ref: Reference, promise: Promise<AxiosResponse> | null }) {
             if (state.inFlight[payload.ref.type]) {
                 state.inFlight[payload.ref.type] = { ...state.inFlight[payload.ref.type], [payload.ref.id]: payload.promise };
@@ -116,7 +124,7 @@ export default {
             }
         },
 
-        async fetchSingle({ state, commit, rootState }: any, payload: Reference) {
+        async fetchSingle({ state, commit, rootState }: any, payload: JSONAPIObject | Reference) {
             if (state.inFlight[payload.type] && state.inFlight[payload.type][payload.id]) {
                 const response = await state.inFlight[payload.type][payload.id];
                 return response.data.data;
@@ -138,6 +146,28 @@ export default {
             }
         },
 
+        async createSingle({ commit, rootState }: any, payload: JSONAPIObject) {
+            commit('setBusy', true);
+            try {
+                const response = await axios({
+                    method: 'post',
+                    url: rootState.config.dataStore.apiBaseUrl + '/' + payload.type,
+                    data: {
+                        data: payload
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': rootState.config.dataStore.csrfToken,
+                    }
+                });
+                commit('setObject', response.data.data);
+                commit('setBusy', false);
+                return response.data.data;
+            } catch(error) {
+                commit('setBusy', false);
+                return Promise.reject(error);
+            }
+        },
+
         async saveSingle({ commit, rootState }: any, payload: JSONAPIObject) {
             commit('setBusy', true);
             try {
@@ -154,6 +184,25 @@ export default {
                 commit('setObject', response.data.data);
                 commit('setBusy', false);
                 return response.data.data;
+            } catch(error) {
+                commit('setBusy', false);
+                return Promise.reject(error);
+            }
+        },
+
+        async deleteSingle({ commit, rootState}: any, payload: JSONAPIObject | Reference) {
+            commit('setBusy', true);
+            try {
+                await axios({
+                    method: 'delete',
+                    url: rootState.config.dataStore.apiBaseUrl + '/' + payload.type + '/' + payload.id,
+                    headers: {
+                        'X-CSRF-TOKEN': rootState.config.dataStore.csrfToken,
+                    }
+                });
+                commit('deleteObject', payload);
+                commit('setBusy', false);
+                return true;
             } catch(error) {
                 commit('setBusy', false);
                 return Promise.reject(error);

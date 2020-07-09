@@ -69,22 +69,22 @@ import { Page, TransitionReference, Experiment } from '@/interfaces';
     },
 })
 export default class Pages extends Vue {
-    public get experiment() : Experiment {
-        return this.$store.state.experiment;
+    public get experiment(): Experiment | null {
+        return this.$store.getters.experiment;
     }
 
-    public get firstPage() : Page | null {
-        if (this.experiment && this.experiment.relationships['first-page']) {
-            return this.$store.state.pages[this.experiment.relationships['first-page'].data.id];
+    public get firstPage(): Page | null {
+        if (this.experiment && this.experiment.relationships['first-page'] && this.$store.state.dataStore.data.pages) {
+            return this.$store.state.dataStore.data.pages[this.experiment.relationships['first-page'].data.id];
         } else {
             return null;
         }
     }
 
-    public get pages() : Page[] {
-        if (this.firstPage) {
+    public get pages(): Page[] {
+        if (this.firstPage && this.$store.state.dataStore.transitions) {
             const pages = this.flattenPages(this.firstPage);
-            (Object.values(this.$store.state.pages) as Page[]).forEach((page: Page) => {
+            (Object.values(this.$store.state.dataStore.data.pages) as Page[]).forEach((page: Page) => {
                 let found = false;
                 pages.forEach((existing) => {
                     if (page.id === existing.id) {
@@ -96,19 +96,25 @@ export default class Pages extends Vue {
                 }
             });
             return pages as Page[];
+        } else if (this.$store.state.dataStore.data.pages) {
+            return Object.values(this.$store.state.dataStore.data.pages);
         } else {
-            return Object.values(this.$store.state.pages);
+            return [];
         }
     }
 
-    public get isCurrentRoute() : boolean {
+    public get isCurrentRoute(): boolean {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         return this.$route.name === 'pages';
     }
 
     public pageForTransitionId(id: string) : Page | null {
-        const transition = this.$store.state.transitions[id];
-        if (transition) {
-            return this.$store.state.pages[transition.relationships.target.data.id];
+        if (this.$store.state.dataStore.data.transitions) {
+            const transition = this.$store.state.dataStore.data.transitions[id];
+            if (transition) {
+                return this.$store.state.dataStore.data.pages[transition.relationships.target.data.id];
+            }
         }
         return null;
     }
@@ -123,9 +129,9 @@ export default class Pages extends Vue {
         let pages = [page];
         if (page.relationships.next) {
             page.relationships.next.data.forEach((transRef: TransitionReference) => {
-                const transition = this.$store.state.transitions[transRef.id];
+                const transition = this.$store.state.dataStore.data.transitions[transRef.id];
                 if (transition && transition.relationships.target) {
-                    const next = this.$store.state.pages[transition.relationships.target.data.id];
+                    const next = this.$store.state.dataStore.data.pages[transition.relationships.target.data.id];
                     if (next) {
                         pages = pages.concat(this.flattenPages(next));
                     }

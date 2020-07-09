@@ -27,14 +27,22 @@ export default class PageTransitions extends Vue {
     public errors: StringKeyValueDict = {};
     public newTransition: Transition | null = null;
 
-    public get page() : Page {
-        return this.$store.state.pages[this.$route.params.pid];
+    public get page(): Page | null {
+        if (this.$store.state.dataStore.data.pages) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const page = this.$store.state.dataStore.data.pages[this.$route.params.pid];
+            if (page) {
+                return page;
+            }
+        }
+        return null;
     }
 
     public get transitions() : Transition[] {
-        if (this.page && this.page.relationships && this.page.relationships.next) {
+        if (this.page && this.page.relationships && this.page.relationships.next && this.$store.state.dataStore.data.transitions) {
             return this.page.relationships.next.data.map((transitionRef: TransitionReference) => {
-                return this.$store.state.transitions[transitionRef.id];
+                return this.$store.state.dataStore.data.transitions[transitionRef.id];
             }).filter((transition: Transition | null) => { return transition; });
         } else {
             return [];
@@ -42,24 +50,26 @@ export default class PageTransitions extends Vue {
     }
 
     public addTransition() : void {
-        this.newTransition = {
-            type: 'transitions',
-            attributes: {},
-            relationships: {
-                source: {
-                    data: {
-                        type: 'pages',
-                        id: this.page.id,
+        if (this.page) {
+            this.newTransition = {
+                type: 'transitions',
+                attributes: {},
+                relationships: {
+                    source: {
+                        data: {
+                            type: 'pages',
+                            id: this.page.id,
+                        },
+                    },
+                    target: {
+                        data: {
+                            type: 'pages',
+                            id: '',
+                        },
                     },
                 },
-                target: {
-                    data: {
-                        type: 'pages',
-                        id: '',
-                    },
-                },
-            },
-        };
+            };
+        }
     }
 
     public newTransitionCreated() : void {

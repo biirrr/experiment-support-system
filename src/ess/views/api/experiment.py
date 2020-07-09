@@ -1,6 +1,8 @@
 from pwh_permissions import permitted
+from pwh_permissions.pyramid import require_permission
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.view import view_config
+from sqlalchemy import and_
 
 from ess.models import Experiment
 from . import (validated_body, type_schema, id_schema, relationship_schema, store_object)
@@ -16,21 +18,15 @@ def check_permission(action, experiment, current_user):
         raise HTTPForbidden()
 
 
-@view_config(route_name='api.internal.experiment.item.get', renderer='json')
-def get_item(request):
+@view_config(route_name='api.backend.experiment.item.get', renderer='json')
+@require_permission('Experiment:eid allow $current_user edit')
+def backend_get_item(request):
     """Handles fetching a single :class:`~ess.models.experiment.Experiment`."""
-    if request.matched_route.name == 'api.external.experiment.item.get':
-        experiment = request.dbsession.query(Experiment)\
-            .filter(Experiment.external_id == request.matchdict['iid']).first()
-        if experiment is not None:
-            check_permission('participate', experiment, request.current_user)
-            return {'data': experiment.as_jsonapi(external=True)}
-    elif request.matched_route.name == 'api.internal.experiment.item.get':
-        experiment = request.dbsession.query(Experiment)\
-            .filter(Experiment.id == request.matchdict['iid']).first()
-        if experiment is not None:
-            check_permission('view', experiment, request.current_user)
-            return {'data': experiment.as_jsonapi()}
+    experiment = request.dbsession.query(Experiment)\
+        .filter(and_(Experiment.id == request.matchdict['eid'],
+                     Experiment.id == request.matchdict['iid'])).first()
+    if experiment is not None:
+        return {'data': experiment.as_jsonapi()}
     raise HTTPNotFound()
 
 
@@ -54,8 +50,9 @@ patch_experiment_schema = {'type': type_schema('experiments'),
                                                         'pages': relationship_schema('pages', many=True)}}}
 
 
-@view_config(route_name='api.internal.experiment.item.patch', renderer='json')
-def patch_item(request):
+@view_config(route_name='api.backend.experiment.item.patch', renderer='json')
+@require_permission('Experiment:eid allow $current_user edit')
+def backend_patch_item(request):
     experiment = request.dbsession.query(Experiment).filter(Experiment.id == request.matchdict['iid']).first()
     if experiment:
         check_permission('edit', experiment, request.current_user)

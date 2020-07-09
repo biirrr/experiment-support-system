@@ -7,11 +7,11 @@ from sqlalchemy import and_
 from ess.models import Page, Participant
 
 
-@view_config(route_name='api.result.item.get', renderer='json')
+@view_config(route_name='api.backend.result.item.get', renderer='json')
 @require_permission('Experiment:eid allow $current_user edit')
-def get_item(request):
+def backend_get_item(request):
     """Handles fetching the results for a single :class:`~ess.models.page.Page`."""
-    page_id = request.matchdict['pid']
+    page_id = request.matchdict['iid']
     page = request.dbsession.query(Page).filter(and_(Page.id == page_id,
                                                      Page.experiment_id == request.matchdict['eid'])).first()
     if page is not None:
@@ -20,7 +20,7 @@ def get_item(request):
             .filter(and_(Participant.experiment_id == request.matchdict['eid'],
                          Participant.completed == True))  # noqa: E712
         for question in page.questions:
-            core_type = question.question_type.inherited_attributes()['_core_type']
+            core_type = question.question_type.inherited_attributes()['essCoreType']
             if core_type in ['USEFSingleLineInput', 'USEFMultiLineInput', 'USEFHidden']:
                 results = []
                 for participant in participants:

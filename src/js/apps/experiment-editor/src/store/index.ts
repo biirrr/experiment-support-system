@@ -1,13 +1,11 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import axios from 'axios';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import deepcopy from 'deepcopy';
+import deepequal from 'deep-equal';
 import { dataStoreModule, Reference, JSONAPIObject } from 'data-store';
 
-import { Config, State, Experiment, Page, CreatePageAction, QuestionTypeGroup, QuestionType,
-    AddQuestionAction, Question, LoadQuestionAction, Transition, Result } from '@/interfaces';
+import { Config, State, Experiment, Page, Question, Transition } from '@/interfaces';
 
 Vue.use(Vuex)
 
@@ -58,9 +56,9 @@ export default new Vuex.Store({
             await Promise.all([dispatch('loadQuestionTypes'), dispatch('loadExperiment')]);
         },
 
-        async loadQuestionTypes({ dispatch, commit, state }) {
+        async loadQuestionTypes({ dispatch }) {
             const questionTypeGroups = await dispatch('fetchAll', 'question-type-groups');
-            const promises = [] as any[];
+            const promises = [] as Promise<true>[];
             questionTypeGroups.forEach((questionTypeGroup: JSONAPIObject) => {
                 (questionTypeGroup.relationships['question-types'].data as Reference[]).forEach((ref: Reference) => {
                     promises.push(dispatch('fetchSingle', ref));
@@ -71,409 +69,150 @@ export default new Vuex.Store({
         },
 
         async loadExperiment({ dispatch, state }) {
-            const experiment = await dispatch('fetchSingle', { type: 'experiments', id: state.config.experiment.id })
+            const oldExperiment = state.dataStore.data.experiments ? state.dataStore.data.experiments[state.config.experiment.id] : null;
+            const experiment = await dispatch('fetchSingle', { type: 'experiments', id: state.config.experiment.id });
+            if (!deepequal(oldExperiment, experiment, {strict: true})) {
+                const promises = experiment.relationships.pages.data.map((pageRef: Reference) => {
+                    return dispatch('loadPage', pageRef);
+                });
+                await Promise.all(promises);
+            }
             return experiment;
         },
 
-        async updateExperiment({ dispatch, state }, payload: JSONAPIObject) {
-            const experiment = await dispatch('saveSingle', payload);
-        },
-
-/*
-        async loadPage({ commit, dispatch, state }, payload: string) {
-            commit('setBusy', true);
-            try {
-                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload);
-                let existingQuestions = null;
-                if (state.pages[payload]) {
-                    existingQuestions = state.pages[payload].relationships.questions.data.map((questionRef) => {
-                        return questionRef.id
-                    });
-                }
-                const page = response.data.data as Page;
-                commit('setPage', page);
-                const promises = [];
-                for (let idx = 0; idx < page.relationships.next.data.length; idx++) {
-                    promises.push(dispatch('loadTransition', page.relationships.next.data[idx].id));
-                }
-                const newQuestionIds = [] as string[];
-                for (let idx = 0; idx < page.relationships.questions.data.length; idx++) {
-                    newQuestionIds.push(page.relationships.questions.data[idx].id);
-                    promises.push(dispatch('loadQuestion', {
-                        pageId: payload,
-                        questionId: page.relationships.questions.data[idx].id
-                    }));
-                }
+        async saveExperiment({ dispatch, state }, experiment: Experiment) {
+            const oldExperiment = state.dataStore.data.experiments ? state.dataStore.data.experiments[state.config.experiment.id] : null;
+            experiment = await dispatch('saveSingle', experiment);
+            if (!oldExperiment || !deepequal(oldExperiment.relationships, experiment.relationships, {strict: true})) {
+                const promises = experiment.relationships.pages.data.map((pageRef: Reference) => {
+                    return dispatch('loadPage', pageRef);
+                });
                 await Promise.all(promises);
-                // Clear out any deleted questions from the state
-                if (existingQuestions) {
-                    existingQuestions.forEach((qid) => {
-                        if (newQuestionIds.indexOf(qid) < 0) {
-                            commit('deleteQuestion', state.questions[qid]);
-                        }
-                    });
-                }
-                dispatch('loadResult', page.id);
-                commit('setBusy', false);
-                return Promise.resolve(page);
-            } catch (error) {
-                commit('setBusy', false);
-                return Promise.reject(error);
             }
+            return experiment;
         },
 
-        async loadTransition({ commit, state}, payload: string) {
-            try {
-                commit('setBusy', true);
-                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions/' + payload);
-                commit('setTransition', response.data.data);
-                commit('setBusy', false);
-                return Promise.resolve(response.data.data);
-            } catch (error) {
-                commit('setBusy', false);
-                return Promise.reject(error);
-            }
-        },
-
-
-        async loadQuestion({ commit, state }, payload: LoadQuestionAction) {
-            try {
-                commit('setBusy', true);
-                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.pageId + '/questions/' + payload.questionId);
-                commit('setQuestion', response.data.data);
-                commit('setBusy', false);
-                return Promise.resolve(response.data.data);
-            } catch (error) {
-                commit('setBusy', false);
-                return Promise.reject(error);
-            }
-        },
-
-        async loadResults({ commit, dispatch, state}) {
-            try {
-                commit('setBusy', true);
-                const promises = [];
-                const pages = Object.values(state.pages);
-                for (let idx = 0; idx < pages.length; idx++) {
-                    promises.push(dispatch('loadResult', pages[idx].id));
-                }
+        async loadPage({ dispatch, state }, pageRef: Reference) {
+            const oldPage = state.dataStore.data.pages ? this.state.dataStore.data.pages[pageRef.id] : null;
+            const page = await dispatch('fetchSingle', pageRef);
+            if (!oldPage || !deepequal(oldPage.relationships, page.relationships, {strict: true})) {
+                let promises = page.relationships.next.data.map((transitionRef: Reference) => {
+                    return dispatch('loadTransition', transitionRef);
+                });
+                promises = promises.concat(page.relationships.questions.data.map((questionRef: Reference) => {
+                    return dispatch('loadQuestion', questionRef);
+                }));
                 await Promise.all(promises);
-                commit('setBusy', false);
-                return Promise.resolve();
-            } catch(error) {
-                commit('setBusy', false);
-                return Promise.reject(error);
             }
+            return page;
         },
 
-        async loadResult({ commit, state }, payload: string) {
-            try {
-                commit('setBusy', true);
-                const response = await axios.get(state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/results/' + payload);
-                commit('setResult', response.data.data);
-                commit('setBusy', false);
-                return Promise.resolve(response.data.data);
-            } catch(error) {
-                commit('setBusy', false);
-                return Promise.reject(error);
-            }
+        async createPage({ dispatch }, page: Page) {
+            page = await dispatch('createSingle', page);
+            await dispatch('loadExperiment');
+            return page;
         },
 
-        async updateExperiment({ commit, state }, payload: Experiment) {
-            try {
-                commit('setBusy', true);
-                const response = await axios({
-                    method: 'patch',
-                    url: state.config.api.baseUrl + '/experiments/' + payload.id,
-                    data: {
-                        data: payload,
-                    },
-                    headers: {
-                        'X-CSRF-TOKEN': state.config.api.csrfToken,
-                    }
+        async savePage({ dispatch, state }, page: Page) {
+            const oldPage = state.dataStore.data.pages ? this.state.dataStore.data.pages[page.id] : null;
+            page = await dispatch('saveSingle', page);
+            if (!oldPage || !deepequal(oldPage.relationships, page.relationships, {strict: true})) {
+                let promises = page.relationships.next.data.map((transitionRef: Reference) => {
+                    return dispatch('loadTransition', transitionRef);
                 });
-                commit('setExperiment', response.data.data);
-                commit('setBusy', false);
-                return Promise.resolve(response.data.data);
-            } catch (error) {
-                commit('setBusy', false);
-                return Promise.reject(error.response.data.errors);
+                promises = promises.concat(page.relationships.questions.data.map((questionRef: Reference) => {
+                    return dispatch('loadQuestion', questionRef);
+                }));
+                await Promise.all(promises);
             }
         },
 
-        async createPage({ commit, dispatch, state}, payload: CreatePageAction) {
-            try {
-                commit('setBusy', true);
-                let response = await axios({
-                    method: 'post',
-                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages',
-                    data: {
-                        data: {
-                            type: 'pages',
-                            attributes: {
-                                name: payload.name,
-                                title: payload.title,
-                            }
-                        }
-                    },
-                    headers: {
-                        'X-CSRF-TOKEN': state.config.api.csrfToken,
-                    },
+        async deletePage({ dispatch }, page: Page) {
+            let promises = [] as Promise<true>[];
+            if (page.relationships.next) {
+                promises = page.relationships.next.data.map((transitionRef: Reference) => {
+                    return dispatch('deleteSingle', transitionRef);
                 });
-                const page = response.data.data
-                commit('setPage', page);
-                if (payload.mode === 'first') {
-                    // For a new first page, set the appropriate attribute
-                    const experiment = deepcopy(state.experiment);
-                    if (!experiment.relationships) {
-                        experiment.relationships = {};
-                    }
-                    if (!experiment.relationships['first-page']) {
-                        experiment.relationships['first-page'] = {data: {}};
-                    }
-                    experiment.relationships['first-page'].data = {
-                        type: 'pages',
-                        id: page.id,
-                    };
-                    dispatch('updateExperiment', experiment);
-                } else {
-                    // For a new page after an existing page, add a transition
-                    dispatch('updateExperiment', state.experiment);
-                    response = await axios({
-                        method: 'post',
-                        url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions',
-                        data: {
-                            data: {
-                                type: 'transitions',
-                                attributes: {
+            }
+            if (page.relationships.prev) {
+                promises = promises.concat(page.relationships.prev.data.map((transitionRef: Reference) => {
+                    return dispatch('deleteSingle', transitionRef);
+                }));
+            }
+            await Promise.all(promises);
+            await dispatch('deleteSingle', page);
+            await dispatch('loadExperiment');
+            return true;
+        },
 
-                                },
-                                relationships: {
-                                    source: {
-                                        data: {
-                                            type: 'pages',
-                                            id: payload.parentPageId,
-                                        },
-                                    },
-                                    target: {
-                                        data: {
-                                            type: 'pages',
-                                            id: page.id,
-                                        },
-                                    },
-                                }
-                            }
-                        },
-                        headers: {
-                            'X-CSRF-TOKEN': state.config.api.csrfToken,
-                        },
-                    });
-                    commit('setTransition', response.data.data);
-                    dispatch('loadPage', payload.parentPageId);
+        async loadTransition({ dispatch, state }, transitionRef: Reference) {
+            const oldTransition = state.dataStore.data.transitions ? this.state.dataStore.data.transitions[transitionRef.id] : null;
+            const transition = await dispatch('fetchSingle', transitionRef);
+            if (!oldTransition || !deepequal(oldTransition.relationships, transition.relationships, {strict: true})) {
+                if (transition.relationships.source) {
+                    await dispatch('loadPage', transition.relationships.source.data);
                 }
-                commit('setBusy', false);
-                return Promise.resolve(page);
-            } catch (error) {
-                commit('setBusy', false);
-                return Promise.reject(error.response.data.errors);
-            }
-        },
-
-        async updatePage({ commit, state }, payload: Page) {
-            try {
-                commit('setBusy', true);
-                const response = await axios({
-                    method: 'patch',
-                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.id,
-                    data: {
-                        data: payload,
-                    },
-                    headers: {
-                        'X-CSRF-TOKEN': state.config.api.csrfToken,
-                    },
-                });
-                commit('setPage', response.data.data);
-                commit('setBusy', false);
-                return Promise.resolve(response.data.data);
-            } catch (error) {
-                commit('setBusy', false);
-                return Promise.reject(error.response.data.errors);
-            }
-        },
-
-        async deletePage({ commit, dispatch, state}, payload: Page) {
-            try {
-                commit('setBusy', true);
-                await axios({
-                    method: 'delete',
-                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.id,
-                    headers: {
-                        'X-CSRF-TOKEN': state.config.api.csrfToken,
-                    },
-                });
-                commit('deletePage', payload);
-                dispatch('loadExperiment');
-                commit('setBusy', false);
-                return Promise.resolve();
-            } catch (error) {
-                commit('setBusy', false);
-                return Promise.reject(error.response.data.errors);
-            }
-        },
-
-        async addQuestion({ commit, dispatch, state }, payload: AddQuestionAction) {
-            try {
-                commit('setBusy', true);
-                const response = await axios({
-                    method: 'post',
-                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.page.id + '/questions',
-                    data: {
-                        data: {
-                            type: 'questions',
-                            attributes: {},
-                            relationships: {
-                                'question-type': {
-                                    data: {
-                                        type: 'question-types',
-                                        id: payload.questionType.id,
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    headers: {
-                        'X-CSRF-TOKEN': state.config.api.csrfToken,
-                    }
-                });
-                const question = response.data.data;
-                const page = deepcopy(payload.page);
-                commit('setQuestion', question);
-                if (payload.idx === -1) {
-                    page.relationships.questions.data.push({
-                        type: 'questions',
-                        id: question.id,
-                    });
-                } else {
-                    page.relationships.questions.data.splice(payload.idx, 0, {
-                        type: 'questions',
-                        id: question.id,
-                    });
+                if (transition.relationships.target) {
+                    await dispatch('loadPage', transition.relationships.target.data);
                 }
-                await dispatch('updatePage', page);
-                commit('setBusy', false);
-                return Promise.resolve(question);
-            } catch (error) {
-                commit('setBusy', false);
-                return Promise.reject(error.response.data.errors);
+            }
+            return transition;
+        },
+
+        async createTransition({ dispatch }, transition: Transition) {
+            transition = await dispatch('createSingle', transition);
+            if (transition.relationships.source) {
+                await dispatch('loadPage', transition.relationships.source.data);
+            }
+            if (transition.relationships.target) {
+                await dispatch('loadPage', transition.relationships.target.data);
+            }
+            return transition;
+        },
+
+        async saveTransition({ dispatch, state }, transition: Transition) {
+            const oldTransition = state.dataStore.data.transitions[transition.id as string];
+            transition = await dispatch('saveSingle', transition);
+            if (oldTransition.relationships.target) {
+                await dispatch('loadPage', oldTransition.relationships.target.data);
+            }
+            if (transition.relationships.target) {
+                await dispatch('loadPage', transition.relationships.target.data);
+            }
+            return transition;
+        },
+
+        async deleteTransition({ dispatch }, transition: Transition) {
+            await dispatch('deleteSingle', transition);
+            if (transition.relationships.source) {
+                await dispatch('loadPage', transition.relationships.source.data);
+            }
+            if (transition.relationships.target) {
+                await dispatch('loadPage', transition.relationships.target.data);
             }
         },
 
-        async updateQuestion({ commit, state }, payload: Question) {
-            try {
-                commit('setBusy', true);
-                const response = await axios({
-                    method: 'patch',
-                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.relationships.page.data.id + '/questions/' + payload.id,
-                    data: {
-                        data: payload,
-                    },
-                    headers: {
-                        'X-CSRF-TOKEN': state.config.api.csrfToken,
-                    }
-                });
-                commit('setQuestion', response.data.data);
-                commit('setBusy', false);
-                return Promise.resolve(response.data.data);
-            } catch(error) {
-                commit('setBusy', false);
-                return Promise.reject(error.response.data.errors);
-            }
+        async loadQuestion({ dispatch }, questionRef: Question | Reference) {
+            const question = await dispatch('fetchSingle', questionRef);
+            return question;
         },
 
-        async deleteQuestion({ commit, dispatch, state }, payload: Question) {
-            try {
-                commit('setBusy', true);
-                await axios({
-                    method: 'delete',
-                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/pages/' + payload.relationships.page.data.id + '/questions/' + payload.id,
-                    headers: {
-                        'X-CSRF-TOKEN': state.config.api.csrfToken,
-                    }
-                });
-                dispatch('loadPage', payload.relationships.page.data.id);
-                commit('setBusy', false);
-                return Promise.resolve()
-            } catch(error) {
-                commit('setBusy', false);
-                return Promise.reject(error.response.data.errors);
-            }
+        async createQuestion({ dispatch }, question: Question) {
+            question = await dispatch('createSingle', question);
+            await dispatch('loadPage', question.relationships.page.data);
+            return question;
         },
 
-        async createTransition({ commit, state}, payload: Transition) {
-            try {
-                commit('setBusy', true);
-                const response = await axios({
-                    method: 'post',
-                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions',
-                    data: {
-                        data: payload,
-                    },
-                    headers: {
-                        'X-CSRF-TOKEN': state.config.api.csrfToken,
-                    }
-                });
-                commit('setTransition', response.data.data);
-                this.dispatch('loadPage', response.data.data.relationships.source.data.id);
-                this.dispatch('loadPage', response.data.data.relationships.target.data.id);
-                commit('setBusy', false);
-                return Promise.resolve(response.data.data);
-            } catch(error) {
-                commit('setBusy', false);
-                return Promise.reject(error.response.data.errors);
-            }
+        async saveQuestion({ dispatch }, question: Question) {
+            question = await dispatch('saveSingle', question);
+            return question;
         },
 
-        async updateTransition({ commit, state }, payload: Transition) {
-            try {
-                commit('setBusy', true);
-                const response = await axios({
-                    method: 'patch',
-                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions/' + payload.id,
-                    data: {
-                        data: payload,
-                    },
-                    headers: {
-                        'X-CSRF-TOKEN': state.config.api.csrfToken,
-                    }
-                });
-                commit('setTransition', response.data.data);
-                commit('setBusy', false);
-                return Promise.resolve(response.data.data);
-            } catch(error) {
-                commit('setBusy', false);
-                return Promise.reject(error.response.data.errors);
-            }
+        async deleteQuestion({ dispatch }, question: Question) {
+            await dispatch('deleteSingle', question);
+            await dispatch('loadPage', question.relationships.page.data);
+            return true;
         },
-
-        async deleteTransition({ commit, state }, payload: Transition) {
-            try {
-                commit('setBusy', true);
-                await axios({
-                    method: 'delete',
-                    url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/transitions/' + payload.id,
-                    headers: {
-                        'X-CSRF-TOKEN': state.config.api.csrfToken,
-                    }
-                });
-                this.dispatch('loadPage', payload.relationships.source.data.id);
-                this.dispatch('loadPage', payload.relationships.target.data.id);
-                commit('setBusy', false);
-                return Promise.resolve();
-            } catch(error) {
-                commit('setBusy', false);
-                return Promise.reject(error.response.data.errors);
-            }
-        }*/
     },
 
     getters: {

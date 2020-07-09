@@ -23,8 +23,8 @@ import { Experiment } from '@/interfaces';
 
 @Component
 export default class Overview extends Vue {
-    public get experiment() : Experiment {
-        return this.$store.state.experiment;
+    public get experiment(): Experiment {
+        return this.$store.getters.experiment;
     }
 }
 </script>

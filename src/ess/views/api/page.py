@@ -1,11 +1,10 @@
 from copy import deepcopy
-from pwh_permissions import permitted
 from pwh_permissions.pyramid import require_permission
-from pyramid.httpexceptions import HTTPNotFound, HTTPNoContent, HTTPForbidden
+from pyramid.httpexceptions import HTTPNotFound, HTTPNoContent
 from pyramid.view import view_config
 from sqlalchemy import and_
 
-from ess.models import Page, Experiment
+from ess.models import Page
 from . import (validated_body, override_tree, type_schema, id_schema, relationship_schema, store_object)
 
 
@@ -23,10 +22,10 @@ post_page_schema = {'type': type_schema('pages'),
                                       'schema': {'experiment': relationship_schema('experiments')}}}
 
 
-@view_config(route_name='api.page.collection.post', renderer='json')
+@view_config(route_name='api.backend.page.collection.post', renderer='json')
 @require_permission('Experiment:eid allow $current_user edit')
-def post_collection(request):
-    """Handles fetching a single :class:`~ess.models.page.Page`."""
+def backend_post_collection(request):
+    """Handles creating a new :class:`~ess.models.page.Page`."""
     def validate_unique_name(field, value, error):
         for page in request.dbsession.query(Page).filter(Page.experiment_id == request.matchdict['eid']):
             if page.attributes['name'] == value:
@@ -42,31 +41,15 @@ def post_collection(request):
     return {'data': obj.as_jsonapi()}
 
 
-@view_config(route_name='api.page.item.get', renderer='json')
-@view_config(route_name='experiment.run.api.page.item.get', renderer='json')
-def get_item(request):
+@view_config(route_name='api.backend.page.item.get', renderer='json')
+@require_permission('Experiment:eid allow $current_user edit')
+def backend_get_item(request):
     """Handles fetching a single :class:`~ess.models.page.Page`."""
-    if request.matched_route.name == 'experiment.run.api.page.item.get':
-        item = request.dbsession.query(Page)\
-            .join(Page.experiment)\
-            .filter(and_(Page.id == request.matchdict['pid'],
-                         Experiment.external_id == request.matchdict['eid'])).first()
-        if item is not None:
-            if permitted('page allow current_user participate', {'page': item,
-                                                                 'current_user': request.current_user}):
-                return {'data': item.as_jsonapi(external=True)}
-            else:
-                HTTPForbidden()
-    elif request.matched_route.name == 'api.page.item.get':
-        item = request.dbsession.query(Page)\
-            .filter(and_(Page.id == request.matchdict['pid'],
-                         Page.experiment_id == request.matchdict['eid'])).first()
-        if item is not None:
-            if permitted('page allow current_user participate', {'page': item,
-                                                                 'current_user': request.current_user}):
-                return {'data': item.as_jsonapi()}
-            else:
-                HTTPForbidden()
+    item = request.dbsession.query(Page)\
+        .filter(and_(Page.id == request.matchdict['iid'],
+                     Page.experiment_id == request.matchdict['eid'])).first()
+    if item is not None:
+        return {'data': item.as_jsonapi()}
     raise HTTPNotFound()
 
 
@@ -96,13 +79,13 @@ patch_page_schema = {'type': type_schema('pages'),
                                                                                    many=True)}}}
 
 
-@view_config(route_name='api.page.item.patch', renderer='json')
+@view_config(route_name='api.backend.page.item.patch', renderer='json')
 @require_permission('Experiment:eid allow $current_user edit')
 def patch_item(request):
     """Handles updating a single :class:`~ess.models.page.Page`."""
     def validate_unique_name(field, value, error):
         for page in request.dbsession.query(Page).filter(and_(Page.experiment_id == request.matchdict['eid'],
-                                                              Page.id != request.matchdict['pid'])):
+                                                              Page.id != request.matchdict['iid'])):
             if page.attributes['name'] == value:
                 error(field, 'Page names must be unique')
 
@@ -113,11 +96,11 @@ def patch_item(request):
     return {'data': obj.as_jsonapi()}
 
 
-@view_config(route_name='api.page.item.delete')
+@view_config(route_name='api.backend.page.item.delete')
 @require_permission('Experiment:eid allow $current_user edit')
-def delete_item(request):
+def backend_delete_item(request):
     """Handles deleting a single :class:`~ess.models.page.Page`."""
-    item = request.dbsession.query(Page).filter(and_(Page.id == request.matchdict['pid'],
+    item = request.dbsession.query(Page).filter(and_(Page.id == request.matchdict['iid'],
                                                      Page.experiment_id == request.matchdict['eid'])).first()
     if item is not None:
         for prev in item.prev:

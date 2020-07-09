@@ -36,7 +36,7 @@
                                     </svg>
                                 </a>
                             </div>
-                            <question-block :question="question"/>
+                            <question-block :page="page" :question="question"/>
                             <add-question v-if="insertIdx === idx && insertPosition === 'after'" :page="page" :idx="idx + 1" :canCancel="true" @close="insertQuestion(-1, '')" />
                             <div v-else class="insert-link">
                                 <a @click="insertQuestion(idx, 'after')" aria-label="Insert a question after this question" title="Insert a question after this question">
@@ -62,7 +62,7 @@ import { Component, Vue } from 'vue-property-decorator';
 import AriaMenubar from '@/components/AriaMenubar.vue';
 import AddQuestion from '@/components/AddQuestion.vue';
 import QuestionBlock from '@/components/QuestionBlock.vue';
-import { QuestionReference, Question, Page, QuestionTypeGroup } from '@/interfaces';
+import { QuestionReference, Question, Page } from '@/interfaces';
 
 @Component({
     components: {
@@ -75,25 +75,31 @@ export default class PageEdit extends Vue {
     public insertIdx = -1;
     public insertPosition = '';
 
-    public get page() : Page {
-        return this.$store.state.pages[this.$route.params.pid];
+    public get page(): Page | null {
+        if (this.$store.state.dataStore.data.pages) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const page = this.$store.state.dataStore.data.pages[this.$route.params.pid];
+            if (page) {
+                return page;
+            }
+        }
+        return null;
     }
 
-    public get isCurrentRoute() : boolean {
+    public get isCurrentRoute(): boolean {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         return this.$route.name === 'page.edit';
     }
 
     public get questions() : Question[] {
-        if (this.page.relationships) {
+        if (this.page && this.page.relationships && this.$store.state.dataStore.data.questions) {
             return this.page.relationships.questions.data.map((question: QuestionReference) => {
-                return this.$store.state.questions[question.id];
+                return this.$store.state.dataStore.data.questions[question.id];
             }).filter((question: Question) => { return question; });
         }
         return [];
-    }
-
-    public get questionTypeGroups() : QuestionTypeGroup[] {
-        return this.$store.state.questionTypeGroups;
     }
 
     public insertQuestion(idx: number, position: string) : void {

@@ -29,7 +29,7 @@ import deepcopy from 'deepcopy';
 
 import { errorsToDict } from 'data-store';
 
-import { StringKeyValueDict, Error, Experiment, PageReference, Page } from '@/interfaces';
+import { StringKeyValueDict, Experiment, PageReference, Page } from '@/interfaces';
 import InputField from '@/components/InputField.vue';
 
 @Component({
@@ -42,10 +42,10 @@ export default class Settings extends Vue {
     public errors: StringKeyValueDict = {};
 
     public get pages() : Page[] {
-        if (this.localExperiment) {
+        if (this.localExperiment && this.$store.state.dataStore.data.pages) {
             return this.localExperiment.relationships.pages.data.map((pageRef: PageReference) => {
-                if (this.$store.state.pages[pageRef.id]) {
-                    return this.$store.state.pages[pageRef.id];
+                if (this.$store.state.dataStore.data.pages[pageRef.id]) {
+                    return this.$store.state.dataStore.data.pages[pageRef.id];
                 } else {
                     return null;
                 }
@@ -92,7 +92,7 @@ export default class Settings extends Vue {
         if (this.localExperiment) {
             try {
                 this.errors = {};
-                await this.$store.dispatch('updateExperiment', this.localExperiment);
+                await this.$store.dispatch('saveExperiment', this.localExperiment);
             } catch(errors) {
                 this.errors = errorsToDict(errors);
             }

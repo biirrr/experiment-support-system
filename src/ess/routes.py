@@ -1,18 +1,18 @@
-def generate_api_routes(config, base_type, data_type):
+def generate_api_routes(config, base_type, data_type, url_prefix=''):
     config.add_route(f'api.{base_type}.{data_type.replace("-", "_")[:-1]}.collection.get',
-                     f'/api/{base_type}/{data_type}',
+                     f'/api/{base_type}{url_prefix}/{data_type}',
                      request_method='GET')
     config.add_route(f'api.{base_type}.{data_type.replace("-", "_")[:-1]}.collection.post',
-                     f'/api/{base_type}/{data_type}',
+                     f'/api/{base_type}{url_prefix}/{data_type}',
                      request_method='POST')
     config.add_route(f'api.{base_type}.{data_type.replace("-", "_")[:-1]}.item.get',
-                     f'/api/{base_type}/{data_type}/:iid',
+                     f'/api/{base_type}{url_prefix}/{data_type}/:iid',
                      request_method='GET')
     config.add_route(f'api.{base_type}.{data_type.replace("-", "_")[:-1]}.item.patch',
-                     f'/api/{base_type}/{data_type}/:iid',
+                     f'/api/{base_type}{url_prefix}/{data_type}/:iid',
                      request_method='PATCH')
     config.add_route(f'api.{base_type}.{data_type.replace("-", "_")[:-1]}.item.delete',
-                     f'/api/{base_type}/{data_type}/:iid',
+                     f'/api/{base_type}{url_prefix}/{data_type}/:iid',
                      request_method='DELETE')
 
 
@@ -32,27 +32,17 @@ def includeme(config):
     config.add_route('experiment.edit', '/experiments/:eid/edit')
     config.add_route('experiment.results.download', '/experiments/:eid/results/download')
 
-    config.add_route('api.internal', '/api/internal')
-    generate_api_routes(config, 'internal', 'question-types')
-    generate_api_routes(config, 'internal', 'question-type-groups')
-    generate_api_routes(config, 'internal', 'experiments')
-
-    config.add_route('api.page.collection.post', '/api/experiments/:eid/pages', request_method='POST')
-    config.add_route('api.page.item.get', '/api/experiments/:eid/pages/:pid', request_method='GET')
-    config.add_route('api.page.item.patch', '/api/experiments/:eid/pages/:pid', request_method='PATCH')
-    config.add_route('api.page.item.delete', '/api/experiments/:eid/pages/:pid', request_method='DELETE')
-    config.add_route('api.transition.collection.post', '/api/experiments/:eid/transitions', request_method='POST')
-    config.add_route('api.transition.item.get', '/api/experiments/:eid/transitions/:tid', request_method='GET')
-    config.add_route('api.transition.item.patch', '/api/experiments/:eid/transitions/:tid', request_method='PATCH')
-    config.add_route('api.transition.item.delete', '/api/experiments/:eid/transitions/:tid', request_method='DELETE')
-    config.add_route('api.question.collection.post', '/api/experiments/:eid/pages/:pid/questions',
-                     request_method='POST')
-    config.add_route('api.question.item.get', '/api/experiments/:eid/pages/:pid/questions/:qid', request_method='GET')
-    config.add_route('api.question.item.patch', '/api/experiments/:eid/pages/:pid/questions/:qid',
-                     request_method='PATCH')
-    config.add_route('api.question.item.delete', '/api/experiments/:eid/pages/:pid/questions/:qid',
-                     request_method='DELETE')
-    config.add_route('api.result.item.get', '/api/experiments/:eid/results/:pid', request_method='GET')
+    config.add_route('api.admin', '/api/admin')
+    generate_api_routes(config, 'admin', 'question-types')
+    generate_api_routes(config, 'admin', 'question-type-groups')
+    config.add_route('api.backend', '/api/backend/:eid')
+    generate_api_routes(config, 'backend', 'question-types', url_prefix='/:eid')
+    generate_api_routes(config, 'backend', 'question-type-groups', url_prefix='/:eid')
+    generate_api_routes(config, 'backend', 'experiments', url_prefix='/:eid')
+    generate_api_routes(config, 'backend', 'pages', url_prefix='/:eid')
+    generate_api_routes(config, 'backend', 'transitions', url_prefix='/:eid')
+    generate_api_routes(config, 'backend', 'questions', url_prefix='/:eid')
+    generate_api_routes(config, 'backend', 'results', url_prefix='/:eid')
 
     config.add_route('experiment.run', '/run/:eid')
     config.add_route('experiment.run.api', '/run/api')

@@ -67,12 +67,12 @@
             <table>
                 <thead>
                     <th></th>
-                    <th v-for="[col, col_label] in zip(attributes.column_values, attributes.column_labels)" :key="col" scope="col">{{ col_label }}</th>
+                    <th v-for="[col, col_label] in zip(attributes.columnValues, attributes.columnLabels)" :key="col" scope="col">{{ col_label }}</th>
                 </thead>
                 <tbody>
-                    <tr v-for="[row, row_label] in zip(attributes.row_values, attributes.row_labels)" :key="row">
+                    <tr v-for="[row, row_label] in zip(attributes.rowValues, attributes.rowLabels)" :key="row">
                         <th scope="row">{{ row_label }}</th>
-                        <td v-for="[col, col_label] in zip(attributes.column_values, attributes.column_labels)" :key="col"><label><span class="show-for-sr">{{ col_label }}</span><input :name="'question-' + question.id + '.' + row" type="radio" :value="col"/></label></td>
+                        <td v-for="[col, col_label] in zip(attributes.columnValues, attributes.columnLabels)" :key="col"><label><span class="show-for-sr">{{ col_label }}</span><input :name="'question-' + question.id + '.' + row" type="radio" :value="col"/></label></td>
                     </tr>
                 </tbody>
             </table>
@@ -81,12 +81,12 @@
             <table>
                 <thead>
                     <th></th>
-                    <th v-for="[col, col_label] in zip(attributes.column_values, attributes.column_labels)" :key="col" scope="col">{{ col_label }}</th>
+                    <th v-for="[col, col_label] in zip(attributes.columnValues, attributes.columnLabels)" :key="col" scope="col">{{ col_label }}</th>
                 </thead>
                 <tbody>
-                    <tr v-for="[row, row_label] in zip(attributes.row_values, attributes.row_labels)" :key="row">
+                    <tr v-for="[row, row_label] in zip(attributes.rowValues, attributes.rowLabels)" :key="row">
                         <th scope="row">{{ row_label }}</th>
-                        <td v-for="[col, col_label] in zip(attributes.column_values, attributes.column_labels)" :key="col"><label><span class="show-for-sr">{{ col_label }}</span><input :name="'question-' + question.id + '.' + row" type="checkbox" :value="col"/></label></td>
+                        <td v-for="[col, col_label] in zip(attributes.columnValues, attributes.columnLabels)" :key="col"><label><span class="show-for-sr">{{ col_label }}</span><input :name="'question-' + question.id + '.' + row" type="checkbox" :value="col"/></label></td>
                     </tr>
                 </tbody>
             </table>
@@ -104,12 +104,12 @@ import { Question, QuestionType, QuestionTypeAttribute } from '@/interfaces';
 export default class QuestionRenderer extends Vue {
     @Prop() question!: Question;
 
-    public get questionType() : void | QuestionType {
-        return this.$store.state.questionTypes[this.$props.question.relationships['question-type'].data.id];
+    public get questionType(): QuestionType {
+        return this.$store.state.dataStore.data['question-types'][this.question.relationships['question-type'].data.id];
     }
 
-    public get attributes() : {[x: string]: string | boolean | string[] | null} {
-        const attributes = {} as {[x: string]: string | boolean | string[] | null};
+    public get attributes() : {[x: string]: string | boolean | string[] | {[x: string]: string} | null} {
+        const attributes = {} as {[x: string]: string | boolean | string[] | {[x: string]: string} | null};
         if (this.questionType) {
             Object.entries(this.questionType.attributes).forEach((attr) => {
                 if (!this.$props.question.attributes[attr[0]]) {
@@ -124,6 +124,10 @@ export default class QuestionRenderer extends Vue {
                             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                             // @ts-ignore
                             attributes[attr[0]] = (attr[1] as QuestionTypeAttribute).allowed[0];
+                        } else if ((attr[1] as QuestionTypeAttribute).type === 'essQuestionCondition') {
+                            attributes[attr[0]] = {
+                                question: '',
+                            };
                         } else {
                             attributes[attr[0]] = '';
                         }
@@ -139,21 +143,25 @@ export default class QuestionRenderer extends Vue {
     }
 
     public get renderType() : string {
-        if (this.questionType && (this.questionType.attributes._core_type as string).indexOf('USEF') === 0) {
-            return (this.questionType.attributes._core_type as string);
+        if (this.questionType && (this.questionType.attributes.essCoreType as string).indexOf('USEF') === 0) {
+            return (this.questionType.attributes.essCoreType as string);
         } else {
             return 'USEFInvalid'
         }
     }
 
     public zip(valuesA: string[], valuesB: string[]) : [string, string][] {
-        return valuesA.map((value, idx) => {
-            if (idx < valuesB.length) {
-                return [value, valuesB[idx]];
-            } else {
-                return [value, value];
-            }
-        });
+        if (valuesA && valuesB) {
+            return valuesA.map((value, idx) => {
+                if (idx < valuesB.length) {
+                    return [value, valuesB[idx]];
+                } else {
+                    return [value, value];
+                }
+            });
+        } else {
+            return [];
+        }
     }
 }
 </script>

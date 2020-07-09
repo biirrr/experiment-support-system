@@ -1,7 +1,7 @@
 import { Selector } from 'testcafe';
 import { request } from '../util';
 
-fixture(`Page Access`).beforeEach(async (test) => {
+fixture(`Frontend`).beforeEach(async (test) => {
     await request('http://localhost:6543/tests/create?obj=experiment3');
     await test.resizeWindow(1100, 800);
 }).page('http://localhost:6543');

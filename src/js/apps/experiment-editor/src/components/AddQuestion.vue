@@ -1,11 +1,11 @@
 <template>
     <form>
         <ul class="vertical menu accordion-menu" data-accordion-menu>
-            <template v-for="questionTypeGroup, idx in menuStructure">
-                <li v-if="questionTypeGroup.questionTypes.length > 0" :key="idx" class="is-accordion-submenu-parent" :aria-expanded="activeGroup === questionTypeGroup.id ? 'true': 'false'">
+            <template v-for="questionTypeGroup in menuStructure">
+                <li v-if="questionTypeGroup.questionTypes.length > 0" :key="questionTypeGroup.id" class="is-accordion-submenu-parent" :aria-expanded="activeGroup === questionTypeGroup.id ? 'true': 'false'">
                     <a @click="setActiveGroup(questionTypeGroup.id)">{{ questionTypeGroup.title }}</a>
                     <ul v-if="activeGroup === questionTypeGroup.id" class="vertical menu nested is-accordion-submenu">
-                        <li v-for="questionType, idx2 in questionTypeGroup.questionTypes" :key="idx2"><a v-if="questionType" @click="addQuestion(questionType)">{{ questionType.attributes.label }}</a></li>
+                        <li v-for="questionType in questionTypeGroup.questionTypes" :key="questionType.id"><a v-if="questionType" @click="addQuestion(questionType)">{{ questionType.attributes.label }}</a></li>
                     </ul>
                 </li>
             </template>
@@ -29,20 +29,23 @@ export default class AddQuestion extends Vue {
     @Prop() idx!: number;
     @Prop({ default: false }) canCancel!: boolean;
 
-    public activeGroup = -1;
+    public activeGroup = '-1';
 
     public get menuStructure() : AddQuestionMenuStructure[] {
-        return this.$store.state.questionTypeGroups
-            .filter((questionTypeGroup: QuestionTypeGroup) => { return questionTypeGroup.attributes['enabled']})
-            .map((questionTypeGroup: QuestionTypeGroup) => {
-                return {
-                    id: questionTypeGroup.id,
-                    title: questionTypeGroup.attributes.title,
-                    questionTypes: questionTypeGroup.relationships['question-types'].data.map((questionTypeReference) => {
-                        return this.$store.state.questionTypes[questionTypeReference.id];
-                    }).filter((qt) => { return qt && qt.attributes['_enabled'] }),
-                }
-            });
+        if (this.$store.state.dataStore.data['question-type-groups'] && this.$store.state.dataStore.data['question-types']) {
+            return (Object.values(this.$store.state.dataStore.data['question-type-groups']) as QuestionTypeGroup[])
+                .filter((questionTypeGroup: QuestionTypeGroup) => { return questionTypeGroup.attributes['enabled']})
+                .map((questionTypeGroup: QuestionTypeGroup) => {
+                    return {
+                        id: questionTypeGroup.id,
+                        title: questionTypeGroup.attributes.title,
+                        questionTypes: questionTypeGroup.relationships['question-types'].data.map((questionTypeReference) => {
+                            return this.$store.state.dataStore.data['question-types'][questionTypeReference.id];
+                        }).filter((qt) => { return qt && qt.attributes['essEnabled'] }),
+                    }
+                });
+        }
+        return [];
     }
 
     public mounted() : void {
@@ -51,9 +54,9 @@ export default class AddQuestion extends Vue {
         }
     }
 
-    public setActiveGroup(questionTypeGroupId: number) : void {
+    public setActiveGroup(questionTypeGroupId: string) : void {
         if (this.activeGroup === questionTypeGroupId) {
-            this.activeGroup = -1;
+            this.activeGroup = '-1';
         } else {
             this.activeGroup = questionTypeGroupId;
         }
@@ -61,10 +64,23 @@ export default class AddQuestion extends Vue {
 
     public async addQuestion(questionType: QuestionType) : Promise<void> {
         try {
-            await this.$store.dispatch('addQuestion', {
-                questionType: questionType,
-                page: this.$props.page,
-                idx: this.$props.idx,
+            await this.$store.dispatch('createQuestion', {
+                type: 'questions',
+                attributes: {},
+                relationships: {
+                    page: {
+                        data: {
+                            type: 'pages',
+                            id: this.page.id,
+                        },
+                    },
+                    'question-type': {
+                        data: {
+                            type: 'question-types',
+                            id: questionType.id,
+                        },
+                    },
+                },
             });
             this.$emit('close');
         } catch(error) {
