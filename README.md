@@ -2,6 +2,8 @@
 
 This is the Experiment Support System version 2.
 
+![](https://github.com/biirrr/experiment-support-system/workflows/End-to-End20Tests/badge.svg)
+
 ## Development
 
 To build and run the server locally the following tools are required:
