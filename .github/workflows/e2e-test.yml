@@ -23,12 +23,13 @@ jobs:
       with:
         args: install
 
-    - name: Run Tests
-      run: |
-        source $HOME/.poetry/env
-        node_modules/.bin/testcafe firefox:headless tests
-
     - name: Install Python Dependencies
       run: |
         source $HOME/.poetry/env
         poetry install
+
+    - name: Run Tests
+      run: |
+        source $HOME/.poetry/env
+        poetry run pserve test.ini &
+        node_modules/.bin/testcafe firefox:headless tests
