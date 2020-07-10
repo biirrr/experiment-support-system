@@ -26,7 +26,7 @@ jobs:
     - name: Run Tests
       run: |
         source $HOME/.poetry/env
-        node_modules/.bin/testcafe chrome tests
+        node_modules/.bin/testcafe firefox:headless tests
 
     - name: Install Python Dependencies
       run: |
