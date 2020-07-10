@@ -4,7 +4,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPNoContent
 from pyramid.view import view_config
 from sqlalchemy import and_
 
-from ess.models import Question, Page
+from ess.models import Question, Page, Experiment
 from . import (validated_body, type_schema, relationship_schema, id_schema, store_object)
 
 
@@ -29,13 +29,27 @@ def backend_post_collection(request):
 @view_config(route_name='api.backend.question.item.get', renderer='json')
 @require_permission('Experiment:eid allow $current_user edit')
 def backend_get_item(request):
-    """Handles fetching a single :class:`~ess.models.question.Question`."""
+    """Handles fetching a single :class:`~ess.models.question.Question` for the backend."""
     item = request.dbsession.query(Question)\
         .join(Page)\
         .filter(and_(Question.id == request.matchdict['iid'],
                      Page.experiment_id == request.matchdict['eid'])).first()
     if item is not None:
         return {'data': item.as_jsonapi()}
+    else:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='api.external.question.item.get', renderer='json')
+@require_permission('Experiment:external_id:eid allow $current_user participate')
+def external_get_item(request):
+    """Handles fetching a single :class:`~ess.models.question.Question` for the frontend."""
+    item = request.dbsession.query(Question)\
+        .join(Page).join(Page.experiment)\
+        .filter(and_(Question.id == request.matchdict['iid'],
+                     Experiment.external_id == request.matchdict['eid'])).first()
+    if item is not None:
+        return {'data': item.as_jsonapi(external=True)}
     else:
         raise HTTPNotFound()
 

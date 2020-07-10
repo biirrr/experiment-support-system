@@ -104,7 +104,7 @@ def schema_for_page(page, responses):
                 elif question.attributes['essConditional']['operator'] == 'neq':
                     if value == question.attributes['essConditional']['value']:
                         continue
-        if attributes['_core_type'] == 'USEFSingleLineInput':
+        if attributes['essCoreType'] == 'USEFSingleLineInput':
             schema[str(question.id)] = {'type': 'string',
                                         'required': schema_value('required',
                                                                  attributes,
@@ -112,7 +112,7 @@ def schema_for_page(page, responses):
                                         'empty': not schema_value('required',
                                                                   attributes,
                                                                   question.attributes)}
-        elif attributes['_core_type'] == 'USEFMultiLineInput':
+        elif attributes['essCoreType'] == 'USEFMultiLineInput':
             schema[str(question.id)] = {'type': 'string',
                                         'required': schema_value('required',
                                                                  attributes,
@@ -120,7 +120,7 @@ def schema_for_page(page, responses):
                                         'empty': not schema_value('required',
                                                                   attributes,
                                                                   question.attributes)}
-        elif attributes['_core_type'] == 'USEFSingleChoice':
+        elif attributes['essCoreType'] == 'USEFSingleChoice':
             schema[str(question.id)] = {'type': 'string',
                                         'required': schema_value('required',
                                                                  attributes,
@@ -131,7 +131,7 @@ def schema_for_page(page, responses):
                                         'allowed': schema_value('values',
                                                                 attributes,
                                                                 question.attributes)}
-        elif attributes['_core_type'] == 'USEFMultiChoice':
+        elif attributes['essCoreType'] == 'USEFMultiChoice':
             schema[str(question.id)] = {'type': 'list',
                                         'required': schema_value('required',
                                                                  attributes,
@@ -142,7 +142,7 @@ def schema_for_page(page, responses):
                                         'allowed': schema_value('values',
                                                                 attributes,
                                                                 question.attributes)}
-        elif attributes['_core_type'] == 'USEFHidden':
+        elif attributes['essCoreType'] == 'USEFHidden':
             schema[str(question.id)] = {'type': 'string',
                                         'required': schema_value('required',
                                                                  attributes,
@@ -150,7 +150,7 @@ def schema_for_page(page, responses):
                                         'empty': not schema_value('required',
                                                                   attributes,
                                                                   question.attributes)}
-        elif attributes['_core_type'] == 'USEFSingleChoiceGrid':
+        elif attributes['essCoreType'] == 'USEFSingleChoiceGrid':
             row_schema = {}
             for value in schema_value('rowValues', attributes, question.attributes):
                 row_schema[value] = {'type': 'string',
@@ -171,7 +171,7 @@ def schema_for_page(page, responses):
                                                                   attributes,
                                                                   question.attributes),
                                         'schema': row_schema}
-        elif attributes['_core_type'] == 'USEFMultiChoiceGrid':
+        elif attributes['essCoreType'] == 'USEFMultiChoiceGrid':
             row_schema = {}
             for value in schema_value('rowValues', attributes, question.attributes):
                 row_schema[value] = {'type': 'list',
@@ -278,7 +278,7 @@ def download_results(request):
         ids = []
         for page in experiment.pages:
             for question in page.questions:
-                core_type = question.question_type.inherited_attributes()['_core_type']
+                core_type = question.question_type.inherited_attributes()['essCoreType']
                 if core_type in ('USEFSingleLineInput', 'USEFMultiLineInput', 'USEFHidden', 'USEFSingleChoice'):
                     columns.append(f"{page.attributes['name']}.{question.id}")
                     ids.append((str(page.id), str(question.id)))

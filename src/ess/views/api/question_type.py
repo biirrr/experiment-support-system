@@ -84,6 +84,7 @@ def import_question_type(data, dbsession, remap=True):
 
 @view_config(route_name='api.admin.question_type.item.get', renderer='json')
 @view_config(route_name='api.backend.question_type.item.get', renderer='json')
+@view_config(route_name='api.external.question_type.item.get', renderer='json')
 def get_item(request):
     """Handles fetching a single :class:`~ess.models.question_type.QuestionType`."""
     item = request.dbsession.query(QuestionType).filter(QuestionType.id == request.matchdict['iid']).first()

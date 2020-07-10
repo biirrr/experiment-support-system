@@ -1,33 +1,25 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import deepcopy from 'deepcopy';
+import axios from 'axios';
 import Vue from 'vue'
 import Vuex from 'vuex'
-import axios, { AxiosResponse } from 'axios';
+import { dataStoreModule, Reference } from 'data-store';
 
-import { Config, State,
-    PageResponses, Participant, NestedStorage} from '@/interfaces';
+import { Config, State, Participant, Page, ResponsesDict, NestedStorage } from '@/interfaces';
 import { sessionStoreValue, sessionLoadValue, sessionDeleteValue, localLoadValue, localStoreValue, localDeleteValue } from '@/storage';
-import { JSONAPIModel, Experiment, Page, Question, Transition, QuestionType, Reference, vuexAPI } from 'ess-shared';
 
 
 Vue.use(Vuex)
 
-const typeMappings = {
-    experiments: Experiment,
-    pages: Page,
-    questions: Question,
-    transitions: Transition,
-    'question-types': QuestionType,
-} as {[key: string]: typeof JSONAPIModel};
-
 export default new Vuex.Store({
     state: {
         config: {
-            api: {
-                baseUrl: '',
-                extraUrl: '',
+            dataStore: {
+                apiBaseUrl: '',
                 csrfToken: '',
+            },
+            api: {
                 validationUrl: '',
                 submissionUrl: '',
             },
@@ -35,17 +27,17 @@ export default new Vuex.Store({
                 id: '',
             },
         },
-        progress: {
-            current: null,
-            completed: true,
-            responses: {},
-        },
-        participant: null,
         ui: {
             loaded: false,
             busy: false,
             busyCounter: 0,
             busyMaxCounter: 0,
+        },
+        progress: {
+            participant: null,
+            current: null,
+            completed: false,
+            responses: {},
         }
     } as State,
 
@@ -92,117 +84,127 @@ export default new Vuex.Store({
             }
         },
 
-        setPageResponses(state, payload: PageResponses) {
-            Vue.set(state.progress.responses, payload.page, payload.responses);
+        setPageResponses(state, payload: ResponsesDict) {
+            Vue.set(state.progress.responses, payload.page as string, payload.responses as ResponsesDict);
             if (state.config.experiment) {
                 sessionStoreValue(state.config.experiment.id + '.responses.' + payload.page, payload.responses as NestedStorage);
             }
         },
 
-        setResponses(state, payload: NestedStorage) {
+        setResponses(state, payload: ResponsesDict) {
             Vue.set(state.progress, 'responses', payload);
+            if (state.config.experiment) {
+                sessionStoreValue(state.config.experiment.id + '.responses', payload as NestedStorage);
+            }
         },
 
         setParticipant(state, payload: Participant) {
-            Vue.set(state, 'participant', payload);
+            Vue.set(state.progress, 'participant', payload);
             sessionStoreValue(payload.relationships.experiment.data.id + '.participant', payload.id);
         },
     },
     actions: {
-        async init({ commit, dispatch, getters, state }, payload: Config) {
+        async init({ commit, dispatch, state }, payload: Config) {
             commit('setConfig', payload);
             commit('setBusy', true);
-            try {
-                await dispatch('fetchObject', {type: 'experiments', id: state.config.experiment.id});
-                let promises = (state.vuexAPI.data.experiments[state.config.experiment.id]._relationships.pages?.data as Reference[]).map((ref: Reference) => {
-                    return new Promise<Page>((resolve) => {
-                        dispatch('fetchObject', ref).then((page) => {
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            const promises = [] as any[];
-                            (page._relationships.questions?.data as Reference[]).forEach((ref: Reference) => {
-                                promises.push(dispatch('fetchObject', ref));
-                            });
-                            (page._relationships.next?.data as Reference[]).forEach((ref: Reference) => {
-                                promises.push(dispatch('fetchObject', ref));
-                            });
-                            Promise.all(promises).then(() => {
-                                resolve(page);
-                            });
-                        });
-                    });
-                });
-                await Promise.all(promises);
-                if (state.vuexAPI.data.questions) {
-                    promises = [];
-                    (Object.values(state.vuexAPI.data.questions) as unknown as Question[]).forEach((question: Question) => {
-                        promises.push(dispatch('fetchObject', question._relationships.questionType?.data));
-                    });
-                    await Promise.all(promises);
-                    let loadedCount = -1;
-                    while (loadedCount !== Object.values(state.vuexAPI.data['question-types']).length) {
-                        promises = [];
-                        (Object.values(state.vuexAPI.data['question-types']) as unknown as QuestionType[]).forEach((questionType) => {
-                            if (questionType._relationships.parent) {
-                                if (!state.vuexAPI.data['question-types'][(questionType._relationships.parent.data as Reference).id]) {
-                                    promises.push(dispatch('fetchObject', questionType._relationships.parent.data));
-                                }
-                            }
-                        });
-                        await Promise.all(promises);
-                        loadedCount = Object.values(state.vuexAPI.data['question-types']).length;
-                    }
-                }
-                console.log(getters.experiment);
-                commit('setLoaded', true);
-                commit('setBusy', false);
-                dispatch('resetExperiment');
-                return Promise.resolve();
-            } catch(error) {
-                commit('setBusy', false);
-                return Promise.reject(error);
-            }
+            await Promise.all([
+                dispatch('loadExperiment', {type: 'experiments', id: state.config.experiment.id}),
+                dispatch('setupParticipant'),
+            ]);
+            await dispatch('setupExperiment');
+            commit('setBusy', false);
+            commit('setLoaded', true);
         },
 
-        async loadParticipant({ commit, dispatch, state}) {
-            commit('setBusy', true);
+        async loadExperiment({ dispatch }, experimentRef: Reference) {
+            const experiment = await dispatch('fetchSingle', experimentRef);
+            const promises = experiment.relationships.pages.data.map((pageRef: Reference) => {
+                return dispatch('loadPage', pageRef);
+            })
+            await Promise.all(promises);
+            return experiment;
+        },
+
+        async loadPage({ dispatch }, pageRef: Reference) {
+            const page = await dispatch('fetchSingle', pageRef);
+            let promises = page.relationships.next.data.map((transitionRef: Reference) => {
+                return dispatch('loadTransition', transitionRef);
+            });
+            promises = promises.concat(page.relationships.questions.data.map((questionRef: Reference) => {
+                return dispatch('loadQuestion', questionRef);
+            }));
+            await Promise.all(promises);
+            return page;
+        },
+
+        async loadTransition({ dispatch }, transitionRef: Reference) {
+            const transition = await dispatch('fetchSingle', transitionRef);
+            return transition;
+        },
+
+        async loadQuestion({ dispatch }, questionRef: Reference) {
+            const question = await dispatch('fetchSingle', questionRef);
+            await dispatch('loadQuestionType', question.relationships['question-type'].data);
+            return question;
+        },
+
+        async loadQuestionType({ dispatch }, questionTypeRef: Reference) {
+            const questionType = await dispatch('fetchSingle', questionTypeRef);
+            return questionType;
+        },
+
+        async setupParticipant({ dispatch, commit, state }) {
             const participantId = sessionLoadValue(state.config.experiment.id + '.participant', null);
             if (participantId === null) {
-                try {
-                    const response = await axios({
-                        method: 'POST',
-                        url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/participants',
-                        headers: {
-                            'X-CSRF-TOKEN': state.config.api.csrfToken,
+                const participant = await dispatch('createSingle', {
+                    type: 'participants',
+                    attributes: {},
+                    relationships: {
+                        experiment: {
+                            data: {
+                                type: 'experiments',
+                                id: state.config.experiment.id,
+                            },
                         },
-                    });
-                    commit('setParticipant', response.data.data);
-                    commit('setBusy', false);
-                    return Promise.resolve(response.data.data);
-                } catch (error) {
-                    commit('setBusy', false);
-                    return Promise.reject(error);
-                }
+                    },
+                });
+                commit('setParticipant', participant);
             } else {
                 try {
-                    const response = await axios({
-                        method: 'GET',
-                        url: state.config.api.baseUrl + '/experiments/' + state.config.experiment.id + '/participants/' + participantId,
-                        headers: {
-                            'X-CSRF-TOKEN': state.config.api.csrfToken,
-                        },
-                    });
-                    commit('setParticipant', response.data.data);
-                    commit('setBusy', false);
-                    return Promise.resolve(response.data.data);
-                } catch (error) {
+                    const participant = await dispatch('fetchSingle', {type: 'participants', id: participantId});
+                    commit('setParticipant', participant);
+                } catch(errors) {
+                    console.log(errors);
                     sessionDeleteValue(state.config.experiment.id);
-                    commit('setBusy', false);
-                    return dispatch('loadParticipant');
+                    dispatch('setupParticipant');
                 }
             }
         },
 
-        async validateSubmission({ commit, state }, payload: PageResponses) {
+        async setupExperiment({ commit, getters, state}) {
+            const experiment = getters.experiment;
+            const completed = localLoadValue(experiment.id + '.completed', false);
+            if (completed) {
+                commit('setCompleted', true);
+            } else {
+                if (experiment.relationships['first-page']) {
+                    const currentPageId = sessionLoadValue(experiment.id + '.progress.currentPage', experiment.relationships['first-page'].data.id) as string;
+                    if (state.dataStore.data.pages[currentPageId]) {
+                        commit('setCurrentPage', state.dataStore.data.pages[currentPageId]);
+                    } else {
+                        commit('setCurrentPage', experiment.relationships['first-page'].data.id);
+                    }
+                    const responses = sessionLoadValue(experiment.id + '.responses', null);
+                    if (responses) {
+                        commit('setResponses', responses);
+                    }
+                } else {
+                    commit('setCompleted', true);
+                }
+            }
+        },
+
+        async validateSubmission({ commit, state }, payload: ResponsesDict) {
             try {
                 commit('setBusy', true);
                 const responses = deepcopy(state.progress.responses);
@@ -210,34 +212,37 @@ export default new Vuex.Store({
                 await axios({
                     method: 'POST',
                     url: state.config.api.validationUrl,
-                    data: {page: payload.page,
-                           responses: responses},
+                    data: {
+                        page: payload.page,
+                        responses: responses
+                    },
                     headers: {
-                        'X-CSRF-TOKEN': state.config.api.csrfToken,
+                        'X-CSRF-TOKEN': state.config.dataStore.csrfToken,
                     },
                 });
                 commit('setPageResponses', payload);
                 commit('setBusy', false);
                 return Promise.resolve(true);
             } catch(error) {
+
                 commit('setBusy', false);
                 return Promise.reject(error.response.data.errors);
             }
         },
 
         async submitResponses({ commit, state }) {
-            if (state.participant) {
+            if (state.progress.participant) {
                 try {
                     commit('setBusy', true);
                     await axios({
                         method: 'POST',
                         url: state.config.api.submissionUrl,
                         data: {
-                            participant: state.participant.id,
+                            participant: state.progress.participant.id,
                             responses: state.progress.responses,
                         },
                         headers: {
-                            'X-CSRF-TOKEN': state.config.api.csrfToken,
+                            'X-CSRF-TOKEN': state.config.dataStore.csrfToken,
                         },
                     });
                     commit('setCurrentPage', null);
@@ -250,42 +255,29 @@ export default new Vuex.Store({
             }
         },
 
-        resetExperiment({ commit, getters, state}) {
-            const experiment = getters.experiment;
-            if (experiment && state.vuexAPI.data.pages) {
-                const completed = localLoadValue(experiment.id + '.completed', false);
-                if (completed) {
-                    commit('setCompleted', true);
-                } else {
-                    if (experiment.firstPage) {
-                        const currentPageId = sessionLoadValue(experiment.id + '.progress.currentPage', experiment.firstPage.id) as string;
-                        if (state.vuexAPI.data.pages[currentPageId]) {
-                            commit('setCurrentPage', state.vuexAPI.data.pages[currentPageId]);
-                        } else {
-                            commit('setCurrentPage', experiment.firstPage);
-                        }
-                        const responses = sessionLoadValue(experiment.id + '.responses', null);
-                        if (responses) {
-                            commit('setResponses', responses);
-                        }
-                    }
-                }
-            }
-        },
-
-        async developmentResetExperiment({ dispatch, commit, state}) {
-            console.log('FIXTHIS');
-            /*if (state.experiment && state.experiment.attributes.status === 'development') {
-                sessionDeleteValue(state.experiment.id);
-                localDeleteValue(state.experiment.id);
+        async developmentResetExperiment({ dispatch, commit, getters }) {
+            if (getters.experiment && getters.experiment.attributes.status === 'development') {
+                sessionDeleteValue(getters.experiment.id);
+                localDeleteValue(getters.experiment.id);
                 commit('setCompleted', false);
                 commit('setResponses', {});
-                await dispatch('loadParticipant');
-                dispatch('resetExperiment');
-            }*/
+                await dispatch('setupParticipant');
+                await dispatch('setupExperiment');
+            }
         },
     },
+
+    getters: {
+        experiment(state) {
+            if (state.dataStore.data.experiments && state.dataStore.data.experiments[state.config.experiment.id]) {
+                return state.dataStore.data.experiments[state.config.experiment.id];
+            } else {
+                return null;
+            }
+        }
+    },
+
     modules: {
-        vuexAPI
+        dataStore: dataStoreModule,
     },
 })

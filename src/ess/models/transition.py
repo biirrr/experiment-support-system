@@ -28,7 +28,7 @@ class Transition(Base):
         """
         return self.source.experiment.allow(user, action)
 
-    def as_jsonapi(self):
+    def as_jsonapi(self, external=False):
         data = {
             'type': 'transitions',
             'id': str(self.id),

@@ -2,8 +2,8 @@
     <section class="grid-container">
         <div class="grid-x grid-padding-x">
             <form v-if="questions && responses" class="cell" @submit="submitForm">
-                <h1>{{ page.title }}</h1>
-                <question-renderer v-for="question in questions" :key="question.id" :question="question" v-model="responses[question.id]" :error="errors[question.id]"/>
+                <h1>{{ page.attributes.title }}</h1>
+                <question-renderer v-for="question in visibleQuestions" :key="question.id" :question="question" v-model="responses[question.id]" :error="errors[question.id]"/>
                 <div class="buttons">
                     <ul class="menu">
                         <li>
@@ -22,9 +22,10 @@ import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
+import { JSONAPIError } from 'data-store';
+
 import QuestionRenderer from '@/components/QuestionRenderer.vue';
-import { ResponsesDict, ErrorsDict, Error } from '@/interfaces';
-import { Page, Question } from 'ess-shared';
+import { Page, Question, ResponsesDict, QuestionAttributes, StringKeyValueDict } from '@/interfaces';
 
 @Component({
     components: {
@@ -34,57 +35,60 @@ import { Page, Question } from 'ess-shared';
 export default class PageRenderer extends Vue {
     @Prop() page!: Page;
     public responses = null as ResponsesDict | null;
-    public errors = {} as ErrorsDict;
+    public errors = {};
 
     public get questions(): Question[] {
-        if (this.page) {
-            return this.page.questions.filter((question) => {
-                /*if (question.attributes.essConditional && question.attributes.essConditional.question !== '') {
-                    const responses = {} as ResponsesDict;
-                    (Object.values(this.$store.state.progress.responses) as ResponsesDict[]).forEach((pageResponses) => {
-                        Object.entries(pageResponses).forEach(([questionId, response]) => {
-                            responses[questionId] = deepcopy(response);
-                        });
-                    });
-                    if (this.responses) {
-                        Object.entries(this.responses as ResponsesDict).forEach(([questionId, response]) => {
-                            responses[questionId] = deepcopy(response);
-                        });
+        return this.page.relationships.questions.data.map((questionRef) => {
+            return this.$store.state.dataStore.data.questions[questionRef.id];
+        }).filter((question) => { return question });
+    }
+
+    public get visibleQuestions(): Question[] {
+        let responses = {} as ResponsesDict;
+        (Object.values(this.$store.state.progress.responses) as ResponsesDict[]).forEach((pageResponses) => {
+            Object.entries(pageResponses).forEach(([questionId, response]) => {
+                responses[questionId] = deepcopy(response);
+            });
+        });
+        responses = { ...responses, ...this.responses };
+        return this.questions.filter((question) => {
+            if (question.attributes.essConditional && (question.attributes.essConditional as QuestionAttributes).question !== '') {
+                let response = null;
+                if ((question.attributes.essConditional as QuestionAttributes).subQuestion && responses[(question.attributes.essConditional as QuestionAttributes).question as string]) {
+                    response = (responses[(question.attributes.essConditional as QuestionAttributes).question as string] as ResponsesDict)[(question.attributes.essConditional as QuestionAttributes).subQuestion as string];
+                } else {
+                    response = responses[(question.attributes.essConditional as QuestionAttributes).question as string];
+                }
+                if ((question.attributes.essConditional as QuestionAttributes).operator === 'eq') {
+                    if (response) {
+                        if (response === (question.attributes.essConditional as QuestionAttributes).value || (Array.isArray(response) && response.includes((question.attributes.essConditional as QuestionAttributes).value as string))) {
+                            return true;
+                        }
                     }
-                    if (question.attributes.essConditional.question.indexOf('.') >= 0) {
-                        const path = question.attributes.essConditional.question.split('.');
-                        if (path.length === 2 && responses[path[0]] && (responses[path[0]] as ResponsesDict)[path[1]]) {
-                            if (question.attributes.essConditional.operator === 'eq') {
-                                return (responses[path[0]] as ResponsesDict)[path[1]] === question.attributes.essConditional.value;
-                            } else {
-                                return (responses[path[0]] as ResponsesDict)[path[1]] !== question.attributes.essConditional.value;
-                            }
+                } else if ((question.attributes.essConditional as QuestionAttributes).operator === 'neq') {
+                    if (response) {
+                        if (Array.isArray(response) && !response.includes((question.attributes.essConditional as QuestionAttributes).value as string)) {
+                            return true;
+                        } else if (response !== (question.attributes.essConditional as QuestionAttributes).value) {
+                            return true;
                         }
                     } else {
-                        if (responses[question.attributes.essConditional.question]) {
-                            if (question.attributes.essConditional.operator === 'eq') {
-                                return responses[question.attributes.essConditional.question] === question.attributes.essConditional.value;
-                            } else {
-                                return responses[question.attributes.essConditional.question] !== question.attributes.essConditional.value;
-                            }
-                        }
+                        return true;
                     }
-                    return false;
                 }
-                return question;*/
+                return false;
+            } else {
                 return true;
-            });
-        } else {
-            return [];
-        }
+            }
+        });
     }
 
     public get isFirstPage(): boolean {
-        return this.$store.getters.experiment.firstPage === this.page;
+        return this.$store.getters.experiment.relationships['first-page'].data.id === this.page.id;
     }
 
     public get isLastPage(): boolean {
-        return this.page.next.length === 0;
+        return !this.page.relationships.next || this.page.relationships.next.data.length === 0;
     }
 
     public get nextButtonLabel(): string {
@@ -108,12 +112,14 @@ export default class PageRenderer extends Vue {
     public mounted(): void {
         this.responses = this.createResponseSet();
         this.errors = {};
+        window.document.title = this.page.attributes.title;
     }
 
     @Watch('page')
     public updatePage(): void {
         this.responses = this.createResponseSet();
         this.errors = {};
+        window.document.title = this.page.attributes.title;
     }
 
     public async submitForm(ev: Event): Promise<void> {
@@ -125,34 +131,22 @@ export default class PageRenderer extends Vue {
                     await this.$store.dispatch('submitResponses');
                 } else {
                     this.errors = {};
-                    /*await this.$store.dispatch('validateSubmission', {'page': this.page.id, 'responses': this.validatableResponses(this.responses)});
-                    const transition = this.$store.state.transitions[this.page.relationships.next.data[0].id];
+                    await this.$store.dispatch('validateSubmission', {'page': this.page.id, 'responses': this.validatableResponses(this.responses)});
+                    const transition = this.$store.state.dataStore.data.transitions[this.page.relationships.next.data[0].id];
                     if (transition) {
-                        const page = this.$store.state.pages[transition.relationships.target.data.id];
+                        const page = this.$store.state.dataStore.data.pages[transition.relationships.target.data.id];
                         if (page) {
                             this.$store.commit('setCurrentPage', page);
                         }
-                    }*/
-                }
-            } catch(error) {
-                const errors = {} as ErrorsDict;
-                error.forEach((item: Error) => {
-                    if (item.source && item.source.pointer) {
-                        const keys = item.source.pointer.substring(1).split('/');
-                        let target = errors;
-                        for (let idx = 0; idx < keys.length; idx++) {
-                            if (idx === keys.length - 1) {
-                                target[keys[idx]] = item.title;
-                            } else {
-                                if (!target[keys[idx]]) {
-                                    target[keys[idx]] = {};
-                                }
-                                target = target[keys[idx]] as ErrorsDict;
-                            }
-                        }
                     }
-                });
-                this.errors = errors;
+                }
+            } catch(errors) {
+                this.errors = errors.reduce((obj: StringKeyValueDict, error: JSONAPIError) => {
+                    const pointer = error.source.pointer.split('/');
+                    obj[pointer[pointer.length - 1]] = error.title;
+                    return obj;
+                }, {});
+                console.log(this.errors);
             }
         }
     }
@@ -160,53 +154,52 @@ export default class PageRenderer extends Vue {
     private createResponseSet(): ResponsesDict {
         const responses = {} as ResponsesDict;
         this.questions.forEach((question) => {
-            console.log(question);
-            /*const questionType = this.$store.state.questionTypes[question.relationships['question-type'].data.id];
+            const questionType = this.$store.state.dataStore.data['question-types'][question.relationships['question-type'].data.id];
             if (questionType) {
                 let storedValue = undefined as undefined | null | string | string[] | ResponsesDict;
                 if (this.$store.state.progress.responses[this.page.id] && this.$store.state.progress.responses[this.page.id][question.id]) {
                     storedValue = this.$store.state.progress.responses[this.page.id][question.id];
                 }
-                if (questionType.attributes._core_type === 'USEFDisplay') {
+                if (questionType.attributes.essCoreType === 'USEFDisplay') {
                     responses[question.id] = undefined;
-                } else if (questionType.attributes._core_type === 'USEFSingleLineInput') {
+                } else if (questionType.attributes.essCoreType === 'USEFSingleLineInput') {
                     if (storedValue == undefined) {
                         responses[question.id] = null;
                     } else {
                         responses[question.id] = storedValue;
                     }
-                } else if (questionType.attributes._core_type === 'USEFMultiLineInput') {
+                } else if (questionType.attributes.essCoreType === 'USEFMultiLineInput') {
                     if (storedValue == undefined) {
                         responses[question.id] = null;
                     } else {
                         responses[question.id] = storedValue;
                     }
-                } else if (questionType.attributes._core_type === 'USEFSingleChoice') {
+                } else if (questionType.attributes.essCoreType === 'USEFSingleChoice') {
                     if (storedValue == undefined) {
                         responses[question.id] = null;
                     } else {
                         responses[question.id] = storedValue;
                     }
-                } else if (questionType.attributes._core_type === 'USEFMultiChoice') {
+                } else if (questionType.attributes.essCoreType === 'USEFMultiChoice') {
                     if (storedValue == undefined) {
                         responses[question.id] = [];
                     } else {
                         responses[question.id] = storedValue;
                     }
-                } else if (questionType.attributes._core_type === 'USEFHidden') {
+                } else if (questionType.attributes.essCoreType === 'USEFHidden') {
                     responses[question.id] = question.attributes.value;
-                } else if (questionType.attributes._core_type === 'USEFSingleChoiceGrid') {
+                } else if (questionType.attributes.essCoreType === 'USEFSingleChoiceGrid') {
                     responses[question.id] = {} as ResponsesDict;
-                    question.attributes.rowValues.forEach((row: string) => {
+                    (question.attributes.rowValues as string[]).forEach((row: string) => {
                         if (!storedValue || (storedValue as ResponsesDict)[row] === undefined) {
                             (responses[question.id] as ResponsesDict)[row] = null;
                         } else {
                             (responses[question.id] as ResponsesDict)[row] = (storedValue as ResponsesDict)[row];
                         }
                     });
-                } else if (questionType.attributes._core_type === 'USEFMultiChoiceGrid') {
+                } else if (questionType.attributes.essCoreType === 'USEFMultiChoiceGrid') {
                     responses[question.id] = {} as ResponsesDict;
-                    question.attributes.rowValues.forEach((row: string) => {
+                    (question.attributes.rowValues as string[]).forEach((row: string) => {
                         if (!storedValue || (storedValue as ResponsesDict)[row] === undefined) {
                             (responses[question.id] as ResponsesDict)[row] = [];
                         } else {
@@ -214,7 +207,7 @@ export default class PageRenderer extends Vue {
                         }
                     });
                 }
-            }*/
+            }
         });
         return responses;
     }

@@ -4,7 +4,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPNoContent
 from pyramid.view import view_config
 from sqlalchemy import and_
 
-from ess.models import Page
+from ess.models import Page, Experiment
 from . import (validated_body, override_tree, type_schema, id_schema, relationship_schema, store_object)
 
 
@@ -50,6 +50,17 @@ def backend_get_item(request):
                      Page.experiment_id == request.matchdict['eid'])).first()
     if item is not None:
         return {'data': item.as_jsonapi()}
+    raise HTTPNotFound()
+
+
+@view_config(route_name='api.external.page.item.get', renderer='json')
+@require_permission('Experiment:external_id:eid allow $current_user participate')
+def external_get_item(request):
+    item = request.dbsession.query(Page).join(Page.experiment)\
+        .filter(and_(Page.id == request.matchdict['iid'],
+                     Experiment.external_id == request.matchdict['eid'])).first()
+    if item is not None:
+        return {'data': item.as_jsonapi(external=True)}
     raise HTTPNotFound()
 
 

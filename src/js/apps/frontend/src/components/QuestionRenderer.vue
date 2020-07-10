@@ -1,5 +1,5 @@
 <template>
-    <section v-if="question && question.questionType" :id="'question-' + question.id" :class="'question question-type-' + question.questionType['_core_type'] + (error ? ' has-error' : '')">
+    <section v-if="question && questionType" :id="'question-' + question.id" :class="'question question-core-type-' + questionType.attributes.essCoreType + (error ? ' has-error' : '')">
         <h2 v-if="attributes.title" :class="attributes.required ? 'required' : ''">
             <svg v-if="error" viewBox="0 0 24 24" class="mdi icon alert">
                 <path d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
@@ -164,8 +164,7 @@ import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import { ResponsesDict } from '@/interfaces';
-import { Question, Attributes } from 'ess-shared';
+import { Question, QuestionType, QuestionTypeAttribute, ResponsesDict } from '@/interfaces';
 
 @Component
 export default class QuestionRenderer extends Vue {
@@ -176,16 +175,16 @@ export default class QuestionRenderer extends Vue {
 
     public get attributes(): {[x: string]: string | boolean | string[] | null} {
         const attributes = {} as {[x: string]: string | boolean | string[] | null};
-        if (this.question.questionType) {
-            Object.entries(this.question.questionType._attributes).forEach((attr) => {
-                if (!this.$props.question._attributes[attr[0]]) {
-                    if (attr[1] && (attr[1] as Attributes).source === 'user') {
-                        if ((attr[1] as Attributes).type === 'booleanValue') {
+        if (this.questionType) {
+            Object.entries(this.questionType.attributes).forEach((attr) => {
+                if (!this.question.attributes[attr[0]]) {
+                    if (attr[1] && (attr[1] as QuestionTypeAttribute).source === 'user') {
+                        if ((attr[1] as QuestionTypeAttribute).type === 'booleanValue') {
                             attributes[attr[0]] = false;
-                        } else if ((attr[1] as Attributes).type === 'listOfValues') {
+                        } else if ((attr[1] as QuestionTypeAttribute).type === 'listOfValues') {
                             attributes[attr[0]] = [];
-                        } else if ((attr[1] as Attributes).allowed && ((attr[1] as Attributes).allowed as string[]).length > 0) {
-                            attributes[attr[0]] = ((attr[1] as Attributes).allowed as string[])[0];
+                        } else if ((attr[1] as QuestionTypeAttribute).allowed && ((attr[1] as QuestionTypeAttribute).allowed as string[]).length > 0) {
+                            attributes[attr[0]] = ((attr[1] as QuestionTypeAttribute).allowed as string[])[0];
                         } else {
                             attributes[attr[0]] = '';
                         }
@@ -193,7 +192,7 @@ export default class QuestionRenderer extends Vue {
                         attributes[attr[0]] = null;
                     }
                 } else {
-                    attributes[attr[0]] = this.$props.question._attributes[attr[0]];
+                    attributes[attr[0]] = this.question.attributes[attr[0]] as string;
                 }
             });
         }
@@ -201,12 +200,15 @@ export default class QuestionRenderer extends Vue {
     }
 
     public get renderType(): string {
-        console.log(this.question.questionType);
-        if (this.question.questionType && (this.question.questionType._attributes._core_type as string).indexOf('USEF') === 0) {
-            return (this.question.questionType._attributes._core_type as string);
+        if (this.questionType && (this.questionType.attributes.essCoreType as string).indexOf('USEF') === 0) {
+            return this.questionType.attributes.essCoreType as string;
         } else {
             return 'USEFInvalid'
         }
+    }
+
+    public get questionType(): QuestionType {
+        return this.$store.state.dataStore.data['question-types'][this.question.relationships['question-type'].data.id];
     }
 
     public mounted(): void {
@@ -219,13 +221,17 @@ export default class QuestionRenderer extends Vue {
     }
 
     public zip(valuesA: string[], valuesB: string[]): [string, string][] {
-        return valuesA.map((value, idx) => {
-            if (idx < valuesB.length) {
-                return [value, valuesB[idx]];
-            } else {
-                return [value, value];
-            }
-        });
+        if (valuesA && valuesB) {
+            return valuesA.map((value, idx) => {
+                if (idx < valuesB.length) {
+                    return [value, valuesB[idx]];
+                } else {
+                    return [value, value];
+                }
+            });
+        } else {
+            return [];
+        }
     }
 }
 </script>

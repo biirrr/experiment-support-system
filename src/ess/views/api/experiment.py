@@ -30,6 +30,17 @@ def backend_get_item(request):
     raise HTTPNotFound()
 
 
+@view_config(route_name='api.external.experiment.item.get', renderer='json')
+@require_permission('Experiment:external_id:eid allow $current_user participate')
+def external_get_item(request):
+    experiment = request.dbsession.query(Experiment)\
+        .filter(and_(Experiment.external_id == request.matchdict['eid'],
+                     Experiment.external_id == request.matchdict['iid'])).first()
+    if experiment is not None:
+        return {'data': experiment.as_jsonapi(external=True)}
+    raise HTTPNotFound()
+
+
 patch_experiment_schema = {'type': type_schema('experiments'),
                            'id': id_schema(),
                            'attributes': {'type': 'dict',

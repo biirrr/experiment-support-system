@@ -6,7 +6,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPNoContent
 from pyramid.view import view_config
 from sqlalchemy import and_
 
-from ess.models import Transition, Page
+from ess.models import Transition, Page, Experiment
 from . import (validated_body, id_schema, type_schema, relationship_schema, store_object)
 
 
@@ -31,12 +31,25 @@ def backend_post_collection(request):
 @view_config(route_name='api.backend.transition.item.get', renderer='json')
 @require_permission('Experiment:eid allow $current_user edit')
 def backend_get_item(request):
-    """Handles fetching a single :class:`~ess.models.page.Transition`."""
+    """Handles fetching a single :class:`~ess.models.page.Transition` for the backend api."""
     item = request.dbsession.query(Transition).join(Transition.source)\
         .filter(and_(Transition.id == request.matchdict['iid'],
                      Page.experiment_id == request.matchdict['eid'])).first()
     if item is not None:
         return {'data': item.as_jsonapi()}
+    else:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='api.external.transition.item.get', renderer='json')
+@require_permission('Experiment:external_id:eid allow $current_user participate')
+def external_get_item(request):
+    """Handles fetching a single :class:`~ess.models.page.Transition` for the external api."""
+    item = request.dbsession.query(Transition).join(Transition.source).join(Page.experiment)\
+        .filter(and_(Transition.id == request.matchdict['iid'],
+                     Experiment.external_id == request.matchdict['eid'])).first()
+    if item is not None:
+        return {'data': item.as_jsonapi(external=True)}
     else:
         raise HTTPNotFound()
 

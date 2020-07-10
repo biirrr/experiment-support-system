@@ -31,6 +31,9 @@ def includeme(config):
     config.add_route('experiment.create', '/experiments/create')
     config.add_route('experiment.edit', '/experiments/:eid/edit')
     config.add_route('experiment.results.download', '/experiments/:eid/results/download')
+    config.add_route('experiment.run', '/run/:eid')
+    config.add_route('experiment.run.validate', '/run/:eid/validate')
+    config.add_route('experiment.run.submit', '/run/:eid/submit')
 
     config.add_route('api.admin', '/api/admin')
     generate_api_routes(config, 'admin', 'question-types')
@@ -43,21 +46,13 @@ def includeme(config):
     generate_api_routes(config, 'backend', 'transitions', url_prefix='/:eid')
     generate_api_routes(config, 'backend', 'questions', url_prefix='/:eid')
     generate_api_routes(config, 'backend', 'results', url_prefix='/:eid')
-
-    config.add_route('experiment.run', '/run/:eid')
-    config.add_route('experiment.run.api', '/run/api')
-    config.add_route('experiment.run.api.experiment.item.get', '/run/api/experiments/:eid', request_method='GET')
-    config.add_route('experiment.run.api.page.item.get', '/run/api/experiments/:eid/pages/:pid', request_method='GET')
-    config.add_route('experiment.run.api.participant.collection.post', '/run/api/experiments/:eid/participants',
-                     request_method='POST')
-    config.add_route('experiment.run.api.participant.item.get', '/run/api/experiments/:eid/participants/:pid',
-                     request_method='GET')
-    config.add_route('experiment.run.api.transition.item.get', '/run/api/experiments/:eid/transitions/:tid',
-                     request_method='GET')
-    config.add_route('experiment.run.api.question.item.get', '/run/api/experiments/:eid/questions/:qid',
-                     request_method='GET')
-    config.add_route('experiment.run.validate', '/run/:eid/validate')
-    config.add_route('experiment.run.submit', '/run/:eid/submit')
+    config.add_route('api.external', '/api/external/:eid')
+    generate_api_routes(config, 'external', 'question-types', url_prefix='/:eid')
+    generate_api_routes(config, 'external', 'experiments', url_prefix='/:eid')
+    generate_api_routes(config, 'external', 'pages', url_prefix='/:eid')
+    generate_api_routes(config, 'external', 'transitions', url_prefix='/:eid')
+    generate_api_routes(config, 'external', 'questions', url_prefix='/:eid')
+    generate_api_routes(config, 'external', 'participants', url_prefix='/:eid')
 
     config.add_route('admin', '/admin')
     config.add_route('admin.question_types', '/admin/question_types')
