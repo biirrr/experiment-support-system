@@ -50,6 +50,7 @@ def create_user_1(request):
 
 
 def create_experiment_1(request):
+    """Experiment 1 is an empty experiment."""
     user = create_user_1(request)
     experiment = Experiment(attributes={'title': 'Experiment 1',
                                         'description': 'The first test experiment',
@@ -61,6 +62,7 @@ def create_experiment_1(request):
 
 
 def create_experiment_2(request):
+    """Experiment 2 is a two-page experiment with two empty pages."""
     user = create_user_1(request)
     experiment = Experiment(attributes={'title': 'Experiment 2',
                                         'description': 'The second test experiment',
@@ -77,11 +79,15 @@ def create_experiment_2(request):
 
 
 def create_experiment_3(request):
+    """Experiment 3 is a multi-page experiment that contains all types of questions."""
+    user = create_user_1(request)
     experiment = Experiment(external_id='experiment-3',
                             attributes={'title': 'Experiment 3',
                                         'description': 'A complete experiment',
                                         'status': 'live'})
     request.dbsession.add(experiment)
+    owner = ExperimentPermission(experiment=experiment, user=user, role='owner')
+    request.dbsession.add(owner)
     welcome = Page(experiment=experiment, attributes={'name': 'welcome', 'title': 'Welcome'})
     welcome.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
                                       position=1,
@@ -156,17 +162,234 @@ def create_experiment_3(request):
     return experiment
 
 
+def create_experiment_4(request):
+    """Experiment 4 is a multi-page experiment with conditional questions."""
+    user = create_user_1(request)
+    experiment = Experiment(external_id='experiment-4',
+                            attributes={'title': 'Experiment 4',
+                                        'description': 'The fourth test experiment',
+                                        'status': 'development'})
+    request.dbsession.add(experiment)
+    owner = ExperimentPermission(experiment=experiment, user=user, role='owner')
+    request.dbsession.add(owner)
+    page1 = Page(experiment=experiment, attributes={'name': 'page1', 'title': 'Page 1 - Conditional on SingleChoice'})
+    question1 = Question(question_type=get_question_type(request, 'ESSSingleChoice'),
+                         position=1,
+                         attributes={'values': ['0', '1', '2'],
+                                     'labels': ['A', 'B', 'C'],
+                                     'required': True,
+                                     'display': 'vertical list'})
+    page1.questions.append(question1)
+    request.dbsession.flush()
+    request.dbsession.add(question1)
+    page1.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>You selected A</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question1.id),
+                                                                   'operator': 'eq',
+                                                                   'value': '0'}}))
+    page1.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>You selected B</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question1.id),
+                                                                   'operator': 'eq',
+                                                                   'value': '1'}}))
+    page1.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>You selected C</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question1.id),
+                                                                   'operator': 'eq',
+                                                                   'value': '2'}}))
+    experiment.first_page = page1
+    request.dbsession.add(page1)
+    page2 = Page(experiment=experiment, attributes={'name': 'page2', 'title': 'Page 2 - Conditional on MultiChoice'})
+    request.dbsession.add(Transition(source=page1, target=page2, attributes={}))
+    question2 = Question(question_type=get_question_type(request, 'ESSMultiChoice'),
+                         position=1,
+                         attributes={'values': ['0', '1', '2'],
+                                     'labels': ['A', 'B', 'C'],
+                                     'required': True,
+                                     'display': 'vertical list'})
+    page2.questions.append(question2)
+    request.dbsession.flush()
+    request.dbsession.add(question2)
+    page2.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>You selected A</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question2.id),
+                                                                   'operator': 'eq',
+                                                                   'value': '0'}}))
+    page2.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>You selected B</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question2.id),
+                                                                   'operator': 'eq',
+                                                                   'value': '1'}}))
+    page2.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>You selected C</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question2.id),
+                                                                   'operator': 'eq',
+                                                                   'value': '2'}}))
+    page3 = Page(experiment=experiment, attributes={'name': 'page3', 'title': 'Page 3 - Conditional on Input'})
+    request.dbsession.add(Transition(source=page2, target=page3, attributes={}))
+    question3 = Question(question_type=get_question_type(request, 'ESSSingleLineInput'),
+                         position=1,
+                         attributes={'title': 'What is 1 + 2',
+                                     'required': True})
+    page3.questions.append(question3)
+    request.dbsession.flush()
+    request.dbsession.add(question3)
+    page3.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>That is correct</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question3.id),
+                                                                   'operator': 'eq',
+                                                                   'value': '3'}}))
+    page4 = Page(experiment=experiment, attributes={'name': 'page4',
+                                                    'title': 'Page 4 - Conditional on SingleChoiceGrid'})
+    request.dbsession.add(Transition(source=page3, target=page4, attributes={}))
+    question4 = Question(question_type=get_question_type(request, 'ESSSingleChoiceGrid'),
+                         position=1,
+                         attributes={'columnValues': ['0', '1', '2'],
+                                     'columnLabels': ['A', 'B', 'C'],
+                                     'rowValues': ['q1', 'q2'],
+                                     'rowLabels': ['Question 1', 'Question 2'],
+                                     'required': True})
+    page4.questions.append(question4)
+    request.dbsession.flush()
+    request.dbsession.add(question4)
+    page4.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>Q1: You selected A</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question4.id),
+                                                                   'subQuestion': 'q1',
+                                                                   'operator': 'eq',
+                                                                   'value': '0'}}))
+    page4.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>Q1: You selected B</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question4.id),
+                                                                   'subQuestion': 'q1',
+                                                                   'operator': 'eq',
+                                                                   'value': '1'}}))
+    page4.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>Q1: You selected C</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question4.id),
+                                                                   'subQuestion': 'q1',
+                                                                   'operator': 'eq',
+                                                                   'value': '2'}}))
+    page4.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>Q2: You selected A</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question4.id),
+                                                                   'subQuestion': 'q2',
+                                                                   'operator': 'eq',
+                                                                   'value': '0'}}))
+    page4.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>Q2: You selected B</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question4.id),
+                                                                   'subQuestion': 'q2',
+                                                                   'operator': 'eq',
+                                                                   'value': '1'}}))
+    page4.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>Q2: You selected C</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question4.id),
+                                                                   'subQuestion': 'q2',
+                                                                   'operator': 'eq',
+                                                                   'value': '2'}}))
+    page5 = Page(experiment=experiment, attributes={'name': 'page5',
+                                                    'title': 'Page 5 - Conditional on MultiChoiceGrid'})
+    request.dbsession.add(Transition(source=page4, target=page5, attributes={}))
+    question5 = Question(question_type=get_question_type(request, 'ESSMultiChoiceGrid'),
+                         position=1,
+                         attributes={'columnValues': ['0', '1', '2'],
+                                     'columnLabels': ['A', 'B', 'C'],
+                                     'rowValues': ['q1', 'q2'],
+                                     'rowLabels': ['Question 1', 'Question 2'],
+                                     'required': True})
+    page5.questions.append(question5)
+    request.dbsession.flush()
+    request.dbsession.add(question5)
+    page5.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>Q1: You selected A</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question5.id),
+                                                                   'subQuestion': 'q1',
+                                                                   'operator': 'eq',
+                                                                   'value': '0'}}))
+    page5.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>Q1: You selected B</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question5.id),
+                                                                   'subQuestion': 'q1',
+                                                                   'operator': 'eq',
+                                                                   'value': '1'}}))
+    page5.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>Q1: You selected C</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question5.id),
+                                                                   'subQuestion': 'q1',
+                                                                   'operator': 'eq',
+                                                                   'value': '2'}}))
+    page5.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>Q2: You selected A</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question5.id),
+                                                                   'subQuestion': 'q2',
+                                                                   'operator': 'eq',
+                                                                   'value': '0'}}))
+    page5.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>Q2: You selected B</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question5.id),
+                                                                   'subQuestion': 'q2',
+                                                                   'operator': 'eq',
+                                                                   'value': '1'}}))
+    page5.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
+                                    position=1,
+                                    attributes={'content': '<p>Q2: You selected C</p>',
+                                                'format': 'text/html',
+                                                'essConditional': {'question': str(question5.id),
+                                                                   'subQuestion': 'q2',
+                                                                   'operator': 'eq',
+                                                                   'value': '2'}}))
+
+
+objects = {'user1': create_user_1,
+           'experiment1': create_experiment_1,
+           'experiment2': create_experiment_2,
+           'experiment3': create_experiment_3,
+           'experiment4': create_experiment_4,
+           }
+
+
 def create(request):
-    """Handles the setup of test 1"""
+    """Handles setting up the test fixtures"""
     init_db(request)
     if 'obj' in request.params:
         for obj in request.params.getall('obj'):
-            if obj == 'user1':
-                create_user_1(request)
-            elif obj == 'experiment1':
-                create_experiment_1(request)
-            elif obj == 'experiment2':
-                create_experiment_2(request)
-            elif obj == 'experiment3':
-                create_experiment_3(request)
+            if obj in objects:
+                objects[obj](request)
     return {}
