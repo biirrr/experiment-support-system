@@ -12,7 +12,7 @@ class Experiment(Base):
     __tablename__ = 'experiments'
 
     id = Column(Integer, primary_key=True)
-    first_page_id = Column(Integer, ForeignKey('pages.id'))
+    first_page_id = Column(Integer, ForeignKey('pages.id', use_alter=True))
     external_id = Column(Unicode(191))
     attributes = Column(NestedMutableJson)
     created = Column(DateTime, default=datetime.now)
