@@ -2,7 +2,7 @@
 
 This is the Experiment Support System version 2.
 
-![](https://github.com/biirrr/experiment-support-system/workflows/End-to-End20Tests/badge.svg)
+![](https://github.com/biirrr/experiment-support-system/workflows/End-to-End%20Tests/badge.svg)
 
 ## Development
 
