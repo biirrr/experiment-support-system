@@ -285,7 +285,6 @@ export default class QuestionEditor extends Vue {
                             question: '',
                         });
                     } else {
-                        console.log((attr[1] as QuestionTypeAttribute).type);
                         Vue.set(this.localAttributes, attr[0], '');
                     }
                 }
