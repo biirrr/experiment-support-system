@@ -1,9 +1,8 @@
 import json
 
 from copy import deepcopy
-from pwh_permissions import permitted
 from pwh_permissions.pyramid import require_permission
-from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPNoContent, HTTPForbidden
+from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPNoContent
 from pyramid.view import view_config
 from sqlalchemy import and_
 
@@ -20,45 +19,39 @@ post_transition_schema = {'type': type_schema('transitions'),
                                                        'target': relationship_schema('pages')}}}
 
 
-@view_config(route_name='api.transition.collection.post', renderer='json')
+@view_config(route_name='api.backend.transition.collection.post', renderer='json')
 @require_permission('Experiment:eid allow $current_user edit')
-def post_collection(request):
-    """Handles fetching a single :class:`~ess.models.page.Page`."""
+def backend_post_collection(request):
+    """Handles fetching creating a new :class:`~ess.models.transition.Transition`."""
     body = validated_body(request, post_transition_schema)
     obj = store_object(request, body)
     return {'data': obj.as_jsonapi()}
 
 
-@view_config(route_name='api.transition.item.get', renderer='json')
-@view_config(route_name='experiment.run.api.transition.item.get', renderer='json')
-def get_item(request):
-    """Handles fetching a single :class:`~ess.models.page.Transition`."""
-    if request.matched_route.name == 'experiment.run.api.transition.item.get':
-        item = request.dbsession.query(Transition).join(Transition.source)\
-            .join(Transition.source)\
-            .join(Page.experiment)\
-            .filter(and_(Transition.id == request.matchdict['tid'],
-                         Experiment.external_id == request.matchdict['eid'])).first()
-        if item is not None:
-            if permitted('transition allow current_user participate', {'transition': item,
-                                                                       'current_user': request.current_user}):
-                return {'data': item.as_jsonapi()}
-            else:
-                raise HTTPForbidden()
-        else:
-            raise HTTPNotFound()
-    elif request.matched_route.name == 'api.transition.item.get':
-        item = request.dbsession.query(Transition).join(Transition.source)\
-            .filter(and_(Transition.id == request.matchdict['tid'],
-                         Page.experiment_id == request.matchdict['eid'])).first()
-        if item is not None:
-            if permitted('transition allow current_user edit', {'transition': item,
-                                                                'current_user': request.current_user}):
-                return {'data': item.as_jsonapi()}
-            else:
-                raise HTTPForbidden()
-        else:
-            raise HTTPNotFound()
+@view_config(route_name='api.backend.transition.item.get', renderer='json')
+@require_permission('Experiment:eid allow $current_user edit')
+def backend_get_item(request):
+    """Handles fetching a single :class:`~ess.models.page.Transition` for the backend api."""
+    item = request.dbsession.query(Transition).join(Transition.source)\
+        .filter(and_(Transition.id == request.matchdict['iid'],
+                     Page.experiment_id == request.matchdict['eid'])).first()
+    if item is not None:
+        return {'data': item.as_jsonapi()}
+    else:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='api.external.transition.item.get', renderer='json')
+@require_permission('Experiment:external_id:eid allow $current_user participate')
+def external_get_item(request):
+    """Handles fetching a single :class:`~ess.models.page.Transition` for the external api."""
+    item = request.dbsession.query(Transition).join(Transition.source).join(Page.experiment)\
+        .filter(and_(Transition.id == request.matchdict['iid'],
+                     Experiment.external_id == request.matchdict['eid'])).first()
+    if item is not None:
+        return {'data': item.as_jsonapi(external=True)}
+    else:
+        raise HTTPNotFound()
 
 
 patch_transition_schema = {'type': type_schema('transitions'),
@@ -71,12 +64,12 @@ patch_transition_schema = {'type': type_schema('transitions'),
                                                         'target': relationship_schema('pages')}}}
 
 
-@view_config(route_name='api.transition.item.patch', renderer='json')
+@view_config(route_name='api.backend.transition.item.patch', renderer='json')
 @require_permission('Experiment:eid allow $current_user edit')
-def patch_item(request):
+def backend_patch_item(request):
     """Handles updating a single :class:`~ess.models.question.Question`."""
     item = request.dbsession.query(Transition).join(Transition.source).\
-        filter(and_(Transition.id == request.matchdict['tid'],
+        filter(and_(Transition.id == request.matchdict['iid'],
                     Page.experiment_id == request.matchdict['eid'])).first()
     if item is not None:
         schema = deepcopy(patch_transition_schema)
@@ -98,12 +91,12 @@ def patch_item(request):
         raise HTTPNotFound()
 
 
-@view_config(route_name='api.transition.item.delete', renderer='json')
+@view_config(route_name='api.backend.transition.item.delete', renderer='json')
 @require_permission('Experiment:eid allow $current_user edit')
-def delete_item(request):
-    """Handles updating a single :class:`~ess.models.question.Question`."""
+def backend_delete_item(request):
+    """Handles deleting a single :class:`~ess.models.transition.Transition`."""
     item = request.dbsession.query(Transition).join(Transition.source).\
-        filter(and_(Transition.id == request.matchdict['tid'],
+        filter(and_(Transition.id == request.matchdict['iid'],
                     Page.experiment_id == request.matchdict['eid'])).first()
     if item is not None:
         request.dbsession.delete(item)

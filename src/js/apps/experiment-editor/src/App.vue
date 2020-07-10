@@ -91,11 +91,11 @@ import AriaMenubar from '@/components/AriaMenubar.vue';
 })
 export default class App extends Vue {
 
-    public get experiment() : Experiment {
-        return this.$store.state.experiment;
+    public get experiment(): Experiment | null {
+        return this.$store.getters.experiment;
     }
 
-    public get progress() : number {
+    public get progress(): number {
         if (this.$store.state.ui.busyMaxCounter > 0) {
             return 100 / this.$store.state.ui.busyMaxCounter * (this.$store.state.ui.busyMaxCounter - this.$store.state.ui.busyCounter);
         } else {
@@ -103,7 +103,7 @@ export default class App extends Vue {
         }
     }
 
-    public mounted() : void {
+    public mounted(): void {
         const configElement = document.getElementById('ExperimentEditorConfig');
         if (configElement) {
             const config = JSON.parse(configElement.innerHTML);
@@ -113,7 +113,7 @@ export default class App extends Vue {
         }
     }
 
-    public changeStatus(ev: Event) : void {
+    public changeStatus(ev: Event): void {
         if (ev && ev.target) {
             this.$store.dispatch('updateExperimentAttribute', {
                 attribute: 'status',

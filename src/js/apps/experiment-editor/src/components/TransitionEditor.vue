@@ -38,7 +38,9 @@ import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import { Page, Transition, StringKeyValueDict, Error } from '@/interfaces';
+import { errorsToDict } from 'data-store';
+
+import { Page, Transition, StringKeyValueDict } from '@/interfaces';
 import AriaMenubar from '@/components/AriaMenubar.vue';
 import InputField from '@/components/InputField.vue';
 
@@ -53,48 +55,42 @@ export default class TransitionEditor extends Vue {
     public localTransition: Transition | null = null;
     public errors: StringKeyValueDict = {};
 
-    public get pages() : Page[] {
-        return Object.values(this.$store.state.pages);
+    public get pages(): Page[] {
+        return Object.values(this.$store.state.dataStore.data.pages);
     }
 
-    public get hasChanges() : boolean {
-        if (this.$props.transition && this.localTransition) {
-            return this.$props.transition.relationships.target.data.id != this.localTransition.relationships.target.data.id;
+    public get hasChanges(): boolean {
+        if (this.transition && this.localTransition) {
+            return this.transition.relationships.target.data.id != this.localTransition.relationships.target.data.id;
         }
         return false;
     }
 
-    public mounted() : void {
-        this.localTransition = deepcopy(this.$props.transition);
+    public mounted(): void {
+        this.localTransition = deepcopy(this.transition);
     }
 
     @Watch('transition')
-    public updateTransition() : void {
-        this.localTransition = deepcopy(this.$props.transition);
+    public updateTransition(): void {
+        this.localTransition = deepcopy(this.transition);
     }
 
-    public save() : void {
+    public save(): void {
         if (this.localTransition) {
             try {
-                this.errors = {};
                 if (!this.localTransition.id) {
                     this.$store.dispatch('createTransition', this.localTransition);
                     this.$emit('created');
                 } else {
-                    this.$store.dispatch('updateTransition', this.localTransition);
+                    this.$store.dispatch('saveTransition', this.localTransition);
                 }
-            } catch(error) {
-                const errors = {} as StringKeyValueDict;
-                error.forEach((entry: Error) => {
-                    const pointer = entry.source.pointer.split('/');
-                    errors[pointer[pointer.length - 1]] = entry.title;
-                });
-                this.errors = errors;
+            } catch(errors) {
+                this.errors = errorsToDict(errors);
             }
         }
     }
 
-    public deleteTransition() : void {
+    public deleteTransition(): void {
         if (this.localTransition) {
             if (!this.localTransition.id) {
                 this.$emit('created');

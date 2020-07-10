@@ -78,11 +78,33 @@ def schema_value(attr, question_type, question):
         return definition
 
 
-def schema_for_page(page):
+def value_of_question_responses(question_id, responses):
+    for value in responses.values():
+        if question_id in value:
+            return value[question_id]
+    return None
+
+
+def schema_for_page(page, responses):
     schema = {}
     for question in page.questions:
         attributes = question.question_type.inherited_attributes()
-        if attributes['_core_type'] == 'USEFSingleLineInput':
+        if 'essConditional' in attributes and 'essConditional' in question.attributes:
+            targetQuestion = question.attributes['essConditional']['question']
+            if targetQuestion != '':
+                if '.' in targetQuestion:
+                    value = value_of_question_responses(targetQuestion[0:targetQuestion.find('.')], responses)
+                    if value and targetQuestion[targetQuestion.find('.') + 1:] in value:
+                        value = value[targetQuestion[targetQuestion.find('.') + 1:]]
+                else:
+                    value = value_of_question_responses(targetQuestion, responses)
+                if question.attributes['essConditional']['operator'] == 'eq':
+                    if value != question.attributes['essConditional']['value']:
+                        continue
+                elif question.attributes['essConditional']['operator'] == 'neq':
+                    if value == question.attributes['essConditional']['value']:
+                        continue
+        if attributes['essCoreType'] == 'USEFSingleLineInput':
             schema[str(question.id)] = {'type': 'string',
                                         'required': schema_value('required',
                                                                  attributes,
@@ -90,7 +112,7 @@ def schema_for_page(page):
                                         'empty': not schema_value('required',
                                                                   attributes,
                                                                   question.attributes)}
-        elif attributes['_core_type'] == 'USEFMultiLineInput':
+        elif attributes['essCoreType'] == 'USEFMultiLineInput':
             schema[str(question.id)] = {'type': 'string',
                                         'required': schema_value('required',
                                                                  attributes,
@@ -98,7 +120,7 @@ def schema_for_page(page):
                                         'empty': not schema_value('required',
                                                                   attributes,
                                                                   question.attributes)}
-        elif attributes['_core_type'] == 'USEFSingleChoice':
+        elif attributes['essCoreType'] == 'USEFSingleChoice':
             schema[str(question.id)] = {'type': 'string',
                                         'required': schema_value('required',
                                                                  attributes,
@@ -109,7 +131,7 @@ def schema_for_page(page):
                                         'allowed': schema_value('values',
                                                                 attributes,
                                                                 question.attributes)}
-        elif attributes['_core_type'] == 'USEFMultiChoice':
+        elif attributes['essCoreType'] == 'USEFMultiChoice':
             schema[str(question.id)] = {'type': 'list',
                                         'required': schema_value('required',
                                                                  attributes,
@@ -120,7 +142,7 @@ def schema_for_page(page):
                                         'allowed': schema_value('values',
                                                                 attributes,
                                                                 question.attributes)}
-        elif attributes['_core_type'] == 'USEFHidden':
+        elif attributes['essCoreType'] == 'USEFHidden':
             schema[str(question.id)] = {'type': 'string',
                                         'required': schema_value('required',
                                                                  attributes,
@@ -128,9 +150,9 @@ def schema_for_page(page):
                                         'empty': not schema_value('required',
                                                                   attributes,
                                                                   question.attributes)}
-        elif attributes['_core_type'] == 'USEFSingleChoiceGrid':
+        elif attributes['essCoreType'] == 'USEFSingleChoiceGrid':
             row_schema = {}
-            for value in schema_value('row_values', attributes, question.attributes):
+            for value in schema_value('rowValues', attributes, question.attributes):
                 row_schema[value] = {'type': 'string',
                                      'required': schema_value('required',
                                                               attributes,
@@ -138,7 +160,7 @@ def schema_for_page(page):
                                      'empty': not schema_value('required',
                                                                attributes,
                                                                question.attributes),
-                                     'allowed': schema_value('column_values',
+                                     'allowed': schema_value('columnValues',
                                                              attributes,
                                                              question.attributes)}
             schema[str(question.id)] = {'type': 'dict',
@@ -149,9 +171,9 @@ def schema_for_page(page):
                                                                   attributes,
                                                                   question.attributes),
                                         'schema': row_schema}
-        elif attributes['_core_type'] == 'USEFMultiChoiceGrid':
+        elif attributes['essCoreType'] == 'USEFMultiChoiceGrid':
             row_schema = {}
-            for value in schema_value('row_values', attributes, question.attributes):
+            for value in schema_value('rowValues', attributes, question.attributes):
                 row_schema[value] = {'type': 'list',
                                      'required': schema_value('required',
                                                               attributes,
@@ -159,7 +181,7 @@ def schema_for_page(page):
                                      'empty': not schema_value('required',
                                                                attributes,
                                                                question.attributes),
-                                     'allowed': schema_value('column_values',
+                                     'allowed': schema_value('columnValues',
                                                              attributes,
                                                              question.attributes)}
             schema[str(question.id)] = {'type': 'dict',
@@ -183,9 +205,9 @@ def validate(request):
                 page = request.dbsession.query(Page).filter(and_(Page.id == body['page'],
                                                                  Page.experiment_id == experiment.id)).\
                     first()
-                if page:
-                    validator = Validator(schema_for_page(page))
-                    if validator.validate(body['responses']):
+                if page and body['page'] in body['responses']:
+                    validator = Validator(schema_for_page(page, body['responses']))
+                    if validator.validate(body['responses'][body['page']]):
                         return HTTPNoContent()
                     else:
                         raise HTTPBadRequest(body=json.dumps({'errors': flatten_errors(validator.errors)}))
@@ -199,12 +221,12 @@ def validate(request):
         raise HTTPNotFound()
 
 
-def schema_for_experiment(page, schema):
+def schema_for_experiment(page, schema, responses):
     if page.id not in schema:
-        schema[str(page.id)] = {'type': 'dict', 'required': True, 'schema': schema_for_page(page)}
+        schema[str(page.id)] = {'type': 'dict', 'required': True, 'schema': schema_for_page(page, responses)}
         for transition in page.next:
             if transition.target:
-                schema = schema_for_experiment(transition.target, schema)
+                schema = schema_for_experiment(transition.target, schema, responses)
     return schema
 
 
@@ -214,28 +236,33 @@ def submit(request):
     if experiment and experiment.first_page:
         try:
             body = json.loads(request.body)
-            schema = {'participant': {'type': 'string',
-                                      'required': True,
-                                      'empty': False},
-                      'responses': {'type': 'dict',
-                                    'required': True,
-                                    'empty': False,
-                                    'schema': schema_for_experiment(experiment.first_page, {})}}
-            validator = Validator(schema)
-            if validator.validate(body):
-                participant = request.dbsession.query(Participant).\
-                    filter(and_(Participant.external_id == body['participant'],
-                                Participant.experiment_id == experiment.id)).\
-                    first()
-                if participant:
-                    participant.responses = body['responses']
-                    participant.completed = True
-                    request.dbsession.add(participant)
-                    return HTTPNoContent()
+            if 'responses' in body:
+                schema = {'participant': {'type': 'string',
+                                          'required': True,
+                                          'empty': False},
+                          'responses': {'type': 'dict',
+                                        'required': True,
+                                        'empty': False,
+                                        'schema': schema_for_experiment(experiment.first_page,
+                                                                        {},
+                                                                        body['responses'])}}
+                validator = Validator(schema)
+                if validator.validate(body):
+                    participant = request.dbsession.query(Participant)\
+                        .filter(and_(Participant.external_id == body['participant'],
+                                     Participant.experiment_id == experiment.id))\
+                        .first()
+                    if participant:
+                        participant.responses = body['responses']
+                        participant.completed = True
+                        request.dbsession.add(participant)
+                        return HTTPNoContent()
+                    else:
+                        raise HTTPNotFound()
                 else:
-                    raise HTTPNotFound()
+                    raise HTTPBadRequest(body=json.dumps({'errors': flatten_errors(validator.errors)}))
             else:
-                raise HTTPBadRequest(body=json.dumps({'errors': flatten_errors(validator.errors)}))
+                raise HTTPBadRequest(body=json.dumps({'errors': [{'title': 'Invalid JSON body'}]}))
         except json.JSONDecodeError:
             raise HTTPBadRequest(body=json.dumps({'errors': [{'title': 'Invalid JSON body'}]}))
     else:
@@ -251,7 +278,7 @@ def download_results(request):
         ids = []
         for page in experiment.pages:
             for question in page.questions:
-                core_type = question.question_type.inherited_attributes()['_core_type']
+                core_type = question.question_type.inherited_attributes()['essCoreType']
                 if core_type in ('USEFSingleLineInput', 'USEFMultiLineInput', 'USEFHidden', 'USEFSingleChoice'):
                     columns.append(f"{page.attributes['name']}.{question.id}")
                     ids.append((str(page.id), str(question.id)))

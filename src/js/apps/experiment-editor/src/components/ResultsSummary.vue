@@ -22,14 +22,14 @@ export default class ResultsSummary extends Vue {
     @Prop() page!: Page;
 
     public get questionResults() : [Question, Result][] | null {
-        if (this.page) {
+        if (this.page && this.$store.state.dataStore.data.questions && this.$store.state.dataStore.data.questionTypes && this.$store.state.dataStore.data.results) {
             const questions = this.page.relationships.questions.data.map((qref) => {
-                if (this.$store.state.questions[qref.id]) {
-                    const questionTypeId = this.$store.state.questions[qref.id].relationships['question-type'].data.id;
-                    if (this.$store.state.questionTypes[questionTypeId]) {
-                        if (this.$store.state.questionTypes[questionTypeId].attributes['_core_type'] !== 'USEFDisplay') {
-                            if (this.$store.state.results[this.page.id]) {
-                                return [this.$store.state.questions[qref.id], this.$store.state.results[this.page.id]];
+                if (this.$store.state.dataStore.data.questions[qref.id]) {
+                    const questionTypeId = this.$store.state.dataStore.data.questions[qref.id].relationships['question-type'].data.id;
+                    if (this.$store.state.dataStore.data.questionTypes[questionTypeId]) {
+                        if (this.$store.state.dataStore.data.questionTypes[questionTypeId].attributes['_core_type'] !== 'USEFDisplay') {
+                            if (this.$store.state.dataStore.data.results[this.page.id]) {
+                                return [this.$store.state.dataStore.data.questions[qref.id], this.$store.state.dataStore.data.results[this.page.id]];
                             }
                         } else {
                             return null;

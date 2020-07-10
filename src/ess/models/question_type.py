@@ -43,16 +43,16 @@ class QuestionType(Base):
                                if not key.startswith('_') or key == '_core_type'])
             attributes.update(self.attributes)
             if self.name.startswith('USEF'):
-                attributes['_core_type'] = self.name
-            attributes['_name'] = self.name
-            attributes['_enabled'] = self.enabled
-            attributes['_position'] = self.position
+                attributes['essCoreType'] = self.name
+            attributes['essSourceName'] = self.name
+            attributes['essEnabled'] = self.enabled
+            attributes['essPosition'] = self.position
             return attributes
         else:
             attributes = deepcopy(self.attributes)
-            attributes['_name'] = self.name
-            attributes['_enabled'] = self.enabled
-            attributes['_position'] = self.position
+            attributes['essSourceName'] = self.name
+            attributes['essEnabled'] = self.enabled
+            attributes['essPosition'] = self.position
             return attributes
 
     def as_jsonapi(self):

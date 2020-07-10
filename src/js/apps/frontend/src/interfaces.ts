@@ -1,16 +1,16 @@
+import { DataStoreConfig, DataStoreState } from 'data-store';
+
 export interface StringKeyValueDict {
     [x: string]: string;
 }
 
 export interface Config {
+    dataStore: DataStoreConfig;
     api: ApiConfig;
     experiment: ExperimentConfig;
 }
 
 export interface ApiConfig {
-    baseUrl: string;
-    extraUrl: string;
-    csrfToken: string;
     validationUrl: string;
     submissionUrl: string;
 }
@@ -21,21 +21,16 @@ export interface ExperimentConfig {
 
 export interface State {
     config: Config;
-    experiment: Experiment | null;
-    pages: PageDict;
-    transitions: TransitionDict;
-    questionTypeGroups: QuestionTypeGroup[];
-    questionTypes: QuestionTypeDict;
-    questions: QuestionsDict;
-    progress: ExperimentProgress;
-    participant: Participant | null;
+    dataStore: DataStoreState;
     ui: UIState;
+    progress: ProgressState;
 }
 
-export interface ExperimentProgress {
+export interface ProgressState {
+    participant: Participant | null;
     current: Page | null;
     completed: boolean;
-    responses: ExperimentResponsesDict;
+    responses: ResponsesDict;
 }
 
 export interface UIState {
@@ -43,10 +38,6 @@ export interface UIState {
     busy: boolean;
     busyCounter: number;
     busyMaxCounter: number;
-}
-
-export interface QuestionTypeDict {
-    [x: string]: QuestionType;
 }
 
 export interface Experiment {
@@ -149,6 +140,21 @@ export interface TransitionDict {
     [x: string]: Transition;
 }
 
+export interface SetPageMutation {
+    id: string;
+    page: Page;
+}
+
+export interface SetTransitionMutation {
+    id: string;
+    transition: Transition;
+}
+
+export interface UpdateAttribute {
+    attribute: string;
+    value: string;
+}
+
 export interface Error {
     title: string;
     source: ErrorSource;
@@ -187,14 +193,20 @@ export interface Question {
 }
 
 export interface QuestionAttributes {
+    [x: string]: string | string[] | QuestionAttributes;
 }
 
 export interface QuestionRelationships {
     page: QuestionPageRelationship;
+    'question-type': QuestionQuestionTypeRelationship;
 }
 
 export interface QuestionPageRelationship {
     data: PageReference;
+}
+
+export interface QuestionQuestionTypeRelationship {
+    data: QuestionTypeReference;
 }
 
 export interface QuestionReference {
@@ -219,8 +231,9 @@ export interface QuestionTypeAttributes {
 }
 
 export interface QuestionTypeAttribute {
+    label: string;
     source: 'user';
-    type: 'singleValue' | 'multiLineTextValue' | 'booleanValue' | 'listOfValues';
+    type: 'singleValue' | 'multiLineTextValue' | 'booleanValue' | 'listOfValues' | 'essQuestionCondition';
     allowed?: string[];
 }
 
@@ -246,38 +259,25 @@ export interface QuestionsDict {
     [x: string]: Question;
 }
 
-export interface ExperimentResponsesDict {
-    [x: string]: ResponsesDict;
+export interface Participant {
+    type: 'participants';
+    id: string;
+    attributes: ParticipantAttributes;
+    relationships: ParticipantRelationships;
+}
+
+export interface ParticipantAttributes {
+    responses: ResponsesDict;
+}
+
+export interface ParticipantRelationships {
+    experiment: {data: ExperimentReference};
 }
 
 export interface ResponsesDict {
     [x: string]: undefined | null | string | string[] | ResponsesDict;
 }
 
-export interface ErrorsDict {
-    [x: string]: string | ErrorsDict;
-}
-
-export interface PageResponses {
-    page: string;
-    responses: ResponsesDict;
-}
-
 export interface NestedStorage {
-    [x: string]: null | string | string[] | number | boolean | NestedStorage;
-}
-
-export interface Participant {
-    type: 'participants';
-    id: string;
-    attributes: {};
-    relationships: ParticipantRelationships;
-}
-
-export interface ParticipantRelationships {
-    experiment: ParticipantExperimentRelationship;
-}
-
-export interface ParticipantExperimentRelationship {
-    data: ExperimentReference;
+    [x: string]: null | string | number | boolean | NestedStorage | string[];
 }

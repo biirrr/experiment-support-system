@@ -29,7 +29,7 @@ class Question(Base):
         """
         return self.page.experiment.allow(user, action)
 
-    def as_jsonapi(self):
+    def as_jsonapi(self, external=False):
         return {
             'type': 'questions',
             'id': str(self.id),

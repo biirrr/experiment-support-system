@@ -2,15 +2,15 @@
     <section class="grid-x">
         <div class="cell large-auto">
             <div v-for="attribute, idx in editableAttributes" :key="idx">
-                <label v-if="questionType.attributes._core_type === 'USEFDisplay' && attribute[1].type === 'singleValue' && attribute[0] === 'format'">{{ attribute[1].label }}
+                <label v-if="questionType.attributes.essCoreType === 'USEFDisplay' && attribute[1].type === 'singleValue' && attribute[0] === 'format'">{{ attribute[1].label }}
                     <select v-model="localAttributes[attribute[0]]">
                         <option value="text/html">HTML</option>
                         <option value="text/text">Text</option>
                     </select>
                 </label>
-                <label v-else-if="(questionType.attributes._core_type === 'USEFSingleChoice' || questionType.attributes._core_type === 'USEFMultiChoice') && attribute[1].type === 'singleValue' && attribute[0] === 'display'">{{ attribute[1].label }}
+                <label v-else-if="(questionType.attributes.essCoreType === 'USEFSingleChoice' || questionType.attributes.essCoreType === 'USEFMultiChoice') && attribute[1].type === 'singleValue' && attribute[0] === 'display'">{{ attribute[1].label }}
                     <select v-model="localAttributes[attribute[0]]">
-                        <option v-for="value, idx in attribute[1].allowed" :key="idx" :value="value">{{ label(value) }}</option>
+                        <option v-for="value, idx in attribute[1].allowed" :key="idx" :value="value">{{ value }}</option>
                     </select>
                 </label>
                 <template v-else-if="attribute[1].type == 'listOfValues'">
@@ -70,6 +70,35 @@
                 <input-field v-else-if="attribute[1].type === 'singleValue'" type="text" v-model="localAttributes[attribute[0]]" :label="attribute[1].label"/>
                 <input-field v-else-if="attribute[1].type === 'booleanValue'" type="checkbox" v-model="localAttributes[attribute[0]]" :label="attribute[1].label"/>
                 <input-field v-else-if="attribute[1].type === 'multiLineTextValue'" type="textarea" v-model="localAttributes[attribute[0]]" :label="attribute[1].label"/>
+                <template v-else-if="attribute[1].type === 'essQuestionCondition' && localAttributes[attribute[0]]">
+                    <label>{{ attribute[1].label }}</label>
+                    <div class="grid-x">
+                        <div class="cell auto">
+                            <select v-model="localAttributes[attribute[0]].question">
+                                <option value="">--- Always display ---</option>
+                                <template v-for="[page, question] in listOfConditionalQuestions">
+                                    <option :key="question.id" :value="question.id">{{ page.attributes.name }} - {{ question.attributes.essName }}</option>
+                                </template>
+                            </select>
+                        </div>
+                        <template v-if="localAttributes[attribute[0]].question !== ''">
+                            <div v-if="isMultiQuestionQuestion(localAttributes[attribute[0]].question)" class="cell shrink">
+                                <select v-model="localAttributes[attribute[0]].subQuestion">
+                                    <option v-for="value in getQuestionAttribute(localAttributes[attribute[0]].question, 'rowValues')" :key="value" :value="value">{{ value }}</option>
+                                </select>
+                            </div>
+                            <div class="cell shrink">
+                                <select v-model="localAttributes[attribute[0]].operator">
+                                    <option value="eq">Equals</option>
+                                    <option value="neq">Not equals</option>
+                                </select>
+                            </div>
+                            <div class="cell auto">
+                                <input type="text" v-model="localAttributes[attribute[0]].value"/>
+                            </div>
+                        </template>
+                    </div>
+                </template>
                 <div v-else>{{ attribute[1] }}</div>
             </div>
         </div>
@@ -132,8 +161,13 @@ import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import deepcopy from 'deepcopy';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import deepequal from 'deep-equal';
 
-import { Question, StringKeyValueDict, Error, QuestionReference, QuestionTypeAttributes, QuestionTypeAttribute, QuestionType } from '@/interfaces';
+import { errorsToDict } from 'data-store';
+
+import { Page, Question, StringKeyValueDict, QuestionReference, QuestionTypeAttributes, QuestionTypeAttribute, QuestionType } from '@/interfaces';
 import AriaMenubar from '@/components/AriaMenubar.vue';
 import InputField from '@/components/InputField.vue';
 
@@ -144,67 +178,95 @@ import InputField from '@/components/InputField.vue';
     }
 })
 export default class QuestionEditor extends Vue {
+    @Prop() page!: Page
     @Prop() question!: Question;
     public localAttributes = {} as {[x: string]: string | boolean | string[]};
     public errors: StringKeyValueDict = {};
 
 
-    public get questionType() : QuestionType {
-        return this.$store.state.questionTypes[this.$props.question.relationships['question-type'].data.id];
+    public get questionType(): QuestionType {
+        return this.$store.state.dataStore.data['question-types'][this.question.relationships['question-type'].data.id];
     }
 
-    public get editableAttributes() : [string, string | QuestionTypeAttribute][] {
+    public get editableAttributes(): [string, string | QuestionTypeAttribute][] {
         return Object.entries(this.questionType.attributes).filter((value) => {
             return value[1] && (value[1] as QuestionTypeAttribute).source === 'user';
         });
     }
 
-    public get attributes() : QuestionTypeAttributes {
-        return deepcopy({ ...this.questionType.attributes, ...this.$props.question.attributes });
+    public get attributes(): QuestionTypeAttributes {
+        return deepcopy({ ...this.questionType.attributes, ...this.question.attributes });
     }
 
-    public get hasChanges() : boolean {
+    public get hasChanges(): boolean {
         let changes = false;
         this.editableAttributes.forEach(([key, questionType]) => {
             if ((questionType as QuestionTypeAttribute).source === 'user') {
-                if ((questionType as QuestionTypeAttribute).type === 'listOfValues') {
-                    const valuesA = this.$props.question.attributes[key] as string[];
-                    const valuesB = this.localAttributes[key] as string[];
-                    if (!valuesA || !valuesB || valuesA.length != valuesB.length) {
-                        changes = true;
-                    } else {
-                        if (valuesA.filter((value) => { return valuesB.indexOf(value) < 0}).length > 0) {
-                            changes = true;
-                        }
-                    }
-                } else {
-                    if (this.$props.question.attributes[key] !== this.localAttributes[key]) {
-                        changes = true;
-                    }
+                if (!deepequal(this.question.attributes[key], this.localAttributes[key])) {
+                    changes = true;
                 }
             }
         });
         return changes;
     }
 
-    public get canMoveUp() : boolean {
-        const page = this.$store.state.pages[this.$props.question.relationships.page.data.id];
-        if (page.relationships.questions.data[0].id === this.$props.question.id) {
+    public get canMoveUp(): boolean {
+        if (this.page.relationships.questions.data[0].id === this.question.id) {
             return false;
+        } else {
+            return true;
         }
-        return true;
     }
 
-    public get canMoveDown() : boolean {
-        const page = this.$store.state.pages[this.$props.question.relationships.page.data.id];
-        if (page.relationships.questions.data[page.relationships.questions.data.length - 1].id === this.$props.question.id) {
+    public get canMoveDown(): boolean {
+        if (this.page.relationships.questions.data[this.page.relationships.questions.data.length - 1].id === this.question.id) {
             return false;
+        } else {
+            return true;
         }
-        return true;
     }
+
+    public get listOfConditionalQuestions(): [Page, Question][] {
+        const result = [] as [Page, Question][];
+        (Object.values(this.$store.state.dataStore.data.pages) as Page[]).forEach((page: Page) => {
+            page.relationships.questions.data.forEach((questionRef: QuestionReference) => {
+                const question = this.$store.state.dataStore.data.questions[questionRef.id];
+                if (question && question.id !== this.question.id) {
+                    const questionType = this.$store.state.dataStore.data['question-types'][question.relationships['question-type'].data.id];
+                    if (questionType && questionType.attributes.essCoreType !== 'USEFDisplay') {
+                        result.push([page, question]);
+                    }
+                }
+            });
+        });
+        return result;
+    }
+
+    public isMultiQuestionQuestion(questionId: string): boolean {
+        const question = this.$store.state.dataStore.data.questions[questionId];
+        if (question) {
+            const questionType = this.$store.state.dataStore.data['question-types'][question.relationships['question-type'].data.id];
+            if (questionType && (questionType.attributes.essCoreType === 'USEFSingleChoiceGrid' || questionType.attributes.essCoreType === 'USEFMultiChoiceGrid')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public getQuestionAttribute(questionId: string, attribute: string): {[x: string]: string | boolean | string[]} | null {
+        const question = this.$store.state.dataStore.data.questions[questionId];
+        if (question) {
+            return question.attributes[attribute];
+        }
+        return null;
+    }
+
+    /**
+     *  Life-cycle events and Watches
+     */
 
     public mounted() : void {
-        this.localAttributes = deepcopy(this.$props.question.attributes);
+        this.localAttributes = deepcopy(this.question.attributes);
         this.editableAttributes.forEach((attr) => {
             if (!this.localAttributes[attr[0]]) {
                 if ((attr[1] as QuestionTypeAttribute).source === 'user') {
@@ -218,6 +280,10 @@ export default class QuestionEditor extends Vue {
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         Vue.set(this.localAttributes, attr[0], (attr[1] as QuestionTypeAttribute).allowed[0]);
+                    } else if ((attr[1] as QuestionTypeAttribute).type === 'essQuestionCondition') {
+                        Vue.set(this.localAttributes, attr[0], {
+                            question: '',
+                        });
                     } else {
                         Vue.set(this.localAttributes, attr[0], '');
                     }
@@ -228,7 +294,7 @@ export default class QuestionEditor extends Vue {
 
     @Watch('question')
     public updateQuestion() : void {
-        this.localAttributes = deepcopy(this.$props.question.attributes);
+        this.localAttributes = deepcopy(this.question.attributes);
         this.editableAttributes.forEach((attr) => {
             if (!this.localAttributes[attr[0]]) {
                 if ((attr[1] as QuestionTypeAttribute).source === 'user') {
@@ -242,6 +308,10 @@ export default class QuestionEditor extends Vue {
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         Vue.set(this.localAttributes, attr[0], (attr[1] as QuestionTypeAttribute).allowed[0]);
+                    } else if ((attr[1] as QuestionTypeAttribute).type === 'essQuestionCondition') {
+                        Vue.set(this.localAttributes, attr[0], {
+                            question: '',
+                        });
                     } else {
                         Vue.set(this.localAttributes, attr[0], '');
                     }
@@ -251,18 +321,13 @@ export default class QuestionEditor extends Vue {
     }
 
     public async save() : Promise<void> {
-        const question = deepcopy(this.$props.question);
+        const question = deepcopy(this.question);
         question.attributes = this.localAttributes;
         try {
             this.errors = {};
-            await this.$store.dispatch('updateQuestion', question);
-        } catch(error) {
-            const errors = {} as StringKeyValueDict;
-            error.forEach((entry: Error) => {
-                const pointer = entry.source.pointer.split('/');
-                errors[pointer[pointer.length - 1]] = entry.title;
-            });
-            this.errors = errors;
+            await this.$store.dispatch('saveQuestion', question);
+        } catch(errors) {
+            this.errors = errorsToDict(errors);
         }
     }
 
@@ -277,10 +342,10 @@ export default class QuestionEditor extends Vue {
     }
 
     public moveQuestion(direction: number) : void {
-        const page = deepcopy(this.$store.state.pages[this.$props.question.relationships.page.data.id]);
+        const page = deepcopy(this.page);
         let questionIdx = -1;
         page.relationships.questions.data.forEach((questionRef: QuestionReference, idx: number) => {
-            if (questionRef.id === this.$props.question.id) {
+            if (questionRef.id === this.question.id) {
                 questionIdx = idx;
             }
         });
@@ -289,15 +354,15 @@ export default class QuestionEditor extends Vue {
             page.relationships.questions.data.splice(questionIdx, 1);
             page.relationships.questions.data.splice(newIdx, 0, {
                 type: 'questions',
-                id: this.$props.question.id,
+                id: this.question.id,
             });
-            this.$store.dispatch('updatePage', { page: page });
+            this.$store.dispatch('savePage', page);
         }
     }
 
     public deleteQuestion() : void {
         if (confirm('Please confirm that you wish to delete this question?')) {
-            this.$store.dispatch('deleteQuestion', this.$props.question);
+            this.$store.dispatch('deleteQuestion', this.question);
         }
     }
 

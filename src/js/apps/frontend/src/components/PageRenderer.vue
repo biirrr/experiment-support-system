@@ -3,7 +3,7 @@
         <div class="grid-x grid-padding-x">
             <form v-if="questions && responses" class="cell" @submit="submitForm">
                 <h1>{{ page.attributes.title }}</h1>
-                <question-renderer v-for="question in questions" :key="question.id" :question="question" v-model="responses[question.id]" :error="errors[question.id]"/>
+                <question-renderer v-for="question in visibleQuestions" :key="question.id" :question="question" v-model="responses[question.id]" :error="errors[question.id]"/>
                 <div class="buttons">
                     <ul class="menu">
                         <li>
@@ -18,9 +18,14 @@
 
 <script lang="ts">
 import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import deepcopy from 'deepcopy';
+
+import { JSONAPIError } from 'data-store';
 
 import QuestionRenderer from '@/components/QuestionRenderer.vue';
-import { Page, ResponsesDict, ErrorsDict, Error } from '@/interfaces';
+import { Page, Question, ResponsesDict, QuestionAttributes, StringKeyValueDict } from '@/interfaces';
 
 @Component({
     components: {
@@ -30,27 +35,63 @@ import { Page, ResponsesDict, ErrorsDict, Error } from '@/interfaces';
 export default class PageRenderer extends Vue {
     @Prop() page!: Page;
     public responses = null as ResponsesDict | null;
-    public errors = {} as ErrorsDict;
+    public errors = {};
 
-    public get questions() {
-        if (this.page) {
-            return this.page.relationships.questions.data.map((questionRef) => {
-                return this.$store.state.questions[questionRef.id];
-            }).filter((question) => { return question; });
-        } else {
-            return [];
-        }
+    public get questions(): Question[] {
+        return this.page.relationships.questions.data.map((questionRef) => {
+            return this.$store.state.dataStore.data.questions[questionRef.id];
+        }).filter((question) => { return question });
     }
 
-    public get isFirstPage() {
-        return this.$store.state.experiment && this.$store.state.experiment.relationships['first-page'] && this.page.id === this.$store.state.experiment.relationships['first-page'].data.id;
+    public get visibleQuestions(): Question[] {
+        let responses = {} as ResponsesDict;
+        (Object.values(this.$store.state.progress.responses) as ResponsesDict[]).forEach((pageResponses) => {
+            Object.entries(pageResponses).forEach(([questionId, response]) => {
+                responses[questionId] = deepcopy(response);
+            });
+        });
+        responses = { ...responses, ...this.responses };
+        return this.questions.filter((question) => {
+            if (question.attributes.essConditional && (question.attributes.essConditional as QuestionAttributes).question !== '') {
+                let response = null;
+                if ((question.attributes.essConditional as QuestionAttributes).subQuestion && responses[(question.attributes.essConditional as QuestionAttributes).question as string]) {
+                    response = (responses[(question.attributes.essConditional as QuestionAttributes).question as string] as ResponsesDict)[(question.attributes.essConditional as QuestionAttributes).subQuestion as string];
+                } else {
+                    response = responses[(question.attributes.essConditional as QuestionAttributes).question as string];
+                }
+                if ((question.attributes.essConditional as QuestionAttributes).operator === 'eq') {
+                    if (response) {
+                        if (response === (question.attributes.essConditional as QuestionAttributes).value || (Array.isArray(response) && response.includes((question.attributes.essConditional as QuestionAttributes).value as string))) {
+                            return true;
+                        }
+                    }
+                } else if ((question.attributes.essConditional as QuestionAttributes).operator === 'neq') {
+                    if (response) {
+                        if (Array.isArray(response) && !response.includes((question.attributes.essConditional as QuestionAttributes).value as string)) {
+                            return true;
+                        } else if (response !== (question.attributes.essConditional as QuestionAttributes).value) {
+                            return true;
+                        }
+                    } else {
+                        return true;
+                    }
+                }
+                return false;
+            } else {
+                return true;
+            }
+        });
     }
 
-    public get isLastPage() {
-        return this.page.relationships.next.data.length === 0;
+    public get isFirstPage(): boolean {
+        return this.$store.getters.experiment.relationships['first-page'].data.id === this.page.id;
     }
 
-    public get nextButtonLabel() {
+    public get isLastPage(): boolean {
+        return !this.page.relationships.next || this.page.relationships.next.data.length === 0;
+    }
+
+    public get nextButtonLabel(): string {
         if (this.$store.state.ui.busy) {
             if (this.isLastPage) {
                 return 'Saving...';
@@ -58,28 +99,30 @@ export default class PageRenderer extends Vue {
                 return 'Validating...';
             }
         } else {
-            if (this.isFirstPage) {
-                return 'Start';
-            } else if (this.isLastPage) {
+            if (this.isLastPage) {
                 return 'Finish';
+            } else if (this.isFirstPage) {
+                return 'Start';
             } else {
                 return 'Next page';
             }
         }
     }
 
-    public mounted() {
+    public mounted(): void {
         this.responses = this.createResponseSet();
         this.errors = {};
+        window.document.title = this.page.attributes.title;
     }
 
     @Watch('page')
-    public updatePage() {
+    public updatePage(): void {
         this.responses = this.createResponseSet();
         this.errors = {};
+        window.document.title = this.page.attributes.title;
     }
 
-    public async submitForm(ev: Event) {
+    public async submitForm(ev: Event): Promise<void> {
         ev.preventDefault();
         if (this.responses) {
             try {
@@ -89,86 +132,74 @@ export default class PageRenderer extends Vue {
                 } else {
                     this.errors = {};
                     await this.$store.dispatch('validateSubmission', {'page': this.page.id, 'responses': this.validatableResponses(this.responses)});
-                    const transition = this.$store.state.transitions[this.page.relationships.next.data[0].id];
+                    const transition = this.$store.state.dataStore.data.transitions[this.page.relationships.next.data[0].id];
                     if (transition) {
-                        const page = this.$store.state.pages[transition.relationships.target.data.id];
+                        const page = this.$store.state.dataStore.data.pages[transition.relationships.target.data.id];
                         if (page) {
                             this.$store.commit('setCurrentPage', page);
                         }
                     }
                 }
-            } catch(error) {
-                const errors = {} as ErrorsDict;
-                error.forEach((item: Error) => {
-                    if (item.source && item.source.pointer) {
-                        const keys = item.source.pointer.substring(1).split('/');
-                        let target = errors;
-                        for (let idx = 0; idx < keys.length; idx++) {
-                            if (idx === keys.length - 1) {
-                                target[keys[idx]] = item.title;
-                            } else {
-                                if (!target[keys[idx]]) {
-                                    target[keys[idx]] = {};
-                                }
-                                target = target[keys[idx]] as ErrorsDict;
-                            }
-                        }
-                    }
-                });
-                this.errors = errors;
+            } catch(errors) {
+                this.errors = errors.reduce((obj: StringKeyValueDict, error: JSONAPIError) => {
+                    const pointer = error.source.pointer.split('/');
+                    obj[pointer[pointer.length - 1]] = error.title;
+                    return obj;
+                }, {});
+                console.log(this.errors);
             }
         }
     }
 
-    private createResponseSet() {
+    private createResponseSet(): ResponsesDict {
         const responses = {} as ResponsesDict;
         this.questions.forEach((question) => {
-            const questionType = this.$store.state.questionTypes[question.relationships['question-type'].data.id];
+            const questionType = this.$store.state.dataStore.data['question-types'][question.relationships['question-type'].data.id];
             if (questionType) {
                 let storedValue = undefined as undefined | null | string | string[] | ResponsesDict;
                 if (this.$store.state.progress.responses[this.page.id] && this.$store.state.progress.responses[this.page.id][question.id]) {
                     storedValue = this.$store.state.progress.responses[this.page.id][question.id];
                 }
-                if (questionType.attributes._core_type === 'USEFDisplay') {
+                if (questionType.attributes.essCoreType === 'USEFDisplay') {
                     responses[question.id] = undefined;
-                } else if (questionType.attributes._core_type === 'USEFSingleLineInput') {
+                } else if (questionType.attributes.essCoreType === 'USEFSingleLineInput') {
                     if (storedValue == undefined) {
                         responses[question.id] = null;
                     } else {
                         responses[question.id] = storedValue;
                     }
-                } else if (questionType.attributes._core_type === 'USEFMultiLineInput') {
+                } else if (questionType.attributes.essCoreType === 'USEFMultiLineInput') {
                     if (storedValue == undefined) {
                         responses[question.id] = null;
                     } else {
                         responses[question.id] = storedValue;
                     }
-                } else if (questionType.attributes._core_type === 'USEFSingleChoice') {
+                } else if (questionType.attributes.essCoreType === 'USEFSingleChoice') {
                     if (storedValue == undefined) {
                         responses[question.id] = null;
                     } else {
                         responses[question.id] = storedValue;
                     }
-                } else if (questionType.attributes._core_type === 'USEFMultiChoice') {
+                } else if (questionType.attributes.essCoreType === 'USEFMultiChoice') {
                     if (storedValue == undefined) {
                         responses[question.id] = [];
                     } else {
                         responses[question.id] = storedValue;
                     }
-                } else if (questionType.attributes._core_type === 'USEFHidden') {
+                } else if (questionType.attributes.essCoreType === 'USEFHidden') {
                     responses[question.id] = question.attributes.value;
-                } else if (questionType.attributes._core_type === 'USEFSingleChoiceGrid') {
+                } else if (questionType.attributes.essCoreType === 'USEFSingleChoiceGrid') {
                     responses[question.id] = {} as ResponsesDict;
-                    question.attributes.row_values.forEach((row: string) => {
+                    (question.attributes.rowValues as string[]).forEach((row: string) => {
                         if (!storedValue || (storedValue as ResponsesDict)[row] === undefined) {
                             (responses[question.id] as ResponsesDict)[row] = null;
                         } else {
                             (responses[question.id] as ResponsesDict)[row] = (storedValue as ResponsesDict)[row];
                         }
                     });
-                } else if (questionType.attributes._core_type === 'USEFMultiChoiceGrid') {
+                } else if (questionType.attributes.essCoreType === 'USEFMultiChoiceGrid') {
                     responses[question.id] = {} as ResponsesDict;
-                    question.attributes.row_values.forEach((row: string) => {
+                    (question.attributes.rowValues as string[]).forEach((row: string) => {
                         if (!storedValue || (storedValue as ResponsesDict)[row] === undefined) {
                             (responses[question.id] as ResponsesDict)[row] = [];
                         } else {
@@ -184,7 +215,7 @@ export default class PageRenderer extends Vue {
     /**
      * Filter out undefined responses (which are USEFDisplay questions)
      */
-    private validatableResponses(responses: ResponsesDict) {
+    private validatableResponses(responses: ResponsesDict): ResponsesDict {
         const result = {} as ResponsesDict
         Object.entries(responses).forEach(([key, value]: [string, undefined | null | string | string[] | ResponsesDict]) => {
             if (value !== undefined) {

@@ -13,8 +13,8 @@
 {% block post_body_scripts %}
 <script id="ExperimentEditorConfig" type="application/json">
 {
-  "api": {
-    "baseUrl": "{{ 'api'|route_url }}",
+  "dataStore": {
+    "apiBaseUrl": "{{ 'api.backend'|route_url(eid=experiment.id) }}",
     "csrfToken": "{{ get_csrf_token() }}"
   },
   "experiment": {

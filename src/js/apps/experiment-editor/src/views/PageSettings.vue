@@ -20,7 +20,9 @@ import { Component, Vue, Watch } from 'vue-property-decorator';
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import { StringKeyValueDict, Error, Page } from '@/interfaces';
+import { errorsToDict } from 'data-store';
+
+import { StringKeyValueDict, Page } from '@/interfaces';
 import InputField from '@/components/InputField.vue';
 
 @Component({
@@ -33,31 +35,34 @@ export default class PageSettings extends Vue {
     public title = '';
     public errors: StringKeyValueDict = {};
 
-    public get page() : Page {
-        return deepcopy(this.$store.state.pages[this.$route.params.pid]);
+    public get page(): Page | null {
+        if (this.$store.state.dataStore.data.pages) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const page = this.$store.state.dataStore.data.pages[this.$route.params.pid];
+            if (page) {
+                return deepcopy(page);
+            }
+        }
+        return null;
     }
 
-    public mounted() : void {
+    public mounted(): void {
         this.errors = {};
     }
 
     @Watch('page')
-    public watchPage() : void {
+    public watchPage(): void {
         this.errors = {};
     }
 
-    public async updatePage() : Promise<void> {
+    public async updatePage(): Promise<void> {
         if (this.page) {
             try {
                 this.errors = {}
-                await this.$store.dispatch('updatePage', this.page);
-            } catch(error) {
-                const errors = {} as StringKeyValueDict;
-                error.forEach((entry: Error) => {
-                    const pointer = entry.source.pointer.split('/');
-                    errors[pointer[pointer.length - 1]] = entry.title;
-                });
-                this.errors = errors;
+                await this.$store.dispatch('savePage', this.page);
+            } catch(errors) {
+                this.errors = errorsToDict(errors);
             }
         }
     }

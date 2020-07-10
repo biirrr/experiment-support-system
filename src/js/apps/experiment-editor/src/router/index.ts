@@ -10,7 +10,7 @@ import PageSettings from '@/views/PageSettings.vue';
 import Results from '@/views/Results.vue';
 import Settings from '@/views/Settings.vue';
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
 const routes = [
     {
@@ -67,12 +67,12 @@ const routes = [
         name: 'settings',
         component: Settings,
     },
-]
+];
 
 const router = new VueRouter({
     mode: 'hash',
     base: process.env.BASE_URL,
-    routes
-})
+    routes,
+});
 
-export default router
+export default router;

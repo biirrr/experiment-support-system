@@ -1,7 +1,6 @@
 from copy import deepcopy
-from pwh_permissions import permitted
 from pwh_permissions.pyramid import require_permission
-from pyramid.httpexceptions import HTTPNotFound, HTTPNoContent, HTTPForbidden
+from pyramid.httpexceptions import HTTPNotFound, HTTPNoContent
 from pyramid.view import view_config
 from sqlalchemy import and_
 
@@ -14,57 +13,45 @@ post_question_schema = {'type': type_schema('questions'),
                                        'required': True,
                                        'schema': {}},
                         'relationships': {'type': 'dict',
-                                          'schema': {'question-type': relationship_schema('question-types')}}}
+                                          'schema': {'question-type': relationship_schema('question-types'),
+                                                     'page': relationship_schema('pages')}}}
 
 
-@view_config(route_name='api.question.collection.post', renderer='json')
+@view_config(route_name='api.backend.question.collection.post', renderer='json')
 @require_permission('Experiment:eid allow $current_user edit')
-def post_collection(request):
-    """Handles fetching a single :class:`~ess.models.page.Page`."""
+def backend_post_collection(request):
+    """Handles creating a new :class:`~ess.models.question.Question`."""
     body = validated_body(request, post_question_schema)
-    body['data']['relationships']['page'] = {
-        'data': {
-            'type': 'pages',
-            'id': request.matchdict['pid'],
-        }
-    }
     obj = store_object(request, body)
     return {'data': obj.as_jsonapi()}
 
 
-@view_config(route_name='api.question.item.get', renderer='json')
-@view_config(route_name='experiment.run.api.question.item.get', renderer='json')
-def get_item(request):
-    """Handles fetching a single :class:`~ess.models.question.Question`."""
-    if request.matched_route.name == 'experiment.run.api.question.item.get':
-        item = request.dbsession.query(Question)\
-            .join(Page)\
-            .join(Page.experiment)\
-            .filter(and_(Question.id == request.matchdict['qid'],
-                         Page.id == request.matchdict['pid'],
-                         Experiment.external_id == request.matchdict['eid'])).first()
-        if item is not None:
-            if permitted('question allow current_user participate', {'question': item,
-                                                                     'current_user': request.current_user}):
-                return {'data': item.as_jsonapi()}
-            else:
-                raise HTTPForbidden()
-        else:
-            raise HTTPNotFound()
-    elif request.matched_route.name == 'api.question.item.get':
-        item = request.dbsession.query(Question)\
-            .join(Page)\
-            .filter(and_(Question.id == request.matchdict['qid'],
-                         Page.id == request.matchdict['pid'],
-                         Page.experiment_id == request.matchdict['eid'])).first()
-        if item is not None:
-            if permitted('question allow current_user edit', {'question': item,
-                                                              'current_user': request.current_user}):
-                return {'data': item.as_jsonapi()}
-            else:
-                raise HTTPForbidden()
-        else:
-            raise HTTPNotFound()
+@view_config(route_name='api.backend.question.item.get', renderer='json')
+@require_permission('Experiment:eid allow $current_user edit')
+def backend_get_item(request):
+    """Handles fetching a single :class:`~ess.models.question.Question` for the backend."""
+    item = request.dbsession.query(Question)\
+        .join(Page)\
+        .filter(and_(Question.id == request.matchdict['iid'],
+                     Page.experiment_id == request.matchdict['eid'])).first()
+    if item is not None:
+        return {'data': item.as_jsonapi()}
+    else:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='api.external.question.item.get', renderer='json')
+@require_permission('Experiment:external_id:eid allow $current_user participate')
+def external_get_item(request):
+    """Handles fetching a single :class:`~ess.models.question.Question` for the frontend."""
+    item = request.dbsession.query(Question)\
+        .join(Page).join(Page.experiment)\
+        .filter(and_(Question.id == request.matchdict['iid'],
+                     Experiment.external_id == request.matchdict['eid'])).first()
+    if item is not None:
+        return {'data': item.as_jsonapi(external=True)}
+    else:
+        raise HTTPNotFound()
 
 
 patch_question_schema = {'type': type_schema('questions'),
@@ -76,13 +63,12 @@ patch_question_schema = {'type': type_schema('questions'),
                                            'schema': {}}}
 
 
-@view_config(route_name='api.question.item.patch', renderer='json')
+@view_config(route_name='api.backend.question.item.patch', renderer='json')
 @require_permission('Experiment:eid allow $current_user edit')
-def patch_item(request):
+def backend_patch_item(request):
     """Handles updating a single :class:`~ess.models.question.Question`."""
     item = request.dbsession.query(Question).join(Page).\
-        filter(and_(Question.id == request.matchdict['qid'],
-                    Page.id == request.matchdict['pid'],
+        filter(and_(Question.id == request.matchdict['iid'],
                     Page.experiment_id == request.matchdict['eid'])).first()
     if item is not None:
         schema = deepcopy(patch_question_schema)
@@ -102,6 +88,15 @@ def patch_item(request):
                 elif value['type'] == 'listOfValues':
                     schema['attributes']['schema'][key] = {'type': 'list',
                                                            'schema': {'type': 'string'}}
+                elif value['type'] == 'essQuestionCondition':
+                    schema['attributes']['schema'][key] = {'type': 'dict',
+                                                           'schema': {'question': {'type': 'string',
+                                                                                   'required': True},
+                                                                      'subQuestion': {'type': 'string'},
+                                                                      'operator': {'type': 'string',
+                                                                                   'allowed': ['eq', 'neq']},
+                                                                      'value': {'type': 'string'}},
+                                                           'required': False}
         body = validated_body(request, schema)
         obj = store_object(request, body)
         return {'data': obj.as_jsonapi()}
@@ -109,13 +104,12 @@ def patch_item(request):
         raise HTTPNotFound()
 
 
-@view_config(route_name='api.question.item.delete', renderer='json')
+@view_config(route_name='api.backend.question.item.delete', renderer='json')
 @require_permission('Experiment:eid allow $current_user edit')
-def delete_item(request):
+def backend_delete_item(request):
     """Handles deleting a single :class:`~ess.models.question.Question`."""
     item = request.dbsession.query(Question).join(Page).\
-        filter(and_(Question.id == request.matchdict['qid'],
-                    Page.id == request.matchdict['pid'],
+        filter(and_(Question.id == request.matchdict['iid'],
                     Page.experiment_id == request.matchdict['eid'])).first()
     if item is not None:
         request.dbsession.delete(item)

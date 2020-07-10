@@ -4,8 +4,8 @@
             <form @submit.prevent="updateExperiment">
                 <input-field type="text" label="Title" v-model="localExperiment.attributes.title" :error="errors.title"/>
                 <input-field type="textarea" label="Description" v-model="localExperiment.attributes.description" :error="errors.description"/>
-                <label>First page
-                    <select v-model="localFirstPage.id">
+                <label v-if="localExperiment.relationships['first-page']">First page
+                    <select v-model="localExperiment.relationships['first-page'].data.id">
                         <option v-for="page in pages" :key="page.id" :value="page.id">{{ page.attributes.name }} ({{ page.attributes.title }})</option>
                     </select>
                 </label>
@@ -27,7 +27,9 @@ import { Component, Vue, Watch } from 'vue-property-decorator';
 // @ts-ignore
 import deepcopy from 'deepcopy';
 
-import { StringKeyValueDict, Error, Experiment, PageReference, Page } from '@/interfaces';
+import { errorsToDict } from 'data-store';
+
+import { StringKeyValueDict, Experiment, PageReference, Page } from '@/interfaces';
 import InputField from '@/components/InputField.vue';
 
 @Component({
@@ -37,14 +39,13 @@ import InputField from '@/components/InputField.vue';
 })
 export default class Settings extends Vue {
     public localExperiment: Experiment | null = null;
-    public localFirstPage: PageReference | null = null;
     public errors: StringKeyValueDict = {};
 
     public get pages() : Page[] {
-        if (this.localExperiment) {
+        if (this.localExperiment && this.$store.state.dataStore.data.pages) {
             return this.localExperiment.relationships.pages.data.map((pageRef: PageReference) => {
-                if (this.$store.state.pages[pageRef.id]) {
-                    return this.$store.state.pages[pageRef.id];
+                if (this.$store.state.dataStore.data.pages[pageRef.id]) {
+                    return this.$store.state.dataStore.data.pages[pageRef.id];
                 } else {
                     return null;
                 }
@@ -54,38 +55,36 @@ export default class Settings extends Vue {
         }
     }
 
-    public mounted() : void {
-        if (this.$store.state.experiment) {
-            this.localExperiment = deepcopy(this.$store.state.experiment);
-            if (this.localExperiment && this.localExperiment.relationships['first-page']) {
-                this.localFirstPage = deepcopy(this.localExperiment.relationships['first-page'].data);
-            } else {
-                this.localFirstPage = {
-                    type: 'pages',
-                    id: '',
-                }
+    public mounted(): void {
+        if (this.$store.getters.experiment) {
+            this.localExperiment = deepcopy(this.$store.getters.experiment);
+            if (this.localExperiment && !this.localExperiment.relationships['first-page'] && this.pages.length > 0) {
+                this.localExperiment.relationships['first-page'] = {
+                    data: {
+                        type: 'pages',
+                        id: '',
+                    },
+                };
             }
         } else {
             this.localExperiment = null;
-            this.localFirstPage = null;
         }
     }
 
     @Watch('experiment')
     public watchExperiment() : void {
-        if (this.$store.state.experiment) {
-            this.localExperiment = deepcopy(this.$store.state.experiment);
-            if (this.localExperiment && this.localExperiment.relationships['first-page']) {
-                this.localFirstPage = deepcopy(this.localExperiment.relationships['first-page'].data);
-            } else {
-                this.localFirstPage = {
-                    type: 'pages',
-                    id: '',
-                }
+        if (this.$store.getters.experiment) {
+            this.localExperiment = deepcopy(this.$store.getters.experiment);
+            if (this.localExperiment && !this.localExperiment.relationships['first-page'] && this.pages.length > 0) {
+                this.localExperiment.relationships['first-page'] = {
+                    data: {
+                        type: 'pages',
+                        id: '',
+                    },
+                };
             }
         } else {
             this.localExperiment = null;
-            this.localFirstPage = null;
         }
     }
 
@@ -93,20 +92,9 @@ export default class Settings extends Vue {
         if (this.localExperiment) {
             try {
                 this.errors = {};
-                const experiment = deepcopy(this.localExperiment);
-                if (!experiment.relationships['first-page']) {
-                    experiment.relationships['first-page'] = {data: deepcopy(this.localFirstPage)};
-                } else {
-                    experiment.relationships['first-page'].data = deepcopy(this.localFirstPage);
-                }
-                await this.$store.dispatch('updateExperiment', experiment);
-            } catch(error) {
-                const errors = {} as StringKeyValueDict;
-                error.forEach((entry: Error) => {
-                    const pointer = entry.source.pointer.split('/');
-                    errors[pointer[pointer.length - 1]] = entry.title;
-                });
-                this.errors = errors;
+                await this.$store.dispatch('saveExperiment', this.localExperiment);
+            } catch(errors) {
+                this.errors = errorsToDict(errors);
             }
         }
     }

@@ -146,9 +146,9 @@ class Validator(cerberus.Validator):
                     filter(and_(Transition.id == value['id'], Page.experiment_id == request.matchdict['eid']))
             elif value['type'] == 'experiment':
                 if value['id'] != request.matchdict['eid']:
-                    self._error(field, 'This object does not belong to request experiment')
+                    self._error(field, 'This object does not belong to the request experiment')
             if query is not None and query.first() is None:
-                self._error(field, 'This object does not belong to request experiment')
+                self._error(field, 'This object does not belong to the request experiment')
 
 
 def date_to_json(date):

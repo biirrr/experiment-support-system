@@ -31,7 +31,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 
-import { Page, TransitionReference } from '@/interfaces';
+import { Experiment, Page, TransitionReference } from '@/interfaces';
 import ResultsSummary from '@/components/ResultsSummary.vue';
 
 @Component({
@@ -40,22 +40,22 @@ import ResultsSummary from '@/components/ResultsSummary.vue';
     }
 })
 export default class Results extends Vue {
-    public get experiment() {
-        return this.$store.state.experiment;
+    public get experiment(): Experiment {
+        return this.$store.getters.experiment;
     }
 
-    public get firstPage() {
-        if (this.experiment && this.experiment.relationships['first-page']) {
-            return this.$store.state.pages[this.experiment.relationships['first-page'].data.id];
+    public get firstPage(): Page | null {
+        if (this.experiment && this.experiment.relationships['first-page'] && this.$store.state.dataStore.data.pages) {
+            return this.$store.state.dataStore.data.pages[this.experiment.relationships['first-page'].data.id];
         } else {
             return null;
         }
     }
 
-    public get pages() {
-        if (this.firstPage) {
+    public get pages(): Page[] {
+        if (this.firstPage && this.$store.state.dataStore.data.transitions) {
             const pages = this.flattenPages(this.firstPage);
-            (Object.values(this.$store.state.pages) as Page[]).forEach((page: Page) => {
+            (Object.values(this.$store.state.dataStore.data.pages) as Page[]).forEach((page: Page) => {
                 let found = false;
                 pages.forEach((existing) => {
                     if (page.id === existing.id) {
@@ -67,22 +67,26 @@ export default class Results extends Vue {
                 }
             });
             return pages;
+        } else if(this.$store.state.dataStore.data.pages) {
+            return Object.values(this.$store.state.dataStore.data.pages);
         } else {
-            return Object.values(this.$store.state.pages);
+            return [];
         }
     }
 
-    public reload() {
-        this.$store.dispatch('loadResults');
+    public reload(): void {
+        this.pages.forEach((page) => {
+            this.$store.dispatch('fetchSingle', {type: 'results', id: page.id});
+        });
     }
 
     private flattenPages(page: Page) {
         let pages = [page];
         if (page.relationships.next) {
             page.relationships.next.data.forEach((transRef: TransitionReference) => {
-                const transition = this.$store.state.transitions[transRef.id];
+                const transition = this.$store.state.dataStore.data.transitions[transRef.id];
                 if (transition && transition.relationships.target) {
-                    const next = this.$store.state.pages[transition.relationships.target.data.id];
+                    const next = this.$store.state.dataStore.data.pages[transition.relationships.target.data.id];
                     if (next) {
                         pages = pages.concat(this.flattenPages(next));
                     }

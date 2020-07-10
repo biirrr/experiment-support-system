@@ -23,7 +23,7 @@
                 <div class="buttons">
                     <ul>
                         <li>
-                            <a class="button secondary" @click="cancelDialog(false, $event);">Don't add</a>
+                            <router-link :to="'/pages'" class="button secondary">Don't add</router-link>
                         </li>
                         <li>
                             <button class="button primary">Add</button>
@@ -37,9 +37,14 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from 'vue-property-decorator';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import deepcopy from 'deepcopy';
+
+import { errorsToDict } from 'data-store';
 
 import InputField from '@/components/InputField.vue';
-import { Page, StringKeyValueDict, CreatePageAction, Error } from '@/interfaces';
+import { Page, StringKeyValueDict } from '@/interfaces';
 
 @Component({
     components: {
@@ -54,7 +59,11 @@ export default class PagesCreate extends Vue {
     public errors: StringKeyValueDict = {};
 
     public get pages(): Page[] {
-        return Object.values(this.$store.state.pages);
+        if (this.$store.state.dataStore.data.pages) {
+            return Object.values(this.$store.state.dataStore.data.pages);
+        } else {
+            return [];
+        }
     }
 
     public get hasPages() : boolean {
@@ -94,33 +103,63 @@ export default class PagesCreate extends Vue {
         }
     }
 
-    public cancelDialog(allowParent: boolean, ev: Event) : void {
-        const target = ev.target as HTMLElement;
-        if (!allowParent && (target.localName === 'a' || target.localName === 'button')) {
-            this.$router.push('/pages');
-        } else if (allowParent && target.localName === 'div' && target.classList.contains('dialog-overlay')) {
-            this.$router.push('/pages');
-        }
-    }
-
     public async createPage() : Promise<void> {
         try {
-            const newPage = {
-                mode: this.addMode,
-                name: this.pageName,
-                title: this.pageTitle,
-            } as CreatePageAction;
-            if (this.addMode === 'after') {
-                newPage.parentPageId = this.parentPageId;
-            }
-            const page = await this.$store.dispatch('createPage', newPage);
-            this.$router.push('/pages/' + page.id);
-        } catch(error) {
-            this.errors = {};
-            error.forEach((entry: Error) => {
-                const pointer = entry.source.pointer.split('/');
-                this.errors[pointer[pointer.length - 1]] = entry.title;
+            const addMode = this.addMode;
+            const parentPageId = this.parentPageId;
+            const page = await this.$store.dispatch('createPage', {
+                type: 'pages',
+                attributes: {
+                    name: this.pageName,
+                    title: this.pageTitle,
+                },
+                relationships: {
+                    experiment: {
+                        data: {
+                            type: 'experiments',
+                            id: this.$store.getters.experiment.id,
+                        },
+                    },
+                },
             });
+            if (addMode === 'first') {
+                const experiment = deepcopy(this.$store.getters.experiment);
+                if (!experiment.relationships.firstPage) {
+                    experiment.relationships['first-page'] = {
+                        data: {
+                            type: 'pages',
+                            id: page.id,
+                        }
+                    };
+                } else {
+                    experiment.relationships.firstPage.data.id = page.id;
+                }
+                await this.$store.dispatch('saveExperiment', experiment);
+            } else {
+                await this.$store.dispatch('createTransition', {
+                    type: 'transitions',
+                    attributes: {},
+                    relationships: {
+                        source: {
+                            data: {
+                                type: 'pages',
+                                id: parentPageId,
+                            },
+                        },
+                        target: {
+                            data: {
+                                type: 'pages',
+                                id: page.id,
+                            },
+                        },
+                    },
+                });
+            }
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            this.$router.push('/pages/' + page.id);
+        } catch(errors) {
+            this.errors = errorsToDict(errors);
         }
     }
 }
