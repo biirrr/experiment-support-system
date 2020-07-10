@@ -20,6 +20,9 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import deepcopy from 'deepcopy';
 
 import { Page, QuestionTypeGroup, QuestionType, AddQuestionMenuStructure } from '@/interfaces';
 
@@ -64,7 +67,7 @@ export default class AddQuestion extends Vue {
 
     public async addQuestion(questionType: QuestionType) : Promise<void> {
         try {
-            await this.$store.dispatch('createQuestion', {
+            const question = await this.$store.dispatch('createQuestion', {
                 type: 'questions',
                 attributes: {},
                 relationships: {
@@ -83,6 +86,23 @@ export default class AddQuestion extends Vue {
                 },
             });
             this.$emit('close');
+            const page = deepcopy(this.page);
+            if (page.relationships.questions) {
+                page.relationships.questions.data.splice(this.idx, 0, {
+                    type: 'questions',
+                    id: question.id,
+                });
+            } else {
+                page.relationships.questions = {
+                    data: [
+                        {
+                            data: 'questions',
+                            id: question.id,
+                        },
+                    ],
+                };
+            }
+            await this.$store.dispatch('savePage', page);
         } catch(error) {
             this.$emit('close');
         }

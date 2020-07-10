@@ -199,7 +199,6 @@ export default new Vuex.Store({
 
         async createQuestion({ dispatch }, question: Question) {
             question = await dispatch('createSingle', question);
-            await dispatch('loadPage', question.relationships.page.data);
             return question;
         },
 
