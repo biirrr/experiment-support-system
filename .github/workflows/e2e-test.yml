@@ -22,11 +22,11 @@ jobs:
       uses: CultureHQ/actions-yarn@master
       with:
         args: install
-    
+
     - name: Run Tests
       run: |
         source $HOME/.poetry/env
-        testcafe chrome tests
+        node_modules/.bin/testcafe chrome tests
 
     - name: Install Python Dependencies
       run: |
