@@ -1,17 +1,17 @@
-import { Selector } from 'testcafe'
-import { request } from 'http'
+import { Selector } from 'testcafe';
+import { request } from '../util';
 
 fixture(`Page Creation`).beforeEach(async (test) => {
-    const req = request('http://localhost:6543/tests/create?obj=experiment1');
-    req.end();
+    await request('http://localhost:6543/tests/create?obj=experiment1');
     await test
+        .navigateTo('http://localhost:6543/')
         .resizeWindow(1100, 800)
         .click(Selector('a').withText('Sign in'))
         .expect(Selector('h1').innerText).eql('Sign in')
         .typeText(Selector('input[name="email"]'), 'test1@example.com')
         .typeText(Selector('input[name="password"]'), 'test1')
         .click(Selector('button').withText('Sign in'));
-}).page('http://localhost:6543/');
+});
 
 test('Add a page to an experiment', async (test) => {
     await test

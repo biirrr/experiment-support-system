@@ -1,16 +1,16 @@
 import { Selector } from 'testcafe';
-import { request } from 'http';
+import { request } from '../../util';
 
 fixture(`Conditional Questions`).beforeEach(async (test) => {
-    const req = request('http://localhost:6543/tests/create?obj=experiment3');
-    req.end();
+    await request('http://localhost:6543/tests/create?obj=experiment3');
     await test.resizeWindow(1100, 800)
+        .navigateTo('http://localhost:6543/')
         .click(Selector('a').withText('Sign in'))
         .expect(Selector('h1').innerText).eql('Sign in')
         .typeText(Selector('input[name="email"]'), 'test1@example.com')
         .typeText(Selector('input[name="password"]'), 'test1')
         .click(Selector('button').withText('Sign in'))
-}).page('http://localhost:6543/');
+});
 
 test('Create a static html text question with a condition based on a single-choice value', async (test) => {
     await test

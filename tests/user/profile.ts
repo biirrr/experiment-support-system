@@ -1,11 +1,12 @@
-import { Selector } from 'testcafe'
-import { request } from 'http'
+import { Selector } from 'testcafe';
+import { request } from '../util';
 
 fixture(`User Profile`).beforeEach(async (test) => {
-    const req = request('http://localhost:6543/tests/create?obj=user1');
-    req.end();
-    await test.resizeWindow(1100, 800);
-}).page('http://localhost:6543/');
+    await request('http://localhost:6543/tests/create?obj=user1');
+    await test
+        .resizeWindow(1100, 800)
+        .navigateTo('http://localhost:6543/');
+});
 
 test('Access the profile page', async (test) => {
     await test

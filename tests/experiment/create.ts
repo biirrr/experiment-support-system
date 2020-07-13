@@ -1,12 +1,12 @@
-import { Selector } from 'testcafe'
-import { request } from 'http'
+import { Selector } from 'testcafe';
+import { request } from '../util';
 
 fixture(`Experiment`).beforeEach(async (test) => {
-    const req = request('http://localhost:6543/tests/create?obj=user1');
-    req.end();
+    await request('http://localhost:6543/tests/create?obj=user1');
     await test
+        .navigateTo('http://localhost:6543/')
         .resizeWindow(1100, 800);
-}).page('http://localhost:6543/');
+});
 
 test('Create a new experiment', async (test) => {
     await test

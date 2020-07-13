@@ -3,8 +3,10 @@ import { request } from '../util';
 
 fixture(`Frontend Conditional`).beforeEach(async (test) => {
     await request('http://localhost:6543/tests/create?obj=experiment4');
-    await test.resizeWindow(1100, 800);
-}).page('http://localhost:6543');
+    await test
+        .navigateTo('http://localhost:6543/')
+        .resizeWindow(1100, 800);
+});
 
 const h1 = Selector('h1');
 const startExperiment = Selector('button').withText('Start');

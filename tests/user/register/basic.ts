@@ -1,11 +1,12 @@
-import { Selector } from 'testcafe'
-import { request } from 'http'
+import { Selector } from 'testcafe';
+import { request } from '../../util';
 
-fixture(`Registration`).beforeEach(async (test) => {
-    const req = request('http://localhost:6543/tests/create');
-    req.end();
-    await test.resizeWindow(1100, 800);
-}).page('http://localhost:6543/');
+fixture(`Basic Registration`).beforeEach(async (test) => {
+    await request('http://localhost:6543/tests/create');
+    await test
+        .resizeWindow(1100, 800)
+        .navigateTo('http://localhost:6543/');
+});
 
 test('Successful registration', async (test) => {
     await test

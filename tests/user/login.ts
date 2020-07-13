@@ -1,11 +1,12 @@
-import { Selector } from 'testcafe'
-import { request } from 'http'
+import { Selector } from 'testcafe';
+import { request } from '../util';
 
 fixture(`Login`).beforeEach(async (test) => {
-    const req = request('http://localhost:6543/tests/create?obj=user1');
-    req.end();
-    await test.resizeWindow(1100, 800);
-}).page('http://localhost:6543/');
+    await request('http://localhost:6543/tests/create?obj=user1');
+    await test
+        .resizeWindow(1100, 800)
+        .navigateTo('http://localhost:6543/');
+});
 
 test('Successful login', async (test) => {
     await test
@@ -24,8 +25,8 @@ test('Failed login 1', async (test) => {
         .typeText(Selector('input[name="email"]'), 'test2@example.com')
         .typeText(Selector('input[name="password"]'), 'test2')
         .click(Selector('button').withText('Sign in'))
-        .expect(Selector('input[name="email"] + span.form-error').innerText).eql('Either there is no user with this e-mail address or the password is incorrect.')
-        .expect(Selector('input[name="password"] + span.form-error').innerText).eql('Either there is no user with this e-mail address or the password is incorrect.');
+        .expect(Selector('input[name="email"] + span.form-error').innerText).eql('Either there is no user with this e-mail address, the password is incorrect, or access is blocked.')
+        .expect(Selector('input[name="password"] + span.form-error').innerText).eql('Either there is no user with this e-mail address, the password is incorrect, or access is blocked.');
 })
 
 test('Failed login 2', async (test) => {
@@ -35,6 +36,6 @@ test('Failed login 2', async (test) => {
         .typeText(Selector('input[name="email"]'), 'test1@example.com')
         .typeText(Selector('input[name="password"]'), 'test2')
         .click(Selector('button').withText('Sign in'))
-        .expect(Selector('input[name="email"] + span.form-error').innerText).eql('Either there is no user with this e-mail address or the password is incorrect.')
-        .expect(Selector('input[name="password"] + span.form-error').innerText).eql('Either there is no user with this e-mail address or the password is incorrect.');
+        .expect(Selector('input[name="email"] + span.form-error').innerText).eql('Either there is no user with this e-mail address, the password is incorrect, or access is blocked.')
+        .expect(Selector('input[name="password"] + span.form-error').innerText).eql('Either there is no user with this e-mail address, the password is incorrect, or access is blocked.');
 });

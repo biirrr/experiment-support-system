@@ -1,16 +1,16 @@
 import { Selector } from 'testcafe';
-import { request } from 'http';
+import { request } from '../../util';
 
 fixture(`Single-line input`).beforeEach(async (test) => {
-    const req = request('http://localhost:6543/tests/create?obj=experiment1&obj=experiment2');
-    req.end();
+    await request('http://localhost:6543/tests/create?obj=experiment1&obj=experiment2');
     await test.resizeWindow(1100, 800)
+        .navigateTo('http://localhost:6543/')
         .click(Selector('a').withText('Sign in'))
         .expect(Selector('h1').innerText).eql('Sign in')
         .typeText(Selector('input[name="email"]'), 'test1@example.com')
         .typeText(Selector('input[name="password"]'), 'test1')
         .click(Selector('button').withText('Sign in'))
-}).page('http://localhost:6543/');
+});
 
 test('Create a required single-line input question', async (test) => {
     await test

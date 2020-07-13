@@ -5,7 +5,7 @@ from pkg_resources import resource_string
 from secrets import token_hex
 
 from ess.models import (User, Experiment, ExperimentPermission, Page, Transition, QuestionTypeGroup, QuestionType,
-                        Question)
+                        Question, Setting)
 from ess.models.meta import Base
 from ess.views.api.question_type import import_question_type
 
@@ -25,6 +25,24 @@ def init_db(request):
     for idx, question_type in enumerate(question_types):
         question_type.enabled = True
         question_type.idx = idx
+    request.dbsession.flush()
+
+    request.dbsession.add(Setting(key='registration.mode',
+                                  value='open',
+                                  values=['open', 'domain', 'admin'],
+                                  guidance='Set the registration mode to allow anybody (open), users with an e-mail ' +
+                                           'in one ore more listed domains (domain), or registration only by admin ' +
+                                           'users (admin).'))
+    request.dbsession.add(Setting(key='registration.domains',
+                                  value='',
+                                  values=None,
+                                  guidance='Set the domains that users may register from. Only used if the ' +
+                                           'registration.mode is set to domain.'))
+    request.dbsession.add(Setting(key='registration.admin_confirmation',
+                                  value='false',
+                                  values=['true', 'false'],
+                                  guidance='Whether after registration an administrator needs to confirm the ' +
+                                           'registration.'))
     request.dbsession.flush()
 
 
@@ -388,6 +406,13 @@ objects = {'user1': create_user_1,
 def create(request):
     """Handles setting up the test fixtures"""
     init_db(request)
+    if 'setting' in request.params:
+        for update_setting in request.params.getall('setting'):
+            key, value = update_setting.split(':')
+            setting = request.dbsession.query(Setting).filter(Setting.key == key).first()
+            if setting:
+                setting.value = value
+        request.dbsession.flush()
     if 'obj' in request.params:
         for obj in request.params.getall('obj'):
             if obj in objects:
