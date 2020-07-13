@@ -1,5 +1,5 @@
 <template>
-    <div class="grid-x grid-padding-x">
+    <div class="settings grid-x grid-padding-x">
         <h2 class="cell large-12">Settings</h2>
         <div class="cell large-3">
             <aria-menubar v-slot="{ keyboardNav }">

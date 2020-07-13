@@ -54,15 +54,32 @@ def create_user_1(request):
     user = request.dbsession.query(User).filter(User.email == 'test1@example.com').first()
     if not user:
         user = User(email='test1@example.com')
-    user.salt = token_hex(32)
-    hash = sha512()
-    hash.update(user.salt.encode('utf-8'))
-    hash.update(b'$$test1')
-    user.password = hash.hexdigest()
-    user.status = 'active'
-    user.permissions = []
-    user.groups = ['admin', 'creator']
-    user.attributes = {'name': 'Test 1'}
+        user.salt = token_hex(32)
+        hash = sha512()
+        hash.update(user.salt.encode('utf-8'))
+        hash.update(b'$$test1')
+        user.password = hash.hexdigest()
+        user.status = 'active'
+        user.permissions = []
+        user.groups = ['admin', 'creator']
+        user.attributes = {'name': 'Test 1'}
+    request.dbsession.add(user)
+    return user
+
+
+def create_user_2(request):
+    user = request.dbsession.query(User).filter(User.email == 'test2@example.com').first()
+    if not user:
+        user = User(email='test2@example.com')
+        user.salt = token_hex(32)
+        hash = sha512()
+        hash.update(user.salt.encode('utf-8'))
+        hash.update(b'$$test2')
+        user.password = hash.hexdigest()
+        user.status = 'active'
+        user.permissions = []
+        user.groups = ['admin', 'creator']
+        user.attributes = {'name': 'Test 2'}
     request.dbsession.add(user)
     return user
 
@@ -396,6 +413,7 @@ def create_experiment_4(request):
 
 
 objects = {'user1': create_user_1,
+           'user2': create_user_2,
            'experiment1': create_experiment_1,
            'experiment2': create_experiment_2,
            'experiment3': create_experiment_3,

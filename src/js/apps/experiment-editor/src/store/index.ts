@@ -267,8 +267,8 @@ export default new Vuex.Store({
         isOwner(state) {
             if (state.dataStore.data['experiment-permissions']) {
                 return Object.values(state.dataStore.data['experiment-permissions']).filter((permission: JSONAPIObject) => {
-                    return permission.attributes.role === 'owner' && permission.relationships.user.data.id === state.config.experiment.userId;
-                });
+                    return permission.attributes.role === 'owner' && (permission.relationships.user.data as Reference).id === state.config.experiment.userId;
+                }).length > 0;
             } else {
                 return false;
             }

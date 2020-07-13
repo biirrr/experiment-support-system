@@ -32,7 +32,7 @@ def backend_post_collection(request):
 
 
 @view_config(route_name='api.backend.experiment_permission.item.get', renderer='json')
-@require_permission('Experiment:eid allow $current_user admin')
+@require_permission('Experiment:eid allow $current_user edit')
 def backend_get_item(request):
     """Handles fetching a single :class:`~ess.models.experiment_permission.ExperimentPermission`."""
     permission = request.dbsession.query(ExperimentPermission)\

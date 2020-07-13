@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="settings-permissions">
         <ul class="no-bullet no-margin">
             <li v-for="permission in permissions" :key="permission.id" class="grid-x grid-padding-x">
                 <div class="cell auto">
@@ -14,7 +14,7 @@
                         <p v-else-if="permission.attributes.role === 'author'" class="font-small">An author can edit the experiment, but cannot modify permissions.</p>
                         <p v-else-if="permission.attributes.role === 'tester'" class="font-small">A tester can only view the experiment.</p>
                     </div>
-                    <p v-else class="font-small">This user is the {{ permission.attributes.role }}. As there is only one owner, this cannot be changed.</p>
+                    <p v-else class="font-small">This user owns this experiment. As there is only one owner, this cannot be changed.</p>
                 </div>
                 <div class="cell shrink">
                     <a v-if="canModify(permission)" aria-label="Delete this permission" @click="deletePermission(permission)">
@@ -106,7 +106,7 @@ export default class SettingsPermissions extends Vue {
             this.addUsers = response.data.data.filter((user: JSONAPIObject) => {
                 let found = false;
                 this.permissions.forEach((permission) => {
-                    if (user.id === permission.relationships.user.data.id) {
+                    if (user.id === (permission.relationships.user.data as Reference).id) {
                         found = true;
                     }
                 });
