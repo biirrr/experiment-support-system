@@ -16,6 +16,7 @@ export interface ApiConfig {
 
 export interface ExperimentConfig {
     id: string;
+    userId: string;
     externalUrl: string;
     downloadResultsUrl: string;
 }

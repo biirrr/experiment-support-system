@@ -19,6 +19,7 @@
   },
   "experiment": {
     "id": "{{ experiment.id }}",
+    "userId": "{{ request.current_user.id }}",
     "externalUrl": "{{ request.route_url('experiment.run', eid=experiment.external_id) }}",
     "downloadResultsUrl": "{{ request.route_url('experiment.results.download', eid=experiment.id) }}"
   }
