@@ -9,6 +9,7 @@ import PageTransitions from '@/views/PageTransitions.vue';
 import PageSettings from '@/views/PageSettings.vue';
 import Results from '@/views/Results.vue';
 import Settings from '@/views/Settings.vue';
+import SettingsPermissions from '@/views/SettingsPermissions.vue';
 
 Vue.use(VueRouter);
 
@@ -42,7 +43,7 @@ const routes = [
                         path: 'settings',
                         name: 'page.settings',
                         component: PageSettings,
-                    }
+                    },
                 ],
             }
         ],
@@ -66,6 +67,13 @@ const routes = [
         path: '/settings',
         name: 'settings',
         component: Settings,
+        children: [
+            {
+                path: 'permissions',
+                name: 'settings.permissions',
+                component: SettingsPermissions,
+            },
+        ],
     },
 ];
 

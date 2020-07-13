@@ -1,6 +1,23 @@
 <template>
-    <div v-if="localExperiment" class="grid-x grid-padding-x">
-          <div class="cell auto">
+    <div class="settings grid-x grid-padding-x">
+        <h2 class="cell large-12">Settings</h2>
+        <div class="cell large-3">
+            <aria-menubar v-slot="{ keyboardNav }">
+                <ul class="menu vertical" role="menubar">
+                    <router-link :to="'/settings'" v-slot="{ href, navigate, isExactActive }">
+                        <li :class="isExactActive ? 'is-active': ''" role="presentation">
+                            <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="0" role="menuitem">General</a>
+                        </li>
+                    </router-link>
+                    <router-link v-if="$store.getters.isOwner" :to="'/settings/permissions'" v-slot="{ href, navigate, isActive }">
+                        <li :class="isActive ? 'is-active': ''" role="presentation">
+                            <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="0" role="menuitem">Permissions</a>
+                        </li>
+                    </router-link>
+                </ul>
+            </aria-menubar>
+        </div>
+        <div v-if="isCurrentRoute && localExperiment" class="cell large-9">
             <form @submit.prevent="updateExperiment">
                 <input-field type="text" label="Title" v-model="localExperiment.attributes.title" :error="errors.title"/>
                 <input-field type="textarea" label="Description" v-model="localExperiment.attributes.description" :error="errors.description"/>
@@ -18,6 +35,9 @@
                 </div>
             </form>
         </div>
+        <div v-if="!isCurrentRoute" class="cell large-9">
+            <router-view></router-view>
+        </div>
     </div>
 </template>
 
@@ -31,9 +51,11 @@ import { errorsToDict } from 'data-store';
 
 import { StringKeyValueDict, Experiment, PageReference, Page } from '@/interfaces';
 import InputField from '@/components/InputField.vue';
+import AriaMenubar from '@/components/AriaMenubar.vue';
 
 @Component({
     components: {
+        AriaMenubar,
         InputField,
     }
 })
@@ -53,6 +75,12 @@ export default class Settings extends Vue {
         } else {
             return [];
         }
+    }
+
+    public get isCurrentRoute(): boolean {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        return this.$route.name === 'settings';
     }
 
     public mounted(): void {

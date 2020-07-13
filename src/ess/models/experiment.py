@@ -59,7 +59,10 @@ class Experiment(Base):
             'relationships': {
                 'pages': {
                     'data': [{'type': 'pages', 'id': str(page.id)} for page in self.pages]
-                }
+                },
+                'permissions': {
+                    'data': [{'type': 'experiment-permissions', 'id': str(perm.id)} for perm in self.authorised_users]
+                },
             }
         }
         if self.first_page:

@@ -58,7 +58,9 @@ patch_experiment_schema = {'type': type_schema('experiments'),
                                                      '_stats': {'type': 'dict'}}},
                            'relationships': {'type': 'dict',
                                              'schema': {'first-page': relationship_schema('pages'),
-                                                        'pages': relationship_schema('pages', many=True)}}}
+                                                        'pages': relationship_schema('pages', many=True),
+                                                        'permissions': relationship_schema('experiment-permissions',
+                                                                                           many=True)}}}
 
 
 @view_config(route_name='api.backend.experiment.item.patch', renderer='json')

@@ -15,3 +15,26 @@ class ExperimentPermission(Base):
 
     experiment = relationship('Experiment')
     user = relationship('User')
+
+    def as_jsonapi(self, external=False):
+        return {
+            'type': 'experiment-permissions',
+            'id': str(self.id),
+            'attributes': {
+                'role': self.role,
+            },
+            'relationships': {
+                'experiment': {
+                    'data': {
+                        'type': 'experiments',
+                        'id': str(self.experiment_id),
+                    },
+                },
+                'user': {
+                    'data': {
+                        'type': 'users',
+                        'id': str(self.user_id),
+                    },
+                },
+            },
+        }

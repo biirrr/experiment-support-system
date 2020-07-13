@@ -18,6 +18,7 @@ export default new Vuex.Store({
             },
             experiment: {
                 id: '',
+                userId: '',
                 externalUrl: '',
                 downloadResultsUrl: '',
             }
@@ -72,9 +73,12 @@ export default new Vuex.Store({
             const oldExperiment = state.dataStore.data.experiments ? state.dataStore.data.experiments[state.config.experiment.id] : null;
             const experiment = await dispatch('fetchSingle', { type: 'experiments', id: state.config.experiment.id });
             if (!deepequal(oldExperiment, experiment, {strict: true})) {
-                const promises = experiment.relationships.pages.data.map((pageRef: Reference) => {
+                let promises = experiment.relationships.pages.data.map((pageRef: Reference) => {
                     return dispatch('loadPage', pageRef);
                 });
+                promises = promises.concat(experiment.relationships.permissions.data.map((permissionRef: Reference) => {
+                    return dispatch('loadPermission', permissionRef);
+                }));
                 await Promise.all(promises);
             }
             return experiment;
@@ -90,6 +94,43 @@ export default new Vuex.Store({
                 await Promise.all(promises);
             }
             return experiment;
+        },
+
+        async loadPermission({ dispatch, state }, permissionRef: Reference) {
+            const oldPermission = state.dataStore.data['experiment-permissions'] ? state.dataStore.data['experiment-permissions'][permissionRef.id] : null;
+            const permission = await dispatch('fetchSingle', permissionRef);
+            if (!oldPermission || !deepequal(oldPermission.relationships, permission.relationships)) {
+                await Promise.all([
+                    dispatch('loadExperiment'),
+                    dispatch('loadUser', permission.relationships.user.data),
+                ]);
+            }
+            return permission;
+        },
+
+        async createPermission({ dispatch }, permission: JSONAPIObject) {
+            permission = await dispatch('createSingle', permission);
+            await Promise.all([
+                dispatch('loadExperiment'),
+                dispatch('loadUser', permission.relationships.user.data),
+            ]);
+        },
+
+        async savePermission({ dispatch, state }, permission: JSONAPIObject) {
+            const oldPermission = state.dataStore.data['experiment-permissions'] ? state.dataStore.data['experiment-permissions'][permission.id] : null;
+            permission = await dispatch('saveSingle', permission);
+            if (!oldPermission || !deepequal(oldPermission.relationships, permission.relationships)) {
+                await Promise.all([
+                    dispatch('loadExperiment'),
+                    dispatch('loadUser', permission.relationships.user.data),
+                ]);
+            }
+            return permission;
+        },
+
+        async loadUser({ dispatch }, userRef: Reference) {
+            const user = await dispatch('fetchSingle', userRef);
+            return user;
         },
 
         async loadPage({ dispatch, state }, pageRef: Reference) {
@@ -220,6 +261,16 @@ export default new Vuex.Store({
                 return state.dataStore.data.experiments[state.config.experiment.id];
             } else {
                 return null;
+            }
+        },
+
+        isOwner(state) {
+            if (state.dataStore.data['experiment-permissions']) {
+                return Object.values(state.dataStore.data['experiment-permissions']).filter((permission: JSONAPIObject) => {
+                    return permission.attributes.role === 'owner' && (permission.relationships.user.data as Reference).id === state.config.experiment.userId;
+                }).length > 0;
+            } else {
+                return false;
             }
         }
     },

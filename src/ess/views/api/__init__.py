@@ -5,7 +5,8 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest
 from sqlalchemy.ext.orderinglist import OrderingList
 
 from ess.util import Validator
-from ess.models import Experiment, Page, Transition, Question, QuestionType, QuestionTypeGroup
+from ess.models import (Experiment, Page, Transition, Question, QuestionType, QuestionTypeGroup, ExperimentPermission,
+                        User)
 
 
 COLLECTION_POST_SCHEMA = {'data': {'type': 'dict', 'schema': None, 'belongs_to_experiment': True}}
@@ -133,6 +134,10 @@ def class_for_type(data):
         return QuestionType
     elif data['type'] == 'question-type-groups':
         return QuestionTypeGroup
+    elif data['type'] == 'experiment-permissions':
+        return ExperimentPermission
+    elif data['type'] == 'users':
+        return User
     return None
 
 
