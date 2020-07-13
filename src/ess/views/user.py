@@ -10,26 +10,38 @@ from secrets import token_hex
 from sqlalchemy import and_, desc
 
 from ..models import User, Experiment, ExperimentPermission
-from ..util import get_config_setting, send_email, Validator
+from ..util import get_config_setting, get_setting, send_email, Validator
 
 
-def valid_email(field, value, error):
-    """Validates that the ``value`` in ``field`` is a valid e-mail address.
+def generate_email_validator(ensure_domain=None):
+    """Generate an e-mail validator.
 
-    :param field: The field being validated
-    :type field: str
-    :param value: The field value to validate
-    :param error: Callback to set the error message, if the ``value`` is not valid
+    :param ensure_domain: Domains to check the e-mail domain against. An e-mail address is only valid if the
+                          domain is within the given list. Default: ``None``.
+    :type ensure_domain: ``list``
     """
-    try:
-        validate_email(value, check_deliverability=False)
-    except EmailNotValidError as e:
-        error(field, str(e))
+    def valid_email(field, value, error):
+        """Validates that the ``value`` in ``field`` is a valid e-mail address.
+
+        :param field: The field being validated
+        :type field: str
+        :param value: The field value to validate
+        :param error: Callback to set the error message, if the ``value`` is not valid
+        """
+        try:
+            validated = validate_email(value, check_deliverability=False)
+            if ensure_domain:
+                if validated.domain not in ensure_domain:
+                    error(field, f'Registration is only allowed for the following domains: {", ".join(ensure_domain)}')
+        except EmailNotValidError as e:
+            error(field, str(e))
+
+    return valid_email
 
 
 register_schema = {'email': {'type': 'string',
                              'required': True,
-                             'validator': [valid_email]},
+                             'validator': [generate_email_validator()]},
                    'name': {'type': 'string',
                             'required': True,
                             'empty': False},
@@ -47,6 +59,9 @@ VALIDATION_ICONS = [('pencil', 'pencil'), ('anvil', 'anvil'), ('tree', 'tree'), 
 @view_config(route_name='user.register', renderer='ess:templates/user/register.jinja2')
 def register(request):
     """Handles the registration of new users."""
+    if get_setting(request, 'registration.mode') == 'admin':
+        request.session.flash('Only an administrator can register a new user', 'error')
+        raise HTTPFound(request.route_url('root'))
     if request.method == 'POST':
         def nonexistant_email(field, value, error):
             """Checks that the ``value`` in ``field`` is not already registered.
@@ -55,9 +70,14 @@ def register(request):
                 error(field, 'This e-mail address is already registered.')
 
         schema = deepcopy(register_schema)
-        schema['email']['validator'].append(nonexistant_email)
         if 'verification_id' in request.session:
             schema['icon']['allowed'].append(request.session['verification_id'])
+        if get_setting(request, 'registration.mode', default='open') == 'domain':
+            schema['email']['validator'] = [generate_email_validator(ensure_domain=get_setting(request,
+                                                                                               'registration.domains',
+                                                                                               target_type='list',
+                                                                                               default=[]))]
+        schema['email']['validator'].append(nonexistant_email)
         validator = Validator(schema)
         if validator.validate(request.params):
             user = User(email=request.params['email'].lower(),
@@ -131,10 +151,18 @@ def confirm(request):
                 hash.update(b'$$')
                 hash.update(request.params['password'].encode('utf-8'))
                 user.password = hash.hexdigest()
-                user.status = 'active'
+                if user.status == 'new':
+                    if get_setting(request, 'registration.admin_confirmation') == 'true':
+                        user.status = 'confirmed'
+                    else:
+                        user.status = 'active'
                 del user.attributes['validation_token']
-                request.session['user-id'] = user.id
-                request.session.flash('You have updated your password.', 'info')
+                if user.status == 'confirmed':
+                    request.session.flash('You have updated your password. An administator will now activate your ' +
+                                          'account.', 'info')
+                else:
+                    request.session['user-id'] = user.id
+                    request.session.flash('You have updated your password.', 'info')
                 return HTTPFound(location=request.route_url('root'))
             else:
                 return {'user': user,
@@ -146,7 +174,7 @@ def confirm(request):
         return HTTPFound(location=request.route_url('root'))
 
 
-login_schema = {'email': {'type': 'string', 'empty': False, 'validator': valid_email},
+login_schema = {'email': {'type': 'string', 'empty': False, 'validator': [generate_email_validator()]},
                 'password': {'type': 'string', 'empty': False},
                 'redirect': {'type': 'string'},
                 'csrf_token': {'type': 'string', 'empty': False}}
@@ -168,17 +196,17 @@ def login(request):
                 if user.password == hash.hexdigest():
                     request.session['user-id'] = user.id
                     return HTTPFound(location=decode_route(request, 'user.view', {'uid': user.id}))
-            return {'errors': {'email': ['Either there is no user with this e-mail address ' +
-                                         'or the password is incorrect.'],
-                               'password': ['Either there is no user with this e-mail address ' +
-                                            'or the password is incorrect.']},
+            return {'errors': {'email': ['Either there is no user with this e-mail address, ' +
+                                         'the password is incorrect, or access is blocked.'],
+                               'password': ['Either there is no user with this e-mail address, ' +
+                                            'the password is incorrect, or access is blocked.']},
                     'values': request.params}
         else:
             return {'errors': validator.errors, 'values': request.params}
     return {}
 
 
-forgotten_password_schema = {'email': {'type': 'string', 'empty': False, 'validator': valid_email},
+forgotten_password_schema = {'email': {'type': 'string', 'empty': False, 'validator': [generate_email_validator()]},
                              'csrf_token': {'type': 'string', 'empty': False}}
 
 

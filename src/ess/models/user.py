@@ -9,11 +9,13 @@ from .meta import Base
 
 
 PERMISSIONS = OrderedDict((('admin.view', 'Access the Admin Interface'),
+                           ('admin.settings', 'Administer the Core Settings'),
                            ('admin.users', 'Administer Users'),
                            ('admin.experiments', 'Administer Experiments'),
                            ('admin.questionTypes', 'Administer Question Types'),
                            ('experiment.create', 'Create new Experiments')))
-GROUPS = OrderedDict((('admin', ('admin.view', 'admin.users', 'admin.experiments', 'admin.question_types')),
+GROUPS = OrderedDict((('admin', ('admin.view', 'admin.settings', 'admin.users', 'admin.experiments',
+                                 'admin.question_types')),
                       ('creator', ('experiment.create',))))
 
 

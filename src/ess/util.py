@@ -8,7 +8,7 @@ from email.mime.text import MIMEText
 from email.utils import formatdate
 from sqlalchemy import and_
 
-from .models import Page, Transition
+from .models import Page, Transition, Setting
 
 
 def convert_type(value, target_type, default=None):
@@ -77,6 +77,29 @@ def get_config_setting(request, key, target_type=None, default=None):
         else:
             CACHED_SETTINGS[key] = default
         return get_config_setting(request, key, target_type=target_type, default=default)
+
+
+def get_setting(request, key, target_type=None, default=None):
+    """Gets a configuration setting from the application settings.
+
+    :param request: The request used to access the configuration settings
+    :type request: :class:`~pyramid.request.Request`
+    :param key: The configuration key
+    :type key: `unicode`
+    :param target_type: If specified, will convert the configuration setting
+                        to the given type using :func:`~toja.util.convert_type`
+    :type default: The default value to return if there is no setting with the
+                   given key
+    :return: The configuration setting value or ``default``
+    """
+    setting = request.dbsession.query(Setting).filter(Setting.key == key).first()
+    if setting:
+        if target_type:
+            return convert_type(setting.value, target_type, default=default)
+        else:
+            return setting.value
+    else:
+        return default
 
 
 def send_email(request, recipient, sender, subject, text):  # pragma: no cover
@@ -171,6 +194,7 @@ inflect_engine = inflect.engine()
 
 def includeme(config):
     config.get_jinja2_environment().filters['config'] = get_config_setting
+    config.get_jinja2_environment().filters['setting'] = get_setting
     config.get_jinja2_environment().filters['zip'] = zip
     config.get_jinja2_environment().filters['strftime'] = strftime
     config.get_jinja2_environment().filters['format'] = format

@@ -4,7 +4,7 @@ import transaction
 from pkg_resources import resource_string
 
 from ..models.meta import Base
-from ..models import get_engine, get_session_factory, get_tm_session, QuestionTypeGroup
+from ..models import get_engine, get_session_factory, get_tm_session, QuestionTypeGroup, Setting
 from ..views.api.question_type import import_question_type
 
 
@@ -36,3 +36,23 @@ def init_db(ctx, drop_existing):
         for idx, question_type in enumerate(question_types):
             question_type.enabled = True
             question_type.idx = idx
+
+        if not dbsession.query(Setting).filter(Setting.key == 'registration.mode').first():
+            dbsession.add(Setting(key='registration.mode',
+                                  value='open',
+                                  values=['open', 'domain', 'admin'],
+                                  guidance='Set the registration mode to allow anybody (open), users with an e-mail ' +
+                                           'in one ore more listed domains (domain), or registration only by admin ' +
+                                           'users (admin).'))
+        if not dbsession.query(Setting).filter(Setting.key == 'registration.domains').first():
+            dbsession.add(Setting(key='registration.domains',
+                                  value='',
+                                  values=None,
+                                  guidance='Set the domains that users may register from. Only used if the ' +
+                                           'registration.mode is set to domain.'))
+        if not dbsession.query(Setting).filter(Setting.key == 'registration.require_confirmation').first():
+            dbsession.add(Setting(key='registration.admin_confirmation',
+                                  value='false',
+                                  values=['true', 'false'],
+                                  guidance='Whether after registration an administrator needs to confirm the ' +
+                                           'registration.'))

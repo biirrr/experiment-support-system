@@ -72,8 +72,8 @@ def import_question_type(data, dbsession, remap=True):
             if question['relationships']['parent']['data']['id'] in db_questions:
                 db_questions[question['id']].parent = db_questions[question['relationships']['parent']['data']['id']]
             else:
-                raise InvalidQuestionType(f"Parent relationship pointing to unknown question " +
-                                          "{question['relationships']['parent']['data']['id']}")
+                raise InvalidQuestionType("Parent relationship pointing to unknown question " +
+                                          f"{question['relationships']['parent']['data']['id']}")
     # Return those question types that were in the data key
     if isinstance(data['data'], dict):
         return dbsession.query(QuestionType).filter(QuestionType.source == data['data']['links']['self']).first()

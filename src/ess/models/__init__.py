@@ -14,6 +14,7 @@ from .question import Question  # noqa
 from .question_type import QuestionType  # noqa
 from .question_type_group import QuestionTypeGroup  # noqa
 from .participant import Participant  # noqa
+from .setting import Setting  # noqa
 
 # run configure_mappers after defining all of the models to ensure
 # all relationships can be setup
