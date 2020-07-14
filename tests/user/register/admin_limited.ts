@@ -8,9 +8,15 @@ fixture(`Admin Limited Registration`).beforeEach(async (test) => {
         .navigateTo('http://localhost:6543/');
 });
 
-test('Failed registration', async (test) => {
+test('No registration links', async (test) => {
     await test
         .expect(Selector('a').withText('Sign up').exists).notOk()
+        .navigateTo('http://localhost:6543//users/login')
+        .expect(Selector('a').withText('Register').exists).notOk();
+});
+
+test('Failed registration', async (test) => {
+    await test
         .navigateTo('http://localhost:6543//users/register')
         .expect(Selector('ul.flash li.error').withText('Only an administrator can register a new user').innerText).eql('Only an administrator can register a new user');
 });
