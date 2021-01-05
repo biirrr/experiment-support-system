@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@vue/cli": "^4.4.6",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "core-js": "^3.6.5",
     "data-store": "../shared/data-store/",
     "deep-equal": "^2.0.3",
