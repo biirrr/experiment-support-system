@@ -9,27 +9,45 @@ on:
 jobs:
   e2e-test:
     runs-on: ubuntu-20.04
+    strategy:
+      max-parallel: 2
+      matrix:
+        python-version: ['3.7', '3.8']
+        node-version: ['12', '14']
 
     steps:
     - uses: actions/checkout@v2
 
+    - name: Setup Environment
+      run: |
+        echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+        echo "PIPX_BIN_DIR=$HOME/.local/bin" >> $GITHUB_ENV
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - uses: actions/setup-node@v2-beta
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Setup Environment
+      run: |
+        echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+        echo "PIPX_HOME=$HOME/.local/pipx" >> $GITHUB_ENV
+        echo "PIPX_BIN_DIR=$HOME/.local/bin" >> $GITHUB_ENV
+
     - name: Install Base Dependencies
       run: |
-        sudo apt-get install python3-venv
-        curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3
+        sudo apt-get install python3-venv pipx
+        pipx install poetry
 
-    - name: Install Yarn Dependencies
-      uses: CultureHQ/actions-yarn@master
-      with:
-        args: install
-
-    - name: Install Python Dependencies
+    - name: Install Dependencies
       run: |
-        source $HOME/.poetry/env
+        yarn install
         poetry install
 
     - name: Run Tests
       run: |
-        source $HOME/.poetry/env
         poetry run pserve test.ini &
         node_modules/.bin/testcafe firefox:headless tests

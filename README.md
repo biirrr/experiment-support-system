@@ -8,9 +8,9 @@ This is the Experiment Support System version 2.
 
 To build and run the server locally the following tools are required:
 
-* Python version 3.8 or greater: https://www.python.org/
+* Python version 3.7 or newer: https://www.python.org/
 * Poetry: https://python-poetry.org/
-* NodeJS version 12 or greater: https://nodejs.org/en/
+* NodeJS version 12 or newer: https://nodejs.org/en/
 * Yarn 1: https://classic.yarnpkg.com/lang/en/
 
 All further local dependencies are installed using the following commands:

@@ -2,6 +2,7 @@ import click
 import transaction
 
 from hashlib import sha512
+from secrets import token_hex
 
 from ..models import get_engine, get_session_factory, get_tm_session, User
 
@@ -87,6 +88,34 @@ def set_user_status(ctx, email, password, user_email, status):
             if user:
                 user.status = status
                 click.echo(click.style('User status updated', fg='green'))
+            else:
+                click.echo(click.style(f'No user with the e-mail address {user_email} is registered', fg='green'))
+        else:
+            click.echo(click.style('You are not authorised to access this area', fg='red'))
+
+
+@click.command()
+@click.pass_context
+@click.option('--email', prompt=True)
+@click.option('--password', prompt=True, hide_input=True)
+@click.option('--new_password', prompt=True, hide_input=True, confirmation_prompt=True)
+@click.argument('user-email')
+def set_user_password(ctx, email, password, new_password, user_email):
+    """Sets the password of the user with the e-mail address USER_EMAIL"""
+    with transaction.manager:
+        engine = get_engine(ctx.obj['settings'])
+        session_factory = get_session_factory(engine)
+        dbsession = get_tm_session(session_factory, transaction.manager)
+        if check_permission(dbsession, email, password, 'admin.users'):
+            user = dbsession.query(User).filter(User.email == user_email).first()
+            if user:
+                user.salt = token_hex(32)
+                hash = sha512()
+                hash.update(user.salt.encode('utf-8'))
+                hash.update(b'$$')
+                hash.update(new_password.encode('utf-8'))
+                user.password = hash.hexdigest()
+                click.echo(click.style('User password updated', fg='green'))
             else:
                 click.echo(click.style(f'No user with the e-mail address {user_email} is registered', fg='green'))
         else:
