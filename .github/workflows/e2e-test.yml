@@ -9,17 +9,32 @@ on:
 jobs:
   e2e-test:
     runs-on: ubuntu-20.04
+    strategy:
+      max-parallel: 2
+      matrix:
+        python-version: ['3.7', '3.8']
+        node-version: ['12', '14']
 
     steps:
     - uses: actions/checkout@v2
 
-    - uses: actions/setup-node@v2
-      with:
-        node-version: '12'
-
-    - name: Add .local path
+    - name: Setup Environment
       run: |
         echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+        echo "PIPX_BIN_DIR=$HOME/.local/bin" >> $GITHUB_ENV
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - uses: actions/setup-node@v2-beta
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Setup Environment
+      run: |
+        echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+        echo "PIPX_HOME=$HOME/.local/pipx" >> $GITHUB_ENV
         echo "PIPX_BIN_DIR=$HOME/.local/bin" >> $GITHUB_ENV
 
     - name: Install Base Dependencies
@@ -27,17 +42,12 @@ jobs:
         sudo apt-get install python3-venv pipx
         pipx install poetry
 
-    - name: Install Yarn Dependencies
+    - name: Install Dependencies
       run: |
         yarn install
-
-    - name: Install Python Dependencies
-      run: |
-        poetry config virtualenvs.in-project true
         poetry install
 
     - name: Run Tests
       run: |
-        poetry config virtualenvs.in-project true
         poetry run pserve test.ini &
         node_modules/.bin/testcafe firefox:headless tests
