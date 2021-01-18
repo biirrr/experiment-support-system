@@ -1,6 +1,7 @@
 import { request } from '../util';
 
 fixture(`Favicon support`).beforeEach(async (test) => {
+    await request('http://localhost:6543/tests/create');
     await test
         .navigateTo('http://localhost:6543/');
 });
