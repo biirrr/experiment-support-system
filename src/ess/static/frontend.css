@@ -4901,17 +4901,18 @@ a:hover .icon.secondary path, a:hover .icon.secondary g {
 .icon-text {
   display: flex;
   flex-direction: row; }
-  .icon-text > span:first-child {
+  .icon-text > span:first-child, .icon-text > a:first-child {
     flex: 0 0 auto;
     padding-right: 0.3125rem;
     padding-top: 0.1875rem; }
-  .icon-text > span:last-child {
-    flex: 1 1 auto; }
+  .icon-text > span:last-child, .icon-text > a:last-child {
+    flex: 1 1 auto;
+    line-height: inherit; }
   .icon-text.small {
     font-size: 80%; }
-    .icon-text.small > span:first-child {
+    .icon-text.small > span:first-child, .icon-text.small > a:first-child {
       padding-top: 0.125rem; }
-    .icon-text.small > span .icon {
+    .icon-text.small > span .icon, .icon-text.small > a .icon {
       width: 14px;
       height: 15px; }
 

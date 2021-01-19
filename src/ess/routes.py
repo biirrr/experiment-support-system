@@ -19,6 +19,7 @@ def generate_api_routes(config, base_type, data_type, url_prefix=''):
 def includeme(config):
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('root', '/')
+    config.add_route("favicon", "/favicon.ico")
 
     config.add_route('user.register', '/users/register')
     config.add_route('user.confirm', '/users/confirm/:email/:token')

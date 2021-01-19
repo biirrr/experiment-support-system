@@ -2,7 +2,7 @@ import { Selector } from 'testcafe';
 import { request } from '../util';
 
 fixture(`Frontend Conditional`).beforeEach(async (test) => {
-    await request('http://localhost:6543/tests/create?obj=experiment4');
+    await request('http://localhost:6543/tests/create?obj=experiment6');
     await test
         .navigateTo('http://localhost:6543/')
         .resizeWindow(1100, 800);
@@ -19,7 +19,7 @@ const input = Selector('input')
 
 test('Complete an experiment with conditional questions', async (test) => {
     await test
-        .navigateTo('http://localhost:6543/run/experiment-4')
+        .navigateTo('http://localhost:6543/run/experiment-6')
         .expect(h1.innerText).eql('Page 1 - Conditional on SingleChoice')
         .expect(Selector('p').withText('You selected A').exists).notOk()
         .expect(Selector('p').withText('You selected B').exists).notOk()

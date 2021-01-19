@@ -60,7 +60,7 @@ def edit(request):
 @view_config(route_name='experiment.run', renderer='ess:templates/experiment/run.jinja2')
 def run(request):
     experiment = request.dbsession.query(Experiment).filter(Experiment.external_id == request.matchdict['eid']).first()
-    if experiment:
+    if experiment and experiment.allow(request.current_user, 'participate'):
         return {'experiment': experiment}
     else:
         raise HTTPNotFound()
@@ -198,7 +198,7 @@ def schema_for_page(page, responses):
 @view_config(route_name='experiment.run.validate', renderer='json')
 def validate(request):
     experiment = request.dbsession.query(Experiment).filter(Experiment.external_id == request.matchdict['eid']).first()
-    if experiment:
+    if experiment and experiment.allow(request.current_user, 'participate'):
         try:
             body = json.loads(request.body)
             if 'page' in body:
@@ -233,7 +233,7 @@ def schema_for_experiment(page, schema, responses):
 @view_config(route_name='experiment.run.submit', renderer='ess:templates/experiment/run.jinja2')
 def submit(request):
     experiment = request.dbsession.query(Experiment).filter(Experiment.external_id == request.matchdict['eid']).first()
-    if experiment and experiment.first_page:
+    if experiment and experiment.first_page and experiment.allow(request.current_user, 'participate'):
         try:
             body = json.loads(request.body)
             if 'responses' in body:
