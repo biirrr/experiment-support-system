@@ -410,6 +410,25 @@ def create_experiment_4(request):
                                                                    'subQuestion': 'q2',
                                                                    'operator': 'eq',
                                                                    'value': '2'}}))
+    return experiment
+
+
+def create_experiment_5(request):
+    """Creates the full experiment 3, but sets the status to development."""
+    experiment = create_experiment_3(request)
+    experiment.attributes['status'] = 'development'
+    experiment.attributes['title'] = 'Experiment 5'
+    experiment.external_id = 'experiment-5'
+    return experiment
+
+
+def create_experiment_6(request):
+    """Creates the full experiment 4, but sets the status to live."""
+    experiment = create_experiment_4(request)
+    experiment.attributes['status'] = 'live'
+    experiment.attributes['title'] = 'Experiment 6'
+    experiment.external_id = 'experiment-6'
+    return experiment
 
 
 objects = {'user1': create_user_1,
@@ -418,6 +437,8 @@ objects = {'user1': create_user_1,
            'experiment2': create_experiment_2,
            'experiment3': create_experiment_3,
            'experiment4': create_experiment_4,
+           'experiment5': create_experiment_5,
+           'experiment6': create_experiment_6,
            }
 
 

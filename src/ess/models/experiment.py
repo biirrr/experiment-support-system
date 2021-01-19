@@ -39,13 +39,14 @@ class Experiment(Base):
                     if permission.role == 'owner':
                         return True
                     elif permission.role == 'author':
-                        if action in ['view', 'edit']:
+                        if action in ['view', 'edit', 'participate']:
                             return True
                     elif permission.role == 'tester':
-                        if action == 'view':
+                        if action == 'participate':
                             return True
-        if action == 'participate':
-            return True
+        else:
+            if action == 'participate' and self.attributes['status'] == 'live':
+                return True
         return False
 
     def as_jsonapi(self, external=False):

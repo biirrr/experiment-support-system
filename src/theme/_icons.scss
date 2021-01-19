@@ -126,7 +126,7 @@ a {
     display: flex;
     flex-direction: row;
 
-    > span {
+    > span, > a {
         &:first-child {
             flex: 0 0 auto;
             padding-right: rem-calc(5);
@@ -135,13 +135,14 @@ a {
 
         &:last-child {
             flex: 1 1 auto;
+            line-height: inherit;
         }
     }
 
     &.small {
         font-size: $small-font-size;
 
-        > span {
+        > span, > a {
             &:first-child {
                 padding-top: rem-calc(2);
             }
