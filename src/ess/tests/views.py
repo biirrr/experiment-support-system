@@ -2,10 +2,11 @@ import json
 
 from hashlib import sha512
 from pkg_resources import resource_string
+from pyramid.httpexceptions import HTTPClientError, HTTPOk
 from secrets import token_hex
 
 from ess.models import (User, Experiment, ExperimentPermission, Page, Transition, QuestionTypeGroup, QuestionType,
-                        Question, Setting)
+                        Question, Setting, Participant)
 from ess.models.meta import Base
 from ess.views.api.question_type import import_question_type
 
@@ -456,3 +457,20 @@ def create(request):
             if obj in objects:
                 objects[obj](request)
     return {}
+
+
+def db_assert(request):
+    """Handles asserting database state"""
+    if 'obj' in request.params and 'test' in request.params:
+        query = None
+        if request.params['obj'] == 'participant':
+            query = request.dbsession.query(Participant)
+        if query:
+            if request.params['test'] == 'count' and 'value' in request.params:
+                if int(request.params['value']) == query.count():
+                    return HTTPOk()
+            elif request.params['test'] == 'exist':
+                result = query.first()
+                if result is not None:
+                    return result.as_jsonapi()
+    raise HTTPClientError()

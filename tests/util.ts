@@ -12,3 +12,11 @@ export async function request(url: string): Promise<IncomingMessage> {
         req.end();
     });
 }
+
+export async function loadJSON(msg: IncomingMessage): Promise<any> {
+    return new Promise((resolve) => {
+        msg.on('data', (chunk) => {
+            resolve(JSON.parse(chunk.toString()));
+        });
+    });
+}
