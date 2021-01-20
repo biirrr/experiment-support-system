@@ -16,12 +16,12 @@
                                 <template v-if="experiment.attributes.status === 'development'">
                                     Test the Experiment
                                 </template>
-                                <template v-else>
-                                    Test URL
+                                <template v-else-if="experiment.attributes.status === 'live'">
+                                    {{ $store.state.config.experiment.externalUrl }}
                                 </template>
                             </a>
                         </li>
-                        <li>
+                        <li v-if="experiment.attributes.status !== 'completed'">
                             <select @change="changeStatus($event)">
                                 <template v-if="experiment.attributes.status === 'development'">
                                     <option value="development" selected="selected">Development</option>
@@ -80,6 +80,9 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import deepcopy from 'deepcopy';
 
 import { Experiment } from '@/interfaces';
 import AriaMenubar from '@/components/AriaMenubar.vue';
@@ -114,11 +117,31 @@ export default class App extends Vue {
     }
 
     public changeStatus(ev: Event): void {
-        if (ev && ev.target) {
-            this.$store.dispatch('updateExperimentAttribute', {
-                attribute: 'status',
-                value: (ev.target as HTMLInputElement).value,
-            });
+        if (ev && ev.target && this.experiment) {
+            const value = (ev.target as HTMLInputElement).value;
+            let proceed = false;
+            if (this.experiment.attributes.status === 'development' && value === 'live') {
+                proceed = confirm('Switching the status to live makes the experiment publicly available. You cannot return to the development status. Please confirm you wish to make the experiment live.');
+            } else if (this.experiment.attributes.status === 'live' && value === 'paused') {
+                proceed = true;
+            } else if (this.experiment.attributes.status === 'paused' && value === 'live') {
+                proceed = true;
+            } else if ((this.experiment.attributes.status === 'live' || this.experiment.attributes.status === 'paused') && value === 'completed') {
+                proceed = confirm('Switching the status to completed ends the experiment. You cannot return to the live status. Please confirm you wish to complete the experiment.');
+            }
+            if (proceed) {
+                const experiment = deepcopy(this.experiment);
+                experiment.attributes.status = value;
+                this.$store.dispatch('saveExperiment', experiment);
+            } else {
+                const oldStatus = this.experiment.attributes.status;
+                this.experiment.attributes.status = '';
+                this.$nextTick(() => {
+                    if (this.experiment) {
+                        this.experiment.attributes.status = oldStatus;
+                    }
+                });
+            }
         }
     }
 }

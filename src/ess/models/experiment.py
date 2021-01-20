@@ -33,6 +33,8 @@ class Experiment(Base):
         :param action: The action to check (view, edit, delete)
         :type action: ``str``
         """
+        if action == 'participate' and self.attributes['status'] not in ['development', 'live']:
+            return False
         if user is not None:
             for permission in self.authorised_users:
                 if permission.user.id == user.id:
