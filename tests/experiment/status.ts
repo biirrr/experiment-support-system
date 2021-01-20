@@ -1,7 +1,7 @@
 import { Selector } from 'testcafe';
 import { request } from '../util';
 
-fixture(`Experiment Status`).beforeEach(async (test) => {
+fixture('Experiment Status').beforeEach(async (test) => {
     await request('http://localhost:6543/tests/create?obj=experiment3&obj=experiment5');
     await test
         .navigateTo('http://localhost:6543/')
