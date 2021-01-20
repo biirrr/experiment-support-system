@@ -25,7 +25,6 @@ def init_db(request):
     for idx, question_type in enumerate(question_types):
         question_type.enabled = True
         question_type.idx = idx
-    request.dbsession.flush()
 
     request.dbsession.add(Setting(key='registration.mode',
                                   value='open',
@@ -43,7 +42,6 @@ def init_db(request):
                                   values=['true', 'false'],
                                   guidance='Whether after registration an administrator needs to confirm the ' +
                                            'registration.'))
-    request.dbsession.flush()
 
 
 def get_question_type(request, name):
@@ -84,27 +82,33 @@ def create_user_2(request):
     return user
 
 
+def create_experiment_base(request, external_id, owner=None, **attributes):
+    if owner is None:
+        owner = create_user_1(request)
+    experiment = Experiment(external_id=external_id, attributes=attributes)
+    request.dbsession.add(experiment)
+    owner = ExperimentPermission(experiment=experiment, user=owner, role='owner')
+    request.dbsession.add(owner)
+    return experiment
+
+
 def create_experiment_1(request):
     """Experiment 1 is an empty experiment."""
-    user = create_user_1(request)
-    experiment = Experiment(attributes={'title': 'Experiment 1',
-                                        'description': 'The first test experiment',
-                                        'status': 'development'})
-    request.dbsession.add(experiment)
-    owner = ExperimentPermission(experiment=experiment, user=user, role='owner')
-    request.dbsession.add(owner)
+    experiment = create_experiment_base(request,
+                                        'experiment-1',
+                                        title='Experiment 1',
+                                        description='The first test experiment',
+                                        status='development')
     return experiment
 
 
 def create_experiment_2(request):
     """Experiment 2 is a two-page experiment with two empty pages."""
-    user = create_user_1(request)
-    experiment = Experiment(attributes={'title': 'Experiment 2',
-                                        'description': 'The second test experiment',
-                                        'status': 'development'})
-    request.dbsession.add(experiment)
-    owner = ExperimentPermission(experiment=experiment, user=user, role='owner')
-    request.dbsession.add(owner)
+    experiment = create_experiment_base(request,
+                                        'experiment-2',
+                                        title='Experiment 2',
+                                        description='The second test experiment',
+                                        status='development')
     page1 = Page(experiment=experiment, attributes={'name': 'welcome', 'title': 'Welcome'})
     request.dbsession.add(page1)
     page2 = Page(experiment=experiment, attributes={'name': 'consent', 'title': 'Informed Consent'})
@@ -113,16 +117,14 @@ def create_experiment_2(request):
     return experiment
 
 
-def create_experiment_3(request):
+def create_experiment_3(request, experiment=None):
     """Experiment 3 is a multi-page experiment that contains all types of questions."""
-    user = create_user_1(request)
-    experiment = Experiment(external_id='experiment-3',
-                            attributes={'title': 'Experiment 3',
-                                        'description': 'A complete experiment',
-                                        'status': 'live'})
-    request.dbsession.add(experiment)
-    owner = ExperimentPermission(experiment=experiment, user=user, role='owner')
-    request.dbsession.add(owner)
+    if not experiment:
+        experiment = create_experiment_base(request,
+                                            'experiment-3',
+                                            title='Experiment 3',
+                                            description='The third test experiment',
+                                            status='live')
     welcome = Page(experiment=experiment, attributes={'name': 'welcome', 'title': 'Welcome'})
     welcome.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
                                       position=1,
@@ -197,16 +199,14 @@ def create_experiment_3(request):
     return experiment
 
 
-def create_experiment_4(request):
+def create_experiment_4(request, experiment=None):
     """Experiment 4 is a multi-page experiment with conditional questions."""
-    user = create_user_1(request)
-    experiment = Experiment(external_id='experiment-4',
-                            attributes={'title': 'Experiment 4',
-                                        'description': 'The fourth test experiment',
-                                        'status': 'development'})
-    request.dbsession.add(experiment)
-    owner = ExperimentPermission(experiment=experiment, user=user, role='owner')
-    request.dbsession.add(owner)
+    if experiment is None:
+        experiment = create_experiment_base(request,
+                                            'experiment-4',
+                                            title='Experiment 4',
+                                            description='The fourth test experiment',
+                                            status='development')
     page1 = Page(experiment=experiment, attributes={'name': 'page1', 'title': 'Page 1 - Conditional on SingleChoice'})
     question1 = Question(question_type=get_question_type(request, 'ESSSingleChoice'),
                          position=1,
@@ -215,7 +215,6 @@ def create_experiment_4(request):
                                      'required': True,
                                      'display': 'vertical list'})
     page1.questions.append(question1)
-    request.dbsession.flush()
     request.dbsession.add(question1)
     page1.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
                                     position=1,
@@ -249,7 +248,6 @@ def create_experiment_4(request):
                                      'required': True,
                                      'display': 'vertical list'})
     page2.questions.append(question2)
-    request.dbsession.flush()
     request.dbsession.add(question2)
     page2.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
                                     position=1,
@@ -279,7 +277,6 @@ def create_experiment_4(request):
                          attributes={'title': 'What is 1 + 2',
                                      'required': True})
     page3.questions.append(question3)
-    request.dbsession.flush()
     request.dbsession.add(question3)
     page3.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
                                     position=1,
@@ -299,7 +296,6 @@ def create_experiment_4(request):
                                      'rowLabels': ['Question 1', 'Question 2'],
                                      'required': True})
     page4.questions.append(question4)
-    request.dbsession.flush()
     request.dbsession.add(question4)
     page4.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
                                     position=1,
@@ -360,7 +356,6 @@ def create_experiment_4(request):
                                      'rowLabels': ['Question 1', 'Question 2'],
                                      'required': True})
     page5.questions.append(question5)
-    request.dbsession.flush()
     request.dbsession.add(question5)
     page5.questions.append(Question(question_type=get_question_type(request, 'ESSDisplay'),
                                     position=1,
@@ -415,19 +410,23 @@ def create_experiment_4(request):
 
 def create_experiment_5(request):
     """Creates the full experiment 3, but sets the status to development."""
-    experiment = create_experiment_3(request)
-    experiment.attributes['status'] = 'development'
-    experiment.attributes['title'] = 'Experiment 5'
-    experiment.external_id = 'experiment-5'
+    experiment = create_experiment_base(request,
+                                        'experiment-5',
+                                        title='Experiment 5',
+                                        description='The fifth test experiment',
+                                        status='development')
+    experiment = create_experiment_3(request, experiment=experiment)
     return experiment
 
 
 def create_experiment_6(request):
     """Creates the full experiment 4, but sets the status to live."""
-    experiment = create_experiment_4(request)
-    experiment.attributes['status'] = 'live'
-    experiment.attributes['title'] = 'Experiment 6'
-    experiment.external_id = 'experiment-6'
+    experiment = create_experiment_base(request,
+                                        'experiment-6',
+                                        title='Experiment 6',
+                                        description='The sixth test experiment',
+                                        status='live')
+    experiment = create_experiment_4(request, experiment=experiment)
     return experiment
 
 
@@ -451,7 +450,7 @@ def create(request):
             setting = request.dbsession.query(Setting).filter(Setting.key == key).first()
             if setting:
                 setting.value = value
-        request.dbsession.flush()
+    request.dbsession.flush()
     if 'obj' in request.params:
         for obj in request.params.getall('obj'):
             if obj in objects:
