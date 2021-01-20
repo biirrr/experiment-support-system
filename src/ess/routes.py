@@ -31,6 +31,7 @@ def includeme(config):
 
     config.add_route('experiment.create', '/experiments/create')
     config.add_route('experiment.edit', '/experiments/:eid/edit')
+    config.add_route('experiment.delete', '/experiments/:eid/delete', request_method='POST')
     config.add_route('experiment.results.download', '/experiments/:eid/results/download')
     config.add_route('experiment.run', '/run/:eid')
     config.add_route('experiment.run.validate', '/run/:eid/validate')

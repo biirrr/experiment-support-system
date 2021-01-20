@@ -18,6 +18,7 @@ export interface ExperimentConfig {
     id: string;
     userId: string;
     externalUrl: string;
+    deleteUrl: string;
     downloadResultsUrl: string;
 }
 

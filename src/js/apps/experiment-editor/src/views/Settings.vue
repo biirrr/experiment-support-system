@@ -6,12 +6,17 @@
                 <ul class="menu vertical" role="menubar">
                     <router-link :to="'/settings'" v-slot="{ href, navigate, isExactActive }">
                         <li :class="isExactActive ? 'is-active': ''" role="presentation">
-                            <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="0" role="menuitem">General</a>
+                            <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="0" role="menuitem" :aria-current="isExactActive ? 'page': null">General</a>
                         </li>
                     </router-link>
                     <router-link v-if="$store.getters.isOwner" :to="'/settings/permissions'" v-slot="{ href, navigate, isActive }">
                         <li :class="isActive ? 'is-active': ''" role="presentation">
-                            <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="0" role="menuitem">Permissions</a>
+                            <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="0" role="menuitem" :aria-current="isActive ? 'page': null">Permissions</a>
+                        </li>
+                    </router-link>
+                    <router-link v-if="$store.getters.isOwner" :to="'/settings/actions'" v-slot="{ href, navigate, isActive }">
+                        <li :class="isActive ? 'is-active': ''" role="presentation">
+                            <a :href="href" @keyup="keyboardNav" @click="navigate" tabindex="0" role="menuitem" :aria-current="isActive ? 'page': null">Actions</a>
                         </li>
                     </router-link>
                 </ul>

@@ -10,6 +10,7 @@ import PageSettings from '@/views/PageSettings.vue';
 import Results from '@/views/Results.vue';
 import Settings from '@/views/Settings.vue';
 import SettingsPermissions from '@/views/SettingsPermissions.vue';
+import SettingsActions from '@/views/SettingsActions.vue';
 
 Vue.use(VueRouter);
 
@@ -72,6 +73,11 @@ const routes = [
                 path: 'permissions',
                 name: 'settings.permissions',
                 component: SettingsPermissions,
+            },
+            {
+                path: 'actions',
+                name: 'settings.actions',
+                component: SettingsActions,
             },
         ],
     },

@@ -57,6 +57,17 @@ def edit(request):
         raise HTTPNotFound()
 
 
+@view_config(route_name='experiment.delete')
+@require_permission('Experiment:eid allow $current_user delete')
+def delete(request):
+    experiment = request.dbsession.query(Experiment).filter(Experiment.id == request.matchdict['eid']).first()
+    if experiment:
+        request.dbsession.delete(experiment)
+        return HTTPFound(request.route_url('user.experiments', uid=request.current_user.id))
+    else:
+        raise HTTPNotFound()
+
+
 @view_config(route_name='experiment.run', renderer='ess:templates/experiment/run.jinja2')
 def run(request):
     experiment = request.dbsession.query(Experiment).filter(Experiment.external_id == request.matchdict['eid']).first()
