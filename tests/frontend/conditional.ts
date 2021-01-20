@@ -1,5 +1,5 @@
 import { Selector } from 'testcafe';
-import { request } from '../util';
+import { request, loadJSON } from '../util';
 
 fixture(`Frontend Conditional`).beforeEach(async (test) => {
     await request('http://localhost:6543/tests/create?obj=experiment6');
@@ -138,4 +138,17 @@ test('Complete an experiment with conditional questions', async (test) => {
         .expect(Selector('p').withText('Q2: You selected C').exists).ok()
         .click(finishExperiment)
         .expect(h1.innerText).eql('Responses saved');
-});
+    await request('http://localhost:6543/tests/assert?obj=participant&test=count&value=1');
+    const msg = await loadJSON(await request('http://localhost:6543/tests/assert?obj=participant&test=exist'));
+    await test
+        .expect(msg.type).eql('participants')
+        .expect(msg.attributes).ok()
+        .expect(msg.attributes.responses).ok()
+        .expect(msg.attributes.responses['1']['1']).eql('2')
+        .expect(msg.attributes.responses['2']['5']).eql(['0', '2'])
+        .expect(msg.attributes.responses['3']['9']).eql('35')
+        .expect(msg.attributes.responses['4']['11'].q1).eql('2')
+        .expect(msg.attributes.responses['4']['11'].q2).eql('2')
+        .expect(msg.attributes.responses['5']['18'].q1).eql(['0', '2'])
+        .expect(msg.attributes.responses['5']['18'].q2).eql(['0', '2'])
+    });
