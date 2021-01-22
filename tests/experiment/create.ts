@@ -17,7 +17,7 @@ test('Create a new experiment', async (test) => {
         .click(Selector('button').withText('Sign in'))
         .click(Selector('a').withText('Test 1'))
         .click(Selector('.grid-container a').withText('Experiments'))
-        .click(Selector('a[aria-label="Create a new experiment"]'))
+        .click(Selector('a').withAttribute('aria-label', 'Create a new experiment'))
         .expect(Selector('h1').innerText).eql('Create a new Experiment')
         .typeText(Selector('input[name="title"]'), 'Test Experiment')
         .typeText(Selector('textarea[name="description"]'), 'This is just a test experiment')
@@ -34,7 +34,7 @@ test('Failed to create a experiment without title', async (test) => {
         .click(Selector('button').withText('Sign in'))
         .click(Selector('a').withText('Test 1'))
         .click(Selector('.grid-container a').withText('Experiments'))
-        .click(Selector('a[aria-label="Create a new experiment"]'))
+        .click(Selector('a').withAttribute('aria-label', 'Create a new experiment'))
         .expect(Selector('h1').innerText).eql('Create a new Experiment')
         .click(Selector('button').withText('Create'))
         .expect(Selector('input[name="title"] + span.form-error').innerText).eql('Empty values not allowed');
