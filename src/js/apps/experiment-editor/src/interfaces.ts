@@ -117,7 +117,11 @@ export interface Transition {
 }
 
 export interface TransitionAttributes {
-
+    condition: 'unconditional' | 'answer';
+    page_id?: string;
+    question_id?: string;
+    operator?: string;
+    value?: string;
 }
 
 export interface TransitionReference {

@@ -6,8 +6,20 @@
     margin-bottom: $global-margin;
 }
 
+.margin-bottom-large {
+    margin-bottom: $global-margin*2;
+}
+
+.margin-right {
+    margin-right: $global-margin;
+}
+
 .align-middle {
     vertical-align: middle;
+}
+
+.padding-top {
+    padding-top: $global-padding;
 }
 
 .padding-left {

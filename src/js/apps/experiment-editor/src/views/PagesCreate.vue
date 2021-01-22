@@ -138,7 +138,9 @@ export default class PagesCreate extends Vue {
             } else {
                 await this.$store.dispatch('createTransition', {
                     type: 'transitions',
-                    attributes: {},
+                    attributes: {
+                        condition: 'unconditional',
+                    },
                     relationships: {
                         source: {
                             data: {

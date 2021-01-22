@@ -11,9 +11,30 @@ from . import (validated_body, id_schema, type_schema, relationship_schema, stor
 
 
 post_transition_schema = {'type': type_schema('transitions'),
-                          'attributes': {'type': 'dict',
-                                         'required': True,
-                                         'schema': {}},
+                          'attributes': {
+                              'type': 'dict',
+                              'required': True,
+                              'schema': {
+                                  'condition': {
+                                      'type': 'string',
+                                      'required': True,
+                                      'allowed': ['unconditional', 'answer']
+                                  },
+                                  'page_id': {
+                                      'type': 'string',
+                                  },
+                                  'question_id': {
+                                      'type': 'string',
+                                  },
+                                  'operator': {
+                                      'type': 'string',
+                                      'allowed': ['eq', 'neq']
+                                  },
+                                  'value': {
+                                      'type': 'string',
+                                  },
+                              }
+                          },
                           'relationships': {'type': 'dict',
                                             'schema': {'source': relationship_schema('pages'),
                                                        'target': relationship_schema('pages')}}}
@@ -55,9 +76,30 @@ def external_get_item(request):
 
 
 patch_transition_schema = {'type': type_schema('transitions'),
-                           'attributes': {'type': 'dict',
-                                          'required': True,
-                                          'schema': {}},
+                           'attributes': {
+                               'type': 'dict',
+                               'required': True,
+                               'schema': {
+                                  'condition': {
+                                      'type': 'string',
+                                      'required': True,
+                                      'allowed': ['unconditional', 'answer']
+                                  },
+                                  'page_id': {
+                                      'type': 'string',
+                                  },
+                                  'question_id': {
+                                      'type': 'string',
+                                  },
+                                  'operator': {
+                                      'type': 'string',
+                                      'allowed': ['eq', 'neq']
+                                  },
+                                  'value': {
+                                      'type': 'string',
+                                  },
+                               }
+                           },
                            'relationships': {'type': 'dict',
                                              'required': True,
                                              'schema': {'source': relationship_schema('pages'),

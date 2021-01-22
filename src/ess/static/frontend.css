@@ -4821,8 +4821,17 @@ tfoot td {
 .margin-bottom {
   margin-bottom: 1rem; }
 
+.margin-bottom-large {
+  margin-bottom: 2rem; }
+
+.margin-right {
+  margin-right: 1rem; }
+
 .align-middle {
   vertical-align: middle; }
+
+.padding-top {
+  padding-top: 1rem; }
 
 .padding-left {
   padding-left: 1rem; }

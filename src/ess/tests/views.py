@@ -113,7 +113,7 @@ def create_experiment_2(request):
     request.dbsession.add(page1)
     page2 = Page(experiment=experiment, attributes={'name': 'consent', 'title': 'Informed Consent'})
     request.dbsession.add(page2)
-    request.dbsession.add(Transition(source=page1, target=page2, attributes={}))
+    request.dbsession.add(Transition(source=page1, target=page2, attributes={'condition': 'unconditional'}))
     return experiment
 
 
@@ -150,7 +150,7 @@ def create_experiment_3(request, experiment=None):
                                                   'columnValues': ['yes'],
                                                   'columnLabels': ['Yes']}))
     request.dbsession.add(consent)
-    request.dbsession.add(Transition(source=welcome, target=consent, attributes={}))
+    request.dbsession.add(Transition(source=welcome, target=consent, attributes={'condition': 'unconditional'}))
     demographics = Page(experiment=experiment, attributes={'name': 'demographics', 'title': 'About you'})
     demographics.questions.append(Question(question_type=get_question_type(request, 'ESSSingleChoice'),
                                            position=1,
@@ -169,7 +169,7 @@ def create_experiment_3(request, experiment=None):
                                                        'labels': ['Fishing', 'Swimming', 'Sitting'],
                                                        'display': 'vertical list'}))
     request.dbsession.add(demographics)
-    request.dbsession.add(Transition(source=consent, target=demographics, attributes={}))
+    request.dbsession.add(Transition(source=consent, target=demographics, attributes={'condition': 'unconditional'}))
     task = Page(experiment=experiment, attributes={'name': 'task', 'title': 'Task'})
     task.questions.append(Question(question_type=get_question_type(request, 'ESSSingleChoiceGrid'),
                                    position=1,
@@ -182,7 +182,7 @@ def create_experiment_3(request, experiment=None):
                                                'columnValues': ['0', '1', '2', '3', '4'],
                                                'columnLabels': ['1', '2', '3', '4', '5']}))
     request.dbsession.add(task)
-    request.dbsession.add(Transition(source=demographics, target=task, attributes={}))
+    request.dbsession.add(Transition(source=demographics, target=task, attributes={'condition': 'unconditional'}))
     thank_you = Page(experiment=experiment, attributes={'name': 'thank_you', 'title': 'Thank you'})
     thank_you.questions.append(Question(question_type=get_question_type(request, 'ESSMultiLineInput'),
                                         position=1,
@@ -195,7 +195,7 @@ def create_experiment_3(request, experiment=None):
                                                     'name': 'email',
                                                     'required': True}))
     request.dbsession.add(thank_you)
-    request.dbsession.add(Transition(source=task, target=thank_you, attributes={}))
+    request.dbsession.add(Transition(source=task, target=thank_you, attributes={'condition': 'unconditional'}))
     return experiment
 
 
@@ -240,7 +240,7 @@ def create_experiment_4(request, experiment=None):
     experiment.first_page = page1
     request.dbsession.add(page1)
     page2 = Page(experiment=experiment, attributes={'name': 'page2', 'title': 'Page 2 - Conditional on MultiChoice'})
-    request.dbsession.add(Transition(source=page1, target=page2, attributes={}))
+    request.dbsession.add(Transition(source=page1, target=page2, attributes={'condition': 'unconditional'}))
     question2 = Question(question_type=get_question_type(request, 'ESSMultiChoice'),
                          position=1,
                          attributes={'values': ['0', '1', '2'],
@@ -271,7 +271,7 @@ def create_experiment_4(request, experiment=None):
                                                                    'operator': 'eq',
                                                                    'value': '2'}}))
     page3 = Page(experiment=experiment, attributes={'name': 'page3', 'title': 'Page 3 - Conditional on Input'})
-    request.dbsession.add(Transition(source=page2, target=page3, attributes={}))
+    request.dbsession.add(Transition(source=page2, target=page3, attributes={'condition': 'unconditional'}))
     question3 = Question(question_type=get_question_type(request, 'ESSSingleLineInput'),
                          position=1,
                          attributes={'title': 'What is 1 + 2',
@@ -287,7 +287,7 @@ def create_experiment_4(request, experiment=None):
                                                                    'value': '3'}}))
     page4 = Page(experiment=experiment, attributes={'name': 'page4',
                                                     'title': 'Page 4 - Conditional on SingleChoiceGrid'})
-    request.dbsession.add(Transition(source=page3, target=page4, attributes={}))
+    request.dbsession.add(Transition(source=page3, target=page4, attributes={'condition': 'unconditional'}))
     question4 = Question(question_type=get_question_type(request, 'ESSSingleChoiceGrid'),
                          position=1,
                          attributes={'columnValues': ['0', '1', '2'],
@@ -347,7 +347,7 @@ def create_experiment_4(request, experiment=None):
                                                                    'value': '2'}}))
     page5 = Page(experiment=experiment, attributes={'name': 'page5',
                                                     'title': 'Page 5 - Conditional on MultiChoiceGrid'})
-    request.dbsession.add(Transition(source=page4, target=page5, attributes={}))
+    request.dbsession.add(Transition(source=page4, target=page5, attributes={'condition': 'unconditional'}))
     question5 = Question(question_type=get_question_type(request, 'ESSMultiChoiceGrid'),
                          position=1,
                          attributes={'columnValues': ['0', '1', '2'],
@@ -430,15 +430,57 @@ def create_experiment_6(request):
     return experiment
 
 
-objects = {'user1': create_user_1,
-           'user2': create_user_2,
-           'experiment1': create_experiment_1,
-           'experiment2': create_experiment_2,
-           'experiment3': create_experiment_3,
-           'experiment4': create_experiment_4,
-           'experiment5': create_experiment_5,
-           'experiment6': create_experiment_6,
-           }
+def create_experiment_7(request):
+    """Creates an experiment mit conditional transitions."""
+    experiment = create_experiment_base(request,
+                                        'experiment-7',
+                                        title='Experiment 7',
+                                        description='The seventh test experiment',
+                                        status='development')
+    page1 = Page(experiment=experiment, attributes={'name': 'welcome', 'title': 'Welcome'})
+    experiment.first_page = page1
+    question1 = Question(question_type=get_question_type(request, 'ESSSingleChoice'),
+                         position=1,
+                         attributes={'essName': 'consent',
+                                     'values': ['consent', 'noconsent'],
+                                     'labels': ['I consent to participating as outlined above.',
+                                                'I do not consent to participating as outlined above.'],
+                                     'required': True,
+                                     'display': 'vertical list'})
+    page1.questions.append(question1)
+    page2 = Page(experiment=experiment, attributes={'name': 'participate', 'title': 'Thank you for participating'})
+    page2.questions.append(Question(question_type=get_question_type(request, 'ESSSingleLineInput'),
+                                    position=1,
+                                    attributes={'essName': 'email',
+                                                'title': 'Please leave your e-mail address',
+                                                'name': 'email',
+                                                'required': True}))
+    page3 = Page(experiment=experiment, attributes={'name': 'leave', 'title': 'Thank you for your time'})
+    request.dbsession.flush()
+    request.dbsession.add(Transition(source=page1, target=page2, attributes={'condition': 'answer',
+                                                                             'page_id': str(page1.id),
+                                                                             'question_id': str(question1.id),
+                                                                             'operator': 'eq',
+                                                                             'value': 'consent'}))
+    request.dbsession.add(Transition(source=page1, target=page3, attributes={'condition': 'answer',
+                                                                             'page_id': str(page1.id),
+                                                                             'question_id': str(question1.id),
+                                                                             'operator': 'neq',
+                                                                             'value': 'consent'}))
+    return experiment
+
+
+objects = {
+    'user1': create_user_1,
+    'user2': create_user_2,
+    'experiment1': create_experiment_1,
+    'experiment2': create_experiment_2,
+    'experiment3': create_experiment_3,
+    'experiment4': create_experiment_4,
+    'experiment5': create_experiment_5,
+    'experiment6': create_experiment_6,
+    'experiment7': create_experiment_7,
+}
 
 
 def create(request):

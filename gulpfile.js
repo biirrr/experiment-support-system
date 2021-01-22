@@ -6,7 +6,7 @@ const autoprefixer = require('gulp-autoprefixer'),
       pump = require('pump');
 
 gulp.task('javascript:apps:experiment-editor:watch', function(cb) {
-    const builder = spawn('yarn', ['build', '--mode production', '--watch', '--no-clean'], {
+    const builder = spawn('yarn', ['build', '--mode development', '--watch', '--no-clean'], {
         cwd: 'src/js/apps/experiment-editor',
         stdio: 'inherit',
     });
@@ -21,7 +21,7 @@ gulp.task('javascript:apps:experiment-editor:copy', function(cb) {
 });
 
 gulp.task('javascript:apps:questions-admin:watch', function(cb) {
-    const builder = spawn('yarn', ['build', '--mode production', '--watch', '--no-clean'], {
+    const builder = spawn('yarn', ['build', '--mode development', '--watch', '--no-clean'], {
         cwd: 'src/js/apps/questions-admin',
         stdio: 'inherit',
     });
@@ -36,7 +36,7 @@ gulp.task('javascript:apps:questions-admin:copy', function(cb) {
 });
 
 gulp.task('javascript:apps:frontend:watch', function(cb) {
-    const builder = spawn('yarn', ['build', '--mode production', '--watch', '--no-clean'], {
+    const builder = spawn('yarn', ['build', '--mode development', '--watch', '--no-clean'], {
         cwd: 'src/js/apps/frontend',
         stdio: 'inherit',
     });
