@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ess"
-version = "2.0.0"
+version = "2.0.0-a0"
 description = "Web-based Experiment Support System"
 authors = ["Mark <mark.hall@work.room3b.eu>"]
 license = "MIT"
