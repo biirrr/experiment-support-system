@@ -50,7 +50,7 @@ def init_db(ctx, drop_existing):
                                   values=None,
                                   guidance='Set the domains that users may register from. Only used if the ' +
                                            'registration.mode is set to domain.'))
-        if not dbsession.query(Setting).filter(Setting.key == 'registration.require_confirmation').first():
+        if not dbsession.query(Setting).filter(Setting.key == 'registration.admin_confirmation').first():
             dbsession.add(Setting(key='registration.admin_confirmation',
                                   value='false',
                                   values=['true', 'false'],
