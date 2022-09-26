@@ -8,6 +8,9 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.10.0"
 generic-cli-base = "^0.1.0"
+fastapi = "^0.83.0"
+uvicorn = {extras = ["standard"], version = "^0.18.3"}
+alembic = "^1.8.1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^5.0.4"
