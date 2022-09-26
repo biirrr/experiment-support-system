@@ -245,6 +245,19 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "lark"
+version = "1.1.2"
+description = "a modern parsing library"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+regex = ["regex"]
+nearley = ["js2py"]
+atomic_cache = ["atomicwrites"]
+
+[[package]]
 name = "mako"
 version = "1.2.2"
 description = "A super-fast templating language that borrows the best ideas from the existing templating languages."
@@ -643,7 +656,7 @@ python-versions = ">=3.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10.0"
-content-hash = "b43ee64bea5adf1048c1290b7d6f34aeb7625ebd6a1d93249cb41cc44d10a1a3"
+content-hash = "1bc9d96e06a2e14037631b4f04026184fcce456584eca4f6c4bdf0427af16a45"
 
 [metadata.files]
 alembic = []
@@ -685,6 +698,7 @@ iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
 ]
+lark = []
 mako = []
 markupsafe = [
     {file = "MarkupSafe-2.1.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:86b1f75c4e7c2ac2ccdaec2b9022845dbb81880ca318bb7a0a01fbf7813e3812"},
