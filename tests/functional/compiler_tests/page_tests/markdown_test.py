@@ -1,6 +1,5 @@
 """Test the markdown functionality in the page compiler."""
 from ess.compiler import compile_page
-from ess.compiler.page import Page, Markdown
 
 
 def test_markdown_singleline() -> None:
