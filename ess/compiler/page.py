@@ -16,7 +16,7 @@ markdown: "Markdown" "(" _string ")"
 
 _string: INLINE_STRING | BLOCK_STRING
 INLINE_STRING: ("\"" | "'") _STRING_ESC_INNER ("\"" | "'")
-BLOCK_STRING: ("\"\"\"" | "\'\'\'") ( _STRING_ESC_INNER | NEWLINE)* ("\"\"\"" | "\'\'\'")
+BLOCK_STRING: "\"\"\"" ( _STRING_ESC_INNER | NEWLINE)* "\"\"\""
 
 %import common._STRING_ESC_INNER
 %import common.NEWLINE
@@ -27,7 +27,9 @@ BLOCK_STRING: ("\"\"\"" | "\'\'\'") ( _STRING_ESC_INNER | NEWLINE)* ("\"\"\"" | 
 
 class _Statement(Ast):
     """Type definition for base statement rule."""
-    pass
+
+    def to_json(self: '_Statement') -> dict:
+        return {'op': 'NoOp'}
 
 
 @dataclass
@@ -35,11 +37,17 @@ class Page(Ast, ast_utils.AsList):
     """The Page is the top-level Ast container."""
     statements: List[_Statement]
 
+    def to_json(self: 'Page') -> list:
+        return [stmt.to_json() for stmt in self.statements]
+
 
 @dataclass
 class Markdown(_Statement):
     """The Markdown statement holds the string value."""
     string: str
+
+    def to_json(self: 'Markdown') -> dict:
+        return {'op': 'Markdown', 'string': self.string}
 
 
 class ToAst(Transformer):
@@ -61,3 +69,8 @@ def parse(text: str) -> Page:
     """Parse the given text, returning the abstract syntax tree."""
     tree = parser.parse(text)
     return transformer.transform(tree)
+
+
+def compile(text: str) -> list:
+    page = parse(text)
+    return page.to_json()
