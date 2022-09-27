@@ -1,2 +1,2 @@
 """Compilers for pages and experiments."""
-from .page import compile as compile_page
+from .page import compile as compile_page  # noqa: F401

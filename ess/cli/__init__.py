@@ -41,7 +41,7 @@ cli_app = create_cli_base('ess',
 
 
 @click.command()
-def setup():
+def setup() -> None:
     """Run the setup process."""
     logging.debug('Running the setup process')
 
@@ -49,6 +49,6 @@ def setup():
 cli_app.add_command(setup)
 
 
-def main():
-    """Main application entry point."""
+def main() -> None:
+    """Entry point for the CLI application."""
     cli_app()
