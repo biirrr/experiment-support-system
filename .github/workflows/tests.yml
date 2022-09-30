@@ -53,8 +53,8 @@ jobs:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_PASSWORD: devPWD
-          POSTGRES_USER: dev
+          POSTGRES_PASSWORD: testPWD
+          POSTGRES_USER: test
           POSTGRES_DB: ess
         options: >-
           --health-cmd pg_isready
@@ -87,9 +87,9 @@ jobs:
 
       - name: Run Tests
         run: |
-          cd dev
+          cd tests
           poetry run python -m ess db upgrade
-          poetry run python -m ess db upgrade --drop-existing
+          DB.SQLA_DSN=postgresql+asyncpg://test:testPWD@postgres:5432/ess poetry run python -m ess db upgrade --drop-existing
 
   flake8-tests:
     runs-on: ubuntu-latest
