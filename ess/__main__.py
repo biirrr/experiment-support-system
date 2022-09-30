@@ -1,5 +1,4 @@
 """Entrypoint for the application."""
-from .cli import main
+from .cli import app
 
-
-main()
+app()

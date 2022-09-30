@@ -7,11 +7,14 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.10.0"
-generic-cli-base = "^0.1.0"
 fastapi = "^0.83.0"
 uvicorn = {extras = ["standard"], version = "^0.18.3"}
 alembic = "^1.8.1"
 lark = "^1.1.2"
+Authlib = "^1.1.0"
+httpx = "^0.23.0"
+itsdangerous = "^2.1.2"
+typer = {extras = ["all"], version = "^0.6.1"}
 
 [tool.poetry.dev-dependencies]
 flake8 = "^5.0.4"
