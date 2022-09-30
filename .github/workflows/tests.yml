@@ -61,6 +61,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          - 5432:5432
 
     steps:
       - uses: actions/checkout@v2
@@ -74,7 +76,6 @@ jobs:
           echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
           echo "PIPX_HOME=$HOME/.local/pipx" >> $GITHUB_ENV
           echo "PIPX_BIN_DIR=$HOME/.local/bin" >> $GITHUB_ENV
-          echo "DB.SQLA_DSN=postgresql+asyncpg://test:testPWD@postgres:5432/ess" >> $GITHUB_ENV
 
       - name: Install Base Dependencies
         run: |
