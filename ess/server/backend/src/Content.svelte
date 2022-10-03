@@ -2,6 +2,7 @@
     import { Route, Link } from 'svelte-navigator';
 
     import { Header, Footer } from './components';
+    import { OAuth2Authorize } from './routes';
 </script>
 
 <Header/>
@@ -12,5 +13,6 @@
     </Route>
     <Route path="/experiments/*">Experiment</Route>
     <Route path="/profile">Profile</Route>
+    <Route path="/oauth2/authorize"><OAuth2Authorize/></Route>
 </div>
 <Footer/>
