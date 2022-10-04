@@ -1,15 +1,20 @@
 <script lang="ts">
-    import { Route, Link } from 'svelte-navigator';
+    import { onMount } from 'svelte';
+    import { Route } from 'svelte-navigator';
 
     import { Header, Footer } from './components';
     import { OAuth2Authorize } from './routes';
+    import { getUser } from './stores';
+
+    onMount(() => {
+        getUser();
+    });
 </script>
 
 <Header/>
 <div class="px-4 py-4 bg-neutral-800">
     <Route path="/">
         <h1 class="text-2xl font-bold">Experiments</h1>
-        <Link to="/experiments/dashboard" class="text-primary-300">Test</Link>
     </Route>
     <Route path="/experiments/*">Experiment</Route>
     <Route path="/profile">Profile</Route>
