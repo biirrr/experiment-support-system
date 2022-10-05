@@ -3,20 +3,30 @@
 Access the application settings by importing the ``settings`` object from here.
 """
 from pydantic import BaseModel, BaseSettings
+from typing import Optional
 
 
 class DatabaseSettings(BaseModel):
-    """Configures the database access."""
+    """Configure the database access."""
 
     sqla_dsn: str
     """The SQLAlchemy DSN for accessing the database."""
+
+
+class SecuritySettings(BaseModel):
+    """Configure security settings."""
+
+    oidc_config_endpoint: Optional[str]
+    """The OIDC configuration endpoint."""
 
 
 class Settings(BaseSettings):
     """Configures the application."""
 
     db: DatabaseSettings
-    """The database settings to use."""
+    """The configured database settings"""
+    security: Optional[SecuritySettings]
+    """The configured security settings."""
 
     class Config:
         """Settings configuration."""
