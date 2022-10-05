@@ -30,7 +30,6 @@ export async function login() {
         redirectUri: 'http://localhost:5173/oauth2/authorize',
         codeVerifier: codeVerifier,
         scope: ['openid'],
-        state: 'abc',
     });
 }
 
@@ -49,7 +48,6 @@ export async function authorise() {
                 {
                     redirectUri: 'http://localhost:5173/oauth2/authorize',
                     codeVerifier: codeVerifier,
-                    state: 'abc',
                 }
             );
             sessionStoreValue('oauth2.token', newToken);

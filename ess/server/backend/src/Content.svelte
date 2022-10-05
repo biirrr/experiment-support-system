@@ -1,13 +1,8 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
     import { Route } from 'svelte-navigator';
 
     import { Header, Footer } from './components';
     import { OAuth2Authorize } from './routes';
-    import { getUser } from './stores';
-
-    onMount(() => {
-    });
 </script>
 
 <Header/>
