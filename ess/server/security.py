@@ -1,15 +1,19 @@
 """Security dependencies."""
 import httpx
+import logging
 
 from authlib.jose import JsonWebToken
 from authlib.jose.errors import JoseError
 from fastapi import Depends, Request
 from fastapi.exceptions import HTTPException
+from sqlalchemy import select
 from time import time
 
+from ..models import get_session, User
 from ..settings import settings
 
 
+logger = logging.getLogger(__name__)
 jwt = JsonWebToken(algorithms=['RS256'])
 _oauth2_config = None
 _jwks = None
@@ -66,4 +70,18 @@ async def oauth2_claims(request: Request, jkws: list[dict] = Depends(oauth2_jwks
 
 async def authenticated_user(claims: dict = Depends(oauth2_claims)) -> None:
     """Try this."""
-    return None
+    async with get_session() as dbsession:
+        query = select(User).filter(User.id == claims['sub'])
+        result = await dbsession.execute(query)
+        user = result.scalar()
+        if user is None:
+            logger.debug(f'Creating new user {claims["sub"]}')
+            user = User(id=claims['sub'],
+                        attributes={'email': claims['email'],
+                                    'name': f'{claims["given_name"]} {claims["family_name"]}'})
+            dbsession.add(user)
+            await dbsession.commit()
+        else:
+            user.attributes['email'] = claims['email']
+            await dbsession.commit()
+        return user

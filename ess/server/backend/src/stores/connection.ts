@@ -9,7 +9,7 @@ import { oauth2Token } from './authentication';
  * @param init Additional request settings
  * @returns The response
  */
-export async function fetch(url: string, init: RequestInit = null) {
+export async function fetch(url: string, init: RequestInit = null, retry: boolean = true) {
     const token = get(oauth2Token);
     if (token) {
         if (!init) {
@@ -23,5 +23,6 @@ export async function fetch(url: string, init: RequestInit = null) {
             };
         }
     }
-    return await window.fetch('http://localhost:8000' + url, init);
+    const response = await window.fetch('http://localhost:8000' + url, init);
+    return response;
 }
