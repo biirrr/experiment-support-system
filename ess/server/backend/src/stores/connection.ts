@@ -1,4 +1,6 @@
-import { sessionLoadValue } from '../local-persistence';
+import { get } from 'svelte/store';
+
+import { oauth2Token } from './authentication';
 
 /**
  * Send a request, adding the authorisation token.
@@ -8,16 +10,16 @@ import { sessionLoadValue } from '../local-persistence';
  * @returns The response
  */
 export async function fetch(url: string, init: RequestInit = null) {
-    const token = sessionLoadValue('oauth2.token.accessToken', null);
+    const token = get(oauth2Token);
     if (token) {
         if (!init) {
             init = {};
         }
         if (init.headers) {
-            init.headers['Authorization'] = 'Bearer ' + token;
+            init.headers['Authorization'] = 'Bearer ' + token.accessToken;
         } else {
             init.headers = {
-                'Authorization': 'Bearer ' + token,
+                'Authorization': 'Bearer ' + token.accessToken,
             };
         }
     }

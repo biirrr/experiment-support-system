@@ -7,7 +7,6 @@
     import { getUser } from './stores';
 
     onMount(() => {
-        getUser();
     });
 </script>
 

@@ -2,10 +2,10 @@
 import httpx
 
 from authlib.jose import JsonWebToken
-from authlib.jose.errors import BadSignatureError
-from datetime import datetime
+from authlib.jose.errors import JoseError
 from fastapi import Depends, Request
 from fastapi.exceptions import HTTPException
+from time import time
 
 from ..settings import settings
 
@@ -51,13 +51,13 @@ async def oauth2_claims(request: Request, jkws: list[dict] = Depends(oauth2_jwks
             token = request.headers['Authorization'][7:]
             try:
                 claims = jwt.decode(token, key=jkws)
-                if datetime.now().timestamp() < claims['exp']:
+                if time() < claims['exp']:
                     if 'allowed-origins' in claims:
                         if 'Origin' in request.headers and request.headers['Origin'] in claims['allowed-origins']:
                             return claims
                     else:
                         return claims
-            except BadSignatureError:
+            except JoseError:
                 pass
             except ValueError:
                 pass
