@@ -69,7 +69,10 @@ async def oauth2_claims(request: Request, jkws: list[dict] = Depends(oauth2_jwks
 
 
 async def authenticated_user(claims: dict = Depends(oauth2_claims)) -> None:
-    """Try this."""
+    """Return the authenticated user.
+
+    Creates the user in the database, if it doesn't exist
+    """
     async with get_session() as dbsession:
         query = select(User).filter(User.id == claims['sub'])
         result = await dbsession.execute(query)
@@ -81,7 +84,7 @@ async def authenticated_user(claims: dict = Depends(oauth2_claims)) -> None:
                                     'name': f'{claims["given_name"]} {claims["family_name"]}'})
             dbsession.add(user)
             await dbsession.commit()
-        else:
+        elif user.attributes['email'] != claims['email']:
             user.attributes['email'] = claims['email']
             await dbsession.commit()
         return user
