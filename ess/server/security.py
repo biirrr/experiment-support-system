@@ -83,7 +83,8 @@ async def authenticated_user(claims: dict = Depends(oauth2_claims)) -> User:
             logger.debug(f'Creating new user {claims["sub"]}')
             user = User(external_id=claims['sub'],
                         name=f'{claims["given_name"]} {claims["family_name"]}',
-                        email=claims['email'])
+                        email=claims['email'],
+                        groups=[])
             dbsession.add(user)
             try:
                 await dbsession.commit()

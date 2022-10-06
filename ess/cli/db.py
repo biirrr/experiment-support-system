@@ -15,10 +15,11 @@ app = Typer(help='Database management commands')
 
 
 @app.command()
-def upgrade(drop_existing: bool = False) -> None:
+def upgrade(drop_existing: bool = False, drop_last: bool = False) -> None:
     """Upgrade the database to the latest version.py.
 
     Pass --drop-existing to remove any existing tables and data first.
+    Pass --drop-last to undo only the last revision.
     """
     from alembic.config import Config
     from alembic import command
@@ -36,6 +37,9 @@ def upgrade(drop_existing: bool = False) -> None:
                 if drop_existing:
                     logger.debug('Removing existing tables')
                     command.downgrade(alembic_config, 'base')
+                elif drop_last:
+                    logger.debug('Downgrading the latest revision')
+                    command.downgrade(alembic_config, '-1')
                 logger.debug('Running upgrade')
                 command.upgrade(alembic_config, 'head')
             except Exception as e:

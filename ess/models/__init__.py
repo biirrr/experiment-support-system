@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from typing import Callable
 
 from .meta import metadata, Base  # noqa: F401
+from .experiment import Experiment, ExperimentModel, CreateExperimentModel  # noqa: F401
 from .user import User, UserModel  # noqa: F401
 from ..settings import settings
 

@@ -27,5 +27,10 @@ export async function fetch(url: string, init: RequestInit = null) {
             };
         }
     }
+    if (!init.headers) {
+        init.headers = {'Content-Type': 'application/json'};
+    } else if (!init.headers['Content-Type']) {
+        init.headers['Content-Type'] = 'application/json';
+    }
     return await window.fetch('http://localhost:8000' + url, init);
 }

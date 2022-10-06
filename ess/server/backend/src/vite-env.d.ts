@@ -8,7 +8,20 @@ type OAuth2Token = {
 };
 
 type User = {
-    id: string,
+    id: number,
     name: string,
     email: string,
+};
+
+type Experiment = {
+    id: number,
+    title: string,
+    status: 'development'|'active'|'completed',
+};
+
+type PydanticError = {
+    ctx: {[x: string]: string},
+    loc: string[],
+    msg: string,
+    type:string,
 };
