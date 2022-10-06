@@ -55,7 +55,7 @@ async def oauth2_claims(request: Request, jkws: list[dict] = Depends(oauth2_jwks
             token = request.headers['Authorization'][7:]
             try:
                 claims = jwt.decode(token, key=jkws)
-                if time() < claims['exp']:
+                if time() < claims['exp'] + 30:
                     if 'allowed-origins' in claims:
                         if 'Origin' in request.headers and request.headers['Origin'] in claims['allowed-origins']:
                             return claims
@@ -68,7 +68,7 @@ async def oauth2_claims(request: Request, jkws: list[dict] = Depends(oauth2_jwks
     raise HTTPException(403)
 
 
-async def authenticated_user(claims: dict = Depends(oauth2_claims)) -> None:
+async def authenticated_user(claims: dict = Depends(oauth2_claims)) -> User:
     """Return the authenticated user.
 
     Creates the user in the database, if it doesn't exist
@@ -80,11 +80,11 @@ async def authenticated_user(claims: dict = Depends(oauth2_claims)) -> None:
         if user is None:
             logger.debug(f'Creating new user {claims["sub"]}')
             user = User(id=claims['sub'],
-                        attributes={'email': claims['email'],
-                                    'name': f'{claims["given_name"]} {claims["family_name"]}'})
+                        name=f'{claims["given_name"]} {claims["family_name"]}',
+                        email=claims['email'])
             dbsession.add(user)
             await dbsession.commit()
-        elif user.attributes['email'] != claims['email']:
-            user.attributes['email'] = claims['email']
+        elif user.email != claims['email']:
+            user.email = claims['email']
             await dbsession.commit()
         return user

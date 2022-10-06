@@ -1,12 +1,8 @@
 """Server functionality."""
-import logging
-
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from .security import authenticated_user
-
-logger = logging.getLogger(__name__)
+from .routes import users_router
 
 app = FastAPI()
 app.add_middleware(
@@ -18,9 +14,4 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.get('/users/current')
-async def get_current_user(user: None = Depends(authenticated_user)) -> dict:
-    """Return a test message."""
-    return {"message": "Hello World"}
+app.include_router(users_router)

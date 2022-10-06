@@ -1,13 +1,23 @@
+import { writable } from 'svelte/store';
+
 import { fetch } from './connection';
 import { oauth2Token } from './authentication';
 
 oauth2Token.subscribe((oauth2Token) => {
     if (oauth2Token) {
-        getUser();
+        getCurrentUser();
     }
 });
 
-export async function getUser() {
+/**
+ * The current user
+ */
+export const currentUser = writable(null as User);
+
+/**
+ * Fetch the current user.
+ */
+export async function getCurrentUser() {
     const response = await fetch('/users/current');
-    console.log(response);
+    currentUser.set(await response.json());
 }

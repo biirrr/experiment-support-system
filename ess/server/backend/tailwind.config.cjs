@@ -9,7 +9,16 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                primary: colors.indigo,
+                primary: {
+                    DEFAULT: colors.indigo['800'],
+                    light: colors.indigo['700'],
+                    dark: colors.indigo['900'],
+                },
+                secondary: {
+                    DEFAULT: colors.fuchsia['700'],
+                    light: colors.fuchsia['600'],
+                    dark: colors.fuchsia['800'],
+                }
             },
         },
     },

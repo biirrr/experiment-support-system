@@ -1,5 +1,5 @@
 import { OAuth2Client, generateCodeVerifier } from '@badgateway/oauth2-client';
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 
 import { sessionLoadValue, sessionStoreValue, sessionDeleteValue } from '../local-persistence';
 
@@ -11,12 +11,13 @@ const oauth2Client = new OAuth2Client({
     discoveryEndpoint: 'https://sso.room3b.eu/realms/Development/.well-known/openid-configuration',
 });
 
+let refreshTimeout = 0;
+
 oauth2Token.subscribe((oldToken) => {
     if (oldToken) {
         // Refresh the token every 5 Minutes
-        setTimeout(async () => {
-            oauth2Token.set(await oauth2Client.refreshToken(oldToken));
-        }, 300000);
+        window.clearTimeout(refreshTimeout);
+        refreshTimeout = window.setTimeout(refreshToken, 300000);
     }
 });
 
@@ -57,4 +58,12 @@ export async function authorise() {
         } catch(e) {
         }
     }
+}
+
+
+/**
+ * Refresh the OAuth2 access token.
+ */
+export async function refreshToken() {
+    oauth2Token.set(await oauth2Client.refreshToken(get(oauth2Token)));
 }

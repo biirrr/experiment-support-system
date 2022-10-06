@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from typing import Callable
 
 from .meta import metadata, Base  # noqa: F401
-from .user import User  # noqa: F401
+from .user import User, UserModel  # noqa: F401
 from ..settings import settings
 
 logger = logging.getLogger(__name__)

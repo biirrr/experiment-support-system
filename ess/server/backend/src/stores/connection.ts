@@ -1,6 +1,6 @@
 import { get } from 'svelte/store';
 
-import { oauth2Token } from './authentication';
+import { oauth2Token, refreshToken } from './authentication';
 
 /**
  * Send a request, adding the authorisation token.
@@ -9,9 +9,13 @@ import { oauth2Token } from './authentication';
  * @param init Additional request settings
  * @returns The response
  */
-export async function fetch(url: string, init: RequestInit = null, retry: boolean = true) {
-    const token = get(oauth2Token);
+export async function fetch(url: string, init: RequestInit = null) {
+    let token = get(oauth2Token);
     if (token) {
+        if (token.expiresAt <= (new Date()).getTime()) {
+            await refreshToken();
+            token = get(oauth2Token);
+        }
         if (!init) {
             init = {};
         }
@@ -23,6 +27,5 @@ export async function fetch(url: string, init: RequestInit = null, retry: boolea
             };
         }
     }
-    const response = await window.fetch('http://localhost:8000' + url, init);
-    return response;
+    return await window.fetch('http://localhost:8000' + url, init);
 }

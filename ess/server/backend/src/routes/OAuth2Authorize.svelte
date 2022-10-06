@@ -2,7 +2,7 @@
     import { OAuth2Client } from '@badgateway/oauth2-client';
     import { useNavigate } from 'svelte-navigator';
 
-    import { login, authorise, getUser } from '../stores';
+    import { login, authorise } from '../stores';
 
     const navigate = useNavigate();
 
@@ -13,4 +13,4 @@
 
 <h1>Authentication failed</h1>
 
-<p>Unfortunately the authentication failed. <button on:click={login}>Please log in again.</button></p>
+<p>Unfortunately the authentication failed. This generally indicates a temporary technical issue. <button on:click={login}>Please log in again.</button></p>

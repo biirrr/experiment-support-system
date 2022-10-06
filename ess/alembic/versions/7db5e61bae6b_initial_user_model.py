@@ -6,7 +6,6 @@ Create Date: 2022-09-30 22:50:08.200622
 """
 from alembic import op
 from sqlalchemy import Column, Unicode
-from sqlalchemy_json import NestedMutableJson
 
 from ess.models import metadata
 
@@ -23,7 +22,8 @@ def upgrade() -> None:
     op.create_table('users',
                     metadata,
                     Column('id', Unicode(255), primary_key=True),
-                    Column('attributes', NestedMutableJson))
+                    Column('name', Unicode(255)),
+                    Column('email', Unicode(255)))
 
 
 def downgrade() -> None:

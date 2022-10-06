@@ -1,6 +1,7 @@
 """Models for the user."""
+from pydantic import BaseModel
+
 from sqlalchemy import Column, String
-from sqlalchemy_json import NestedMutableJson
 from .meta import Base
 
 
@@ -10,4 +11,18 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(String(255), primary_key=True)
-    attributes = Column(NestedMutableJson)
+    name = Column(String(255))
+    email = Column(String(255))
+
+
+class UserModel(BaseModel):
+    """The User Pydantic model."""
+
+    id: str
+    name: str
+    email: str
+
+    class Config:
+        """Configuration for the User Pydantic model."""
+
+        orm_mode = True

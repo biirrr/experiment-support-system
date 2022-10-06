@@ -1,12 +1,14 @@
-import { login, authorise } from './authentication';
+import { login, authorise, refreshToken } from './authentication';
 import { fetch } from './connection';
-import { getUser } from './user';
+import { currentUser, getCurrentUser } from './user';
 
 export {
     fetch,
 
     login,
     authorise,
+    refreshToken,
 
-    getUser,
+    currentUser,
+    getCurrentUser,
 };

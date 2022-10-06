@@ -6,3 +6,9 @@ type OAuth2Token = {
     expiresAt: number,
     refreshToken: string,
 };
+
+type User = {
+    id: string,
+    name: string,
+    email: string,
+};
