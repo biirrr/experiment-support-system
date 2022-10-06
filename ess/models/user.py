@@ -1,7 +1,7 @@
 """Models for the user."""
 from pydantic import BaseModel
 
-from sqlalchemy import Column, String
+from sqlalchemy import Column, Integer, Unicode
 from .meta import Base
 
 
@@ -10,9 +10,10 @@ class User(Base):
 
     __tablename__ = 'users'
 
-    id = Column(String(255), primary_key=True)
-    name = Column(String(255))
-    email = Column(String(255))
+    id = Column(Integer(), primary_key=True)
+    external_id = Column(Unicode(255), unique=True)
+    name = Column(Unicode(255))
+    email = Column(Unicode(255))
 
 
 class UserModel(BaseModel):

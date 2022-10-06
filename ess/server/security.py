@@ -1,4 +1,5 @@
 """Security dependencies."""
+import asyncio
 import httpx
 import logging
 
@@ -7,6 +8,7 @@ from authlib.jose.errors import JoseError
 from fastapi import Depends, Request
 from fastapi.exceptions import HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from time import time
 
 from ..models import get_session, User
@@ -74,16 +76,20 @@ async def authenticated_user(claims: dict = Depends(oauth2_claims)) -> User:
     Creates the user in the database, if it doesn't exist
     """
     async with get_session() as dbsession:
-        query = select(User).filter(User.id == claims['sub'])
+        query = select(User).filter(User.external_id == claims['sub'])
         result = await dbsession.execute(query)
         user = result.scalar()
         if user is None:
             logger.debug(f'Creating new user {claims["sub"]}')
-            user = User(id=claims['sub'],
+            user = User(external_id=claims['sub'],
                         name=f'{claims["given_name"]} {claims["family_name"]}',
                         email=claims['email'])
             dbsession.add(user)
-            await dbsession.commit()
+            try:
+                await dbsession.commit()
+            except IntegrityError:
+                await asyncio.sleep(0.1)
+                return await authenticated_user(claims)
         elif user.email != claims['email']:
             user.email = claims['email']
             await dbsession.commit()

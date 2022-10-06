@@ -38,7 +38,7 @@ def get_sessionmaker() -> Callable[[], AsyncSession]:
     global _session_factory
     if _session_factory is None:
         logger.debug('Creating sessionmaker')
-        _session_factory = sessionmaker(get_engine(), class_=AsyncSession)
+        _session_factory = sessionmaker(get_engine(), expire_on_commit=False, class_=AsyncSession)
     return _session_factory
 
 

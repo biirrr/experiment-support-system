@@ -19,5 +19,7 @@ export const currentUser = writable(null as User);
  */
 export async function getCurrentUser() {
     const response = await fetch('/users/current');
-    currentUser.set(await response.json());
+    if (response.status === 200) {
+        currentUser.set(await response.json());
+    }
 }
