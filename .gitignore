@@ -7,4 +7,5 @@ ess.sqlite
 .vstudio
 __pycache__
 .vscode
-dist
+/dist
+/src/**/dist

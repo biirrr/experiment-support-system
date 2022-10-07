@@ -59,7 +59,7 @@ async def oauth2_claims(request: Request, jkws: list[dict] = Depends(oauth2_jwks
                 claims = jwt.decode(token, key=jkws)
                 if time() < claims['exp'] + 30:
                     if 'allowed-origins' in claims:
-                        if 'Origin' in request.headers and request.headers['Origin'] in claims['allowed-origins']:
+                        if 'Origin' not in request.headers or request.headers['Origin'] in claims['allowed-origins']:
                             return claims
                     else:
                         return claims

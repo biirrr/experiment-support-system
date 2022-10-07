@@ -6,7 +6,7 @@
 
 <div class="bg-neutral-200 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 min-h-screen">
     <main class="container mx-auto">
-        <Router>
+        <Router basepath="/editor">
             <Content/>
         </Router>
     </main>
