@@ -1,12 +1,14 @@
 import { login, authorise, refreshToken } from './authentication';
-import { fetch } from './connection';
+import { fetch, busyCounter, isBusy } from './connection';
 import { currentUser, getCurrentUser } from './user';
 
 export {
+    busyCounter,
     fetch,
+    isBusy,
 
-    login,
     authorise,
+    login,
     refreshToken,
 
     currentUser,

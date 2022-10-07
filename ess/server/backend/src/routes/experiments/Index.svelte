@@ -29,6 +29,4 @@
             <li>You currently do not have any experiments. <Link to="/experiments/create">Click here to create a new experiment</Link></li>
         {/each}
     </ul>
-{:else}
-    <Loading/>
 {/if}

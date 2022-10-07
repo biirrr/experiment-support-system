@@ -1,12 +1,13 @@
 <script lang="ts">
     import { Link, useLocation } from 'svelte-navigator';
 
-    import { login, currentUser } from '../stores';
+    import { login, currentUser, isBusy } from '../stores';
+    import Loading from './Loading.svelte';
 
     const params = useLocation();
 </script>
 
-<header class="px-4 bg-primary text-neutral-50">
+<header class="relative px-4 bg-primary text-neutral-50">
     <nav>
         <ul class="flex flex-row space-x-4">
             <li role="presentation" class="flex-none"><Link to="/" class="inline-block py-2 px-4 {$params.pathname === '/' ? 'bg-secondary' : 'bg-primary'} hover:bg-secondary-light focus:bg-secondary-light transition transition-colors">Experiment Support System</Link></li>
@@ -21,4 +22,7 @@
             {/if}
         </ul>
     </nav>
+    {#if $isBusy}
+        <Loading/>
+    {/if}
 </header>

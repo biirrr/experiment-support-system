@@ -1,7 +1,7 @@
 <script lang="ts">
     import { derived } from 'svelte/store';
 
-    import { ButtonLink, Link, Loading } from '../components';
+    import { ButtonLink, Link } from '../components';
     import { currentUser, fetch } from '../stores';
 
     const experiments = derived(currentUser, (currentUser, set) => {
@@ -48,6 +48,7 @@
 </script>
 
 <h1>Welcome, {$currentUser.name}</h1>
+
 {#if $experiments !== null}
     <div class="flex flex-row space-x-4">
         <div class="flex-1">
@@ -82,6 +83,4 @@
             </ul>
         </div>
     </div>
-{:else}
-    <Loading/>
 {/if}

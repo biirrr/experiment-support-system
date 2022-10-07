@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite build --base=/editor/ -w",
+    "dev": "vite build --base=/editor/ -w --minify=false",
     "build": "vite build --base=/editor/",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json"

@@ -23,5 +23,5 @@
 {#if $experiment}
     <h1>{$experiment.title}</h1>
 {:else}
-    <Loading/>
+    <h1>Loading...</h1>
 {/if}
