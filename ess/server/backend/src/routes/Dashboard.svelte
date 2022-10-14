@@ -51,7 +51,7 @@
 
 {#if $experiments !== null}
     <div class="flex flex-row space-x-4">
-        <div class="flex-1">
+        <section class="flex-1">
             <h2 class="border-b-2 border-primary dark:border-primary-light">Active Experiments</h2>
             <ul>
                 {#each $activeExperiments as experiment}
@@ -60,8 +60,8 @@
                     <li>You currently have no active experiments.</li>
                 {/each}
             </ul>
-        </div>
-        <div class="flex-1">
+        </section>
+        <section class="flex-1">
             <h2 class="border-b-2 border-primary dark:border-primary-light">Experiments in Development</h2>
             <ul>
                 {#each $devExperiments as experiment}
@@ -70,9 +70,9 @@
                     <li>You currently have no experiments in development.</li>
                 {/each}
             </ul>
-        <p class="mt-8"><ButtonLink to="/experiments/create">Create a new Experiment</ButtonLink></p>
-        </div>
-        <div class="flex-1">
+            <p class="mt-8"><ButtonLink to="/experiments/create">Create a new Experiment</ButtonLink></p>
+        </section>
+        <section class="flex-1">
             <h2 class="border-b-2 border-primary dark:border-primary-light">Completed Experiments</h2>
             <ul>
                 {#each $completedExperiments as experiment}
@@ -81,6 +81,6 @@
                     <li>You currently have no completed experiments.</li>
                 {/each}
             </ul>
-        </div>
+        </section>
     </div>
 {/if}
