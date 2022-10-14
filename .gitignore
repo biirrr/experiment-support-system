@@ -8,4 +8,4 @@ ess.sqlite
 __pycache__
 .vscode
 /dist
-/src/**/dist
+dist

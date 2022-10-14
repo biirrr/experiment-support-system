@@ -10,14 +10,14 @@ module.exports = {
         extend: {
             colors: {
                 primary: {
-                    DEFAULT: colors.indigo['800'],
-                    light: colors.indigo['700'],
-                    dark: colors.indigo['900'],
+                    DEFAULT: colors.emerald['400'],
+                    light: colors.emerald['300'],
+                    dark: colors.emerald['500'],
                 },
                 secondary: {
-                    DEFAULT: colors.fuchsia['700'],
-                    light: colors.fuchsia['600'],
-                    dark: colors.fuchsia['800'],
+                    DEFAULT: colors.emerald['800'],
+                    light: colors.emerald['700'],
+                    dark: colors.emerald['900'],
                 }
             },
         },

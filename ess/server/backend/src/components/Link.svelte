@@ -5,4 +5,4 @@
     export let title: string = undefined;
 </script>
 
-<Link to={to} title={title} class="text-primary hover:text-primary-dark hover:underline focus:text-primary-dark focus:underline transition transition-colors"><slot></slot></Link>
+<Link to={to} title={title} class="text-secondary hover:text-secondary-dark hover:underline focus:text-secondary-dark focus:underline transition transition-colors"><slot></slot></Link>
