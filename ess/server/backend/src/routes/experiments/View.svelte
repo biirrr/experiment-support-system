@@ -1,23 +1,17 @@
 <script lang="ts">
     import { useParams } from 'svelte-navigator';
-    import { derived } from 'svelte/store';
+    import { onDestroy } from 'svelte';
 
     import { ButtonLink } from '../../components';
-    import { fetch } from '../../stores';
+    import { experiment } from '../../stores';
 
     const params = useParams();
 
-    const experiment = derived(params, (params, set) => {
-        if (params.eid) {
-            fetch('/experiments/' + params.eid).then((response) => {
-                if (response.status == 200) {
-                    response.json().then((obj) => {
-                        set(obj);
-                    });
-                }
-            });
-        }
-    }, null as Experiment);
+    const paramsUnsubscribe = params.subscribe((params) => {
+        experiment.fetch(Number.parseInt(params.eid));
+    });
+
+    onDestroy(paramsUnsubscribe);
 </script>
 
 {#if $experiment}

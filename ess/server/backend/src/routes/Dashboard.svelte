@@ -1,20 +1,15 @@
 <script lang="ts">
+    import { onDestroy } from 'svelte';
     import { derived } from 'svelte/store';
 
     import { ButtonLink, Link } from '../components';
-    import { currentUser, fetch } from '../stores';
+    import { currentUser, experiments } from '../stores';
 
-    const experiments = derived(currentUser, (currentUser, set) => {
-        if (currentUser) {
-            fetch('/experiments').then((response) => {
-                if (response.status === 200) {
-                    response.json().then((data) => {
-                        set(data);
-                    });
-                }
-            });
+    const currentUserUnsubscribe = currentUser.subscribe((currentUser) => {
+        if (currentUser !== null) {
+            experiments.fetch(null);
         }
-    }, null as Experiment[]);
+    });
 
     const activeExperiments = derived(experiments, (experiments) => {
         if (experiments) {
@@ -45,6 +40,8 @@
             return [];
         }
     });
+
+    onDestroy(currentUserUnsubscribe);
 </script>
 
 <h1>Welcome, {$currentUser.name}</h1>

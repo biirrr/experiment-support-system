@@ -1,20 +1,16 @@
 <script lang="ts">
-    import { derived } from 'svelte/store';
-    import { ButtonLink, Icon, Link, Loading } from '../../components';
+    import { onDestroy } from 'svelte';
+    import { ButtonLink, Icon, Link } from '../../components';
 
-    import { currentUser, fetch } from '../../stores';
+    import { currentUser, experiments } from '../../stores';
 
-    const experiments = derived(currentUser, (currentUser, set) => {
-        if (currentUser) {
-            fetch('/experiments').then((response) => {
-                if (response.status === 200) {
-                    response.json().then((data) => {
-                        set(data);
-                    });
-                }
-            });
+    const currentUserUnsubscribe = currentUser.subscribe((currentUser) => {
+        if (currentUser !== null) {
+            experiments.fetch(null);
         }
-    }, null);
+    });
+
+    onDestroy(currentUserUnsubscribe);
 </script>
 
 <div class="flex flex-row">
