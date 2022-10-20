@@ -1,28 +1,28 @@
 """Models for an experiment screen."""
 from pydantic import BaseModel, constr
-from sqlalchemy import Column, Integer, Unicode, ForeignKey
+from sqlalchemy import Column, Integer, Unicode, UnicodeText, ForeignKey
 
 from .meta import Base
 
 
-class Experiment(Base):
+class Screen(Base):
     """The Screen database model."""
 
-    __tablename__ = 'experiments'
+    __tablename__ = 'screens'
 
     id = Column(Integer(), primary_key=True)
-    owner_id = Column(Integer, ForeignKey('users.id'))
-    title = Column(Unicode(255))
-    status = Column(Unicode(16))
+    experiment_id = Column(Integer, ForeignKey('experiments.id'))
+    name = Column(Unicode(255))
+    code = Column(UnicodeText)
 
 
-class ExperimentModel(BaseModel):
+class ScreenModel(BaseModel):
     """The Pydantic model for formatting a screen."""
 
     id: int
-    owner_id: int
-    title: str
-    status: str
+    experiment_id: int
+    name: str
+    code: str
 
     class Config:
         """Configuration to set orm_mode to True."""
@@ -30,7 +30,13 @@ class ExperimentModel(BaseModel):
         orm_mode = True
 
 
-class CreateExperimentModel(BaseModel):
+class CreateScreenModel(BaseModel):
     """The Pydantic model to validate creating a new screen."""
 
-    title: constr(strip_whitespace=True, min_length=1)
+    name: constr(strip_whitespace=True, min_length=1)
+
+
+class CompileScreenModel(BaseModel):
+    """The Pydantic model to validate compiling a screen."""
+
+    code: str

@@ -2,7 +2,7 @@
     import { Route, useParams } from 'svelte-navigator';
     import { onDestroy } from 'svelte';
 
-    import { Create, } from './screns';
+    import { Create, View } from './screns';
     import { experiment } from '../../stores';
 
     const params = useParams();
@@ -15,3 +15,4 @@
 </script>
 
 <Route path="/create"><Create/></Route>
+<Route path="/:sid"><View/></Route>

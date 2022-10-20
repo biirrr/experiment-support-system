@@ -7,4 +7,4 @@
 <Route path="/"><Index/></Route>
 <Route path="/create"><Create/></Route>
 <Route path="/:eid"><View/></Route>
-<Route path="/:eid/pages/*"><Screens/></Route>
+<Route path="/:eid/screens/*"><Screens/></Route>

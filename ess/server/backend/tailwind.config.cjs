@@ -20,6 +20,11 @@ module.exports = {
                     dark: colors.emerald['900'],
                 }
             },
+            height: {
+                'screen-7/10': '70vh',
+                'screen-8/10': '80vh',
+                'screen-9/10': '90vh',
+            }
         },
     },
     plugins: [],

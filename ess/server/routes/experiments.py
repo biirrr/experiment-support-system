@@ -1,10 +1,10 @@
 """Functions for handling user routes."""
 from fastapi import APIRouter, Depends
-from fastapi.exceptions import HTTPException
 from sqlalchemy import select
 
 from ...models import get_session, User, Experiment, ExperimentModel, CreateExperimentModel
 from ..security import authenticated_user
+from ..utils import FetchSingle
 
 
 router = APIRouter(prefix='/experiments')
@@ -29,15 +29,13 @@ async def get_experiments(user: User = Depends(authenticated_user)) -> list[Expe
         return list(result.scalars())
 
 
+view_experiment = FetchSingle(Experiment, 'eid', authorisation='view')
+
+
 @router.get('/{eid}', response_model=ExperimentModel)
-async def get_experiment(eid: int, user: User = Depends(authenticated_user)) -> Experiment:
-    """Get an experiment."""
-    async with get_session() as dbsession:
-        query = select(Experiment).filter(Experiment.id == eid)
-        result = await dbsession.execute(query)
-        experiment = result.scalar()
-        if experiment is None:
-            raise HTTPException(404)
-        elif experiment.owner_id != user.id:
-            raise HTTPException(403)
+async def get_experiment(experiment: Experiment = Depends(view_experiment)) -> Experiment:
+    """Get the experiment specified by `eid`."""
     return experiment
+
+
+edit_experiment = FetchSingle(Experiment, 'eid', authorisation='edit')

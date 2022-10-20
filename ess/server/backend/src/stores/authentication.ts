@@ -28,7 +28,7 @@ export async function login() {
     const codeVerifier = await generateCodeVerifier();
     sessionStoreValue('oauth2.codeVerifier', codeVerifier);
     document.location = await oauth2Client.authorizationCode.getAuthorizeUri({
-        redirectUri: 'http://localhost:8000/editor//oauth2/authorize',
+        redirectUri: 'http://localhost:8000/editor/oauth2/authorize',
         codeVerifier: codeVerifier,
         scope: ['openid'],
         state: 'abc',
@@ -48,7 +48,7 @@ export async function authorise() {
             const newToken = await oauth2Client.authorizationCode.getTokenFromCodeRedirect(
                 window.document.location.href,
                 {
-                    redirectUri: 'http://localhost:8000/editor//oauth2/authorize',
+                    redirectUri: 'http://localhost:8000/editor/oauth2/authorize',
                     codeVerifier: codeVerifier,
                     state: 'abc',
                 }
@@ -65,5 +65,7 @@ export async function authorise() {
  * Refresh the OAuth2 access token.
  */
 export async function refreshToken() {
-    oauth2Token.set(await oauth2Client.refreshToken(get(oauth2Token)));
+    const newToken = await oauth2Client.refreshToken(get(oauth2Token))
+    oauth2Token.set(newToken);
+    sessionStoreValue('oauth2.token', newToken);
 }

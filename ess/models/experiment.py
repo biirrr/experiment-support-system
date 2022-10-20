@@ -3,6 +3,7 @@ from pydantic import BaseModel, constr
 from sqlalchemy import Column, Integer, Unicode, ForeignKey
 
 from .meta import Base
+from .user import User
 
 
 class Experiment(Base):
@@ -14,6 +15,10 @@ class Experiment(Base):
     owner_id = Column(Integer, ForeignKey('users.id'))
     title = Column(Unicode(255))
     status = Column(Unicode(16))
+
+    def is_authorised(self: 'Experiment', user: User, action: str) -> bool:
+        """Check if the given `user` is authorised for the `action`."""
+        return self.owner_id == user.id
 
 
 class ExperimentModel(BaseModel):

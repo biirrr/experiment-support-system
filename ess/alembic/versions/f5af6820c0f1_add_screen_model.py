@@ -5,7 +5,7 @@ Revises: 87156bf83a36
 Create Date: 2022-10-14 21:26:26.940590
 """
 from alembic import op
-from sqlalchemy import Column, Integer, Unicode, ForeignKey
+from sqlalchemy import Column, Integer, Unicode, UnicodeText, ForeignKey
 
 from ess.models.meta import metadata
 
@@ -23,7 +23,8 @@ def upgrade() -> None:
                     metadata,
                     Column('id', Integer, primary_key=True),
                     Column('experiment_id', Integer, ForeignKey('experiments.id')),
-                    Column('name', Unicode(255)))
+                    Column('name', Unicode(255)),
+                    Column('code', UnicodeText))
 
 
 def downgrade() -> None:

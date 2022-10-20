@@ -19,6 +19,12 @@ type Experiment = {
     status: 'development'|'active'|'completed',
 };
 
+type ExperimentScreen = {
+    id: number,
+    name: string,
+    code: string,
+};
+
 type PydanticError = {
     ctx: {[x: string]: string},
     loc: string[],
