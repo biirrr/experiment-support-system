@@ -1,9 +1,12 @@
 """Functions for handling user routes."""
 from fastapi import APIRouter, Depends
+from fastapi.responses import Response
+from lark.exceptions import UnexpectedInput
 from sqlalchemy import select
 
 from .experiments import view_experiment, edit_experiment
-from ...models import get_session, Experiment, Screen, ScreenModel, CreateScreenModel, CompileScreenModel
+from ...models import (get_session, Experiment, Screen, ScreenModel, CreateScreenModel, CompileScreenModel,
+                       UpdateScreenModel)
 from ..utils import FetchSingle
 from ...compiler import compile_page
 
@@ -41,7 +44,26 @@ async def get_screen(experiment: Experiment = Depends(view_experiment), screen: 
     return screen
 
 
+@router.put('/{sid}', response_model=ScreenModel)
+async def put_screen(mdl: UpdateScreenModel, experiment: Experiment = Depends(view_experiment), screen: Screen = Depends(view_screen)) -> Screen:  # noqa: E501
+    """Get the screen with the identifier `sid`."""
+    async with get_session() as dbsession:
+        dbsession.add(screen)
+        screen.name = mdl.name
+        screen.code = mdl.code
+        try:
+            screen.compiled = compile_page(mdl.code)
+        except UnexpectedInput:
+            screen.compiled = None
+        await dbsession.commit()
+    return screen
+
+
 @router.post('/{sid}/compile')
-async def post_compile(mdl: CompileScreenModel, experiment: Experiment = Depends(view_experiment)) -> dict:
+async def post_compile(mdl: CompileScreenModel, response: Response, experiment: Experiment = Depends(view_experiment)) -> dict:  # noqa: E501
     """Compile the screen."""
-    return compile_page(mdl.code)
+    try:
+        return compile_page(mdl.code)
+    except UnexpectedInput as e:
+        response.status_code = 400
+        return {'error': str(e)}

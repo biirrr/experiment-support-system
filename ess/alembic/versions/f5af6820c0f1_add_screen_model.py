@@ -6,6 +6,7 @@ Create Date: 2022-10-14 21:26:26.940590
 """
 from alembic import op
 from sqlalchemy import Column, Integer, Unicode, UnicodeText, ForeignKey
+from sqlalchemy_json import NestedMutableJson
 
 from ess.models.meta import metadata
 
@@ -24,7 +25,8 @@ def upgrade() -> None:
                     Column('id', Integer, primary_key=True),
                     Column('experiment_id', Integer, ForeignKey('experiments.id')),
                     Column('name', Unicode(255)),
-                    Column('code', UnicodeText))
+                    Column('code', UnicodeText),
+                    Column('compiled', NestedMutableJson))
 
 
 def downgrade() -> None:

@@ -7,6 +7,7 @@ import Icon from './Icon.svelte';
 import Input from './Input.svelte';
 import Link from './Link.svelte';
 import Loading from './Loading.svelte';
+import Toolbar from './Toolbar.svelte';
 
 export {
     Button,
@@ -18,4 +19,5 @@ export {
     Input,
     Link,
     Loading,
+    Toolbar,
 };
