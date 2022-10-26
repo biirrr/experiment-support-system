@@ -12,6 +12,7 @@
     let compileTimeout = -1;
     let ast = [];
     let compiling = true;
+    let compileError = null as string;
 
     let saveState = 0;
 
@@ -29,11 +30,16 @@
     function compile(code: string): void {
         async function run_compilation(): Promise<void> {
             compiling = true;
+            compileError = null;
             const response = await fetch('/experiments/' + $experiment.id + '/screens/' + $params.sid + '/compile', {
                 method: 'POST',
                 body: JSON.stringify({'code': code}),
             });
-            //ast = await response.json()
+            if (response.status === 200) {
+                ast = await response.json()
+            } else {
+                compileError = (await response.json()).error;
+            }
             compiling = false;
         }
 
@@ -63,6 +69,13 @@
             saveState = 0;
         }
     }
+
+    function editorKeydown(ev: KeyboardEvent) {
+        if (ev.ctrlKey && ev.key === 's') {
+            ev.preventDefault();
+            save();
+        }
+    }
 </script>
 
 {#if $screen}
@@ -87,22 +100,26 @@
         </Button>
     </Toolbar>
 
-    <div class="h-screen-8/10 flex flex-row space-x-4">
+    <div class="h-screen-8/10 flex flex-row space-x-4" on:keydown={editorKeydown}>
         <section class="flex-1">
             <h2 class="sr-only">Screen editor</h2>
             <CodeEditor bind:value={code} />
         </section>
         <section class="flex-1 relative">
             <h2 class="sr-only">Screen view</h2>
-            {#each ast as instruction}
-                {#if instruction.op === 'Markdown'}
-                    <div>{@html marked(instruction.string)}</div>
-                {:else if instruction.op === 'Checkbox'}
-                    <div><Input type="checkbox" value={true}>{instruction.label}</Input></div>
-                {:else}
-                    <div>{instruction.op}</div>
-                {/if}
-            {/each}
+            {#if compileError}
+                <p class="font-mono text-red-500 whitespace-pre">{compileError}</p>
+            {:else}
+                {#each ast as instruction}
+                    {#if instruction.op === 'Markdown'}
+                        <div>{@html marked(instruction.string)}</div>
+                    {:else if instruction.op === 'Checkbox'}
+                        <div><Input type="checkbox" value={true}>{instruction.label}</Input></div>
+                    {:else}
+                        <div>{instruction.op}</div>
+                    {/if}
+                {/each}
+            {/if}
             {#if compiling}
                 <div transition:fade class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
                     <span class="sr-only">Compiling your code</span>
