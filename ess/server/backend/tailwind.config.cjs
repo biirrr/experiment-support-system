@@ -10,14 +10,10 @@ module.exports = {
         extend: {
             colors: {
                 primary: {
-                    DEFAULT: colors.emerald['400'],
-                    light: colors.emerald['300'],
-                    dark: colors.emerald['500'],
+                    DEFAULT: 'var(--colour-primary)',
                 },
                 secondary: {
-                    DEFAULT: colors.emerald['800'],
-                    light: colors.emerald['700'],
-                    dark: colors.emerald['900'],
+                    DEFAULT: 'var(--colour-secondary)',
                 }
             },
             height: {

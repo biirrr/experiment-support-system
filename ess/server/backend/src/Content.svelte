@@ -7,7 +7,7 @@
 </script>
 
 <Header/>
-<div class="px-4 py-4 bg-white dark:bg-neutral-700">
+<main id="main-content" class="container mx-auto px-4 py-4">
     {#if $currentUser}
         <Route path="/"><Dashboard/></Route>
         <Route path="/experiments/*"><Experiments/></Route>
@@ -17,5 +17,5 @@
         <h1>Welcome to the Experiment Support System</h1>
         <p>To use the Experiment Support System, you must be <Button on:action={login}>logged in.</Button></p>
     {/if}
-</div>
+</main>
 <Footer/>

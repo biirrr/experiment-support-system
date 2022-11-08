@@ -20,8 +20,8 @@
 
 {#if $experiment}
     <h1>{$experiment.title}</h1>
-    <section class="w-1/3">
-        <div class="flex flex-row">
+    <section class="w-1/3 border border-neutral-300 rounded shadow">
+        <div class="flex flex-row items-center px-3 pt-2 pb-1 border-b border-neutral-300">
             <h2 class="flex-1">Screens</h2>
             <span class="flex-none">
                 <ButtonLink to="/experiments/{$params.eid}/screens/create">
@@ -31,11 +31,11 @@
                 </ButtonLink>
             </span>
         </div>
-        <ul>
+        <ul class="px-3 py-2">
             {#each $screens as screen}
-                <li><Link to="/experiments/{$experiment.id}/screens/{screen.id}">{screen.name}</Link></li>
+                <li class="py-2"><Link to="/experiments/{$experiment.id}/screens/{screen.id}">{screen.name}</Link></li>
             {:else}
-                <li>This experiment currently has no screens. <Link to="/experiments/{$params.eid}/screens/create">Create a new screen now</Link></li>
+                <li class="py-2">This experiment currently has no screens.</li>
             {/each}
         </ul>
     </section>
