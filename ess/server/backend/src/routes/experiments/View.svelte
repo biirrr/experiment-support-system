@@ -24,7 +24,7 @@
         <div class="flex flex-row items-center px-3 pt-2 pb-1 border-b border-neutral-300">
             <h2 class="flex-1">Screens</h2>
             <span class="flex-none">
-                <ButtonLink to="/experiments/{$params.eid}/screens/create">
+                <ButtonLink to="/experiments/{$params.eid}/screens/create" ariaLabel="Add a screen">
                     <svg viewBox="0 0 24 24" class="w-6 h-6">
                         <path fill="currentColor" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
                     </svg>

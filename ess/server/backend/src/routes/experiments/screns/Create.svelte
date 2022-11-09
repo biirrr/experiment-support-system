@@ -35,7 +35,7 @@
     <form on:submit={createExperiment} class="max-w-xl">
         <Input type="text" bind:value={name} error={errors.name}>Name</Input>
         <div class="text-right mt-4 pt-4 border-t border-primary dark:border-primary-light">
-            <Button role="submit">Create</Button>
+            <Button type="submit">Create</Button>
         </div>
     </form>
 {/if}
