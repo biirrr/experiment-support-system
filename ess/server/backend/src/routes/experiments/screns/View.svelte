@@ -100,7 +100,7 @@
         </Button>
     </Toolbar>
 
-    <div class="h-screen-8/10 flex flex-row space-x-4" on:keydown={editorKeydown}>
+    <div class="h-screen-7/10 flex flex-row space-x-4" on:keydown={editorKeydown}>
         <section class="flex-1">
             <h2 class="sr-only">Screen editor</h2>
             <CodeEditor bind:value={code} />
