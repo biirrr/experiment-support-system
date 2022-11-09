@@ -101,11 +101,11 @@
     </Toolbar>
 
     <div class="h-screen-7/10 flex flex-row space-x-4" on:keydown={editorKeydown}>
-        <section class="flex-1">
+        <section class="flex-0 w-1/2 overflow-hidden">
             <h2 class="sr-only">Screen editor</h2>
             <CodeEditor bind:value={code} />
         </section>
-        <section class="flex-1 relative">
+        <section class="flex-0 w-1/2 relative overflow-auto">
             <h2 class="sr-only">Screen view</h2>
             {#if compileError}
                 <p class="font-mono text-red-500 whitespace-pre">{compileError}</p>
